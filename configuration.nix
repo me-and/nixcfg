@@ -15,11 +15,31 @@ let
   hasPackage = p: lib.any (x: x == p) allInstalledPackages;
 
   # https://discourse.nixos.org/t/installing-only-a-single-package-from-unstable/5598/4
-  unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") { config = config.nixpkgs.config; };
-  tip = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/master.tar.gz") { config = config.nixpkgs.config; };
-
-  #taskwarrior = unstable.taskwarrior3;
-  taskwarrior = pkgs.taskwarrior;
+  # Listed in rough stability order per
+  # https://discourse.nixos.org/t/differences-between-nix-channels/13998
+  altChannels = lib.forEach
+    [
+      { name = "small"; branch = "nixos-23.11-small"; }
+      { name = "unstable"; branch = "nixos-unstable"; }
+      { name = "unstable-small"; branch = "nixos-unstable-small"; }
+      { name = "nixpkgs-unstable"; branch = "nixpkgs-unstable"; }
+      { name = "nixpkgs-unstable-small"; branch = "nixpkgs-unstable-small"; }
+      { name = "tip"; branch = "master"; }
+    ]
+    (v: v // rec {
+      url = "https://github.com/NixOS/nixpkgs/archive/${v.branch}.tar.gz";
+      tarball = fetchTarball url;
+      pkgs = import tarball { config = config.nixpkgs.config; };
+    });
+    firstPackage =
+      name:
+      let
+        allPackages =
+          [ (pkgs."${name}" or null) ]
+          ++ map (c: c.pkgs."${name}" or null) altChannels;
+      in
+      assert lib.any (p: p != null) allPackages;
+      lib.findFirst (p: p != null) null allPackages;
 
 in
 {
@@ -52,7 +72,7 @@ in
 
     # Set up printing.
     services.printing.enable = true;
-    services.printing.drivers = [ unstable.cups-kyocera-3500-4500 ];
+    services.printing.drivers = [ (firstPackage "cups-kyocera-3500-4500") ];
 
     # Set up sound.
     sound.enable = true;
