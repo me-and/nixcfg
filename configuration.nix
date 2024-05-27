@@ -8,7 +8,10 @@ let
 
   hyperVResolution = "1920x1080";
 
-  allInstalledPackages = lib.flatten ([config.environment.systemPackages] ++ (lib.mapAttrsToList (k: v: v.packages) config.users.users));
+  allInstalledPackages = builtins.concatLists (
+    [ config.environment.systemPackages ]
+    ++ (lib.mapAttrsToList (k: v: v.packages) config.users.users)
+  );
   hasPackage = p: lib.any (x: x == p) allInstalledPackages;
 
   # https://discourse.nixos.org/t/installing-only-a-single-package-from-unstable/5598/4
@@ -76,12 +79,13 @@ in
           ${pkgs.coreutils-full}/bin/mkdir -p "$HOME"/OneDrive
 
           if [[ -e /run/systemd/timesyncd/synchronized ]]; then
-              # Clock is already synchronised so no need to do anything complicated.
+              # Clock is already synchronised so no need to do anything
+              # complicated.
               exit 0
           fi
 
-          # Set up a coprocess to watch for the file that flags synchronisation is
-          # complete.
+          # Set up a coprocess to watch for the file that flags synchronisation
+          # is complete.
           coproc inw {
               exec ${pkgs.inotify-tools}/bin/inotifywait -e create,moved_to \
                   --include '/synchronized$' /run/systemd/timesync 2>&1
@@ -94,8 +98,8 @@ in
               fi
           done
 
-          # Check the file still doesn't exist, to avoid a window condition between
-          # setting up the watch process.
+          # Check the file still doesn't exist, to avoid a window condition
+          # between setting up the watch process.
           if [[ -e /run/systemd/timesync/synchronized ]]; then
               kill "$inw_PID"
               rc=0
@@ -108,7 +112,8 @@ in
               fi
           fi
 
-          # Wait for the coprocess to exit, indicating the flag file has been created.
+          # Wait for the coprocess to exit, indicating the flag file has been
+          # created.
           time wait "$inw_PID";
         '';
         script = ''
@@ -122,10 +127,13 @@ in
           # subprocess, and systemctl will see the service notification coming
           # from the wrong PID.
           exec "${pkgs.rclone}/bin/rclone" mount \
-              --config="$HOME"/.config/rclone/rclone.conf --vfs-cache-mode=full \
-              --cache-dir="$CACHE_DIRECTORY" onedrive: "$HOME"/OneDrive
+              --config="$HOME"/.config/rclone/rclone.conf \
+              --vfs-cache-mode=full \
+              --cache-dir="$CACHE_DIRECTORY" \
+              onedrive: "$HOME"/OneDrive
         '';
-        serviceConfig.ExecReload = "${pkgs.util-linux}/bin/kill -HUP \$MAINPID";
+        serviceConfig.ExecReload =
+          "${pkgs.util-linux}/bin/kill -HUP \$MAINPID";
       };
     };
 
@@ -135,7 +143,8 @@ in
     # Check the channel list is as expected.
     nix.checkChannels = true;
     nix.channels = {
-      home-manager = "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
+      home-manager =
+        "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
       nixos = "https://nixos.org/channels/nixos-23.11";
     };
 
@@ -154,8 +163,8 @@ in
       psmisc
     ];
 
-    # If this isn't WSL, want OpenSSH for inbound connections, and mDNS for both
-    # inbound and outbound connections.
+    # If this isn't WSL, want OpenSSH for inbound connections, and mDNS for
+    # both inbound and outbound connections.
     services.openssh.enable = true;
     services.avahi.enable = true;
     services.avahi.nssmdns = true;
@@ -187,8 +196,8 @@ in
       linger = true;
     };
 
-    # Enable nix-index, run it automatically, and replace command-not-found with
-    # it.
+    # Enable nix-index, run it automatically, and replace command-not-found
+    # with it.
     programs.nix-index.enable = true;
     programs.nix-index.enableBashIntegration = true;
     programs.command-not-found.enable = false;
@@ -196,7 +205,11 @@ in
     systemd.services.nix-index = {
       script = "${pkgs.nix-index}/bin/nix-index";
       environment.NIX_INDEX_DATABASE = "/var/cache/nix-index";
-      environment.NIX_PATH = "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos:nixos-config=/etc/nixos/configuration.nix:/nix/var/nix/profiles/per-user/root/channels";
+      environment.NIX_PATH = lib.concatStringsSep ":" [
+        "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos"
+        "nixos-config=/etc/nixos/configuration.nix"
+        "/nix/var/nix/profiles/per-user/root/channels"
+      ];
     };
     systemd.timers.nix-index = {
       wantedBy = [ "timers.target" ];
@@ -228,4 +241,4 @@ in
 }
 
 # TODO Better modeline and/or better Vim plugins for Nix config files.
-# vim: et ts=2 sw=2 autoindent ft=nix
+# vim: et ts=2 sw=2 autoindent ft=nix colorcolumn=80

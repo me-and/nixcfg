@@ -4,7 +4,8 @@ let
 
   gitFromSource = pkgs.git.overrideAttrs (oldAttrs:
     let
-      gitHubAPIInfo = builtins.fetchurl "https://api.github.com/repos/gitster/git/branches/${cfg.sourceBranch}";
+      gitHubAPIInfo = builtins.fetchurl
+        "https://api.github.com/repos/gitster/git/branches/${cfg.sourceBranch}";
       rev = (builtins.fromJSON (builtins.readFile (gitHubAPIInfo))).commit.sha;
     in rec {
       # UUID randomly generated to make it possible to reliably find other Git
@@ -29,18 +30,26 @@ let
           export HOME
           git config --global safe.directory '*'
 
-          git clone --branch ${lib.escapeShellArg cfg.sourceBranch} --single-branch "''${reference_args[@]}" --dissociate --recurse-submodules https://github.com/gitster/git $out
+          git clone --branch ${lib.escapeShellArg cfg.sourceBranch} \
+              --single-branch \
+              "''${reference_args[@]}" \
+              --dissociate \
+              --recurse-submodules \
+              https://github.com/gitster/git $out
           cd $out
           make GIT-VERSION-FILE
         '';
-      version = lib.removePrefix "GIT_VERSION = " (lib.fileContents "${src}/GIT-VERSION-FILE");
+      version = lib.removePrefix
+        "GIT_VERSION = "
+        (lib.fileContents "${src}/GIT-VERSION-FILE");
       installCheckTarget =
-        if cfg.buildWithTests
-        then oldAttrs.installCheckTarget
-        else null;
+        if cfg.buildWithTests then oldAttrs.installCheckTarget else null;
       preInstallCheck =
         # https://github.com/NixOS/nixpkgs/pull/314258
-        (builtins.replaceStrings ["disable_test t1700-split-index"] [":"] oldAttrs.preInstallCheck)
+        (builtins.replaceStrings
+          ["disable_test t1700-split-index"] [":"]
+          oldAttrs.preInstallCheck
+        )
         # https://github.com/NixOS/nixpkgs/commit/150cd0ab619dae2da2fc7f8d8478000571e1717d
         + ''
           disable_test t9902-completion
@@ -85,3 +94,6 @@ in
     sandbox = "relaxed";
   };
 }
+
+# TODO Better modeline and/or better Vim plugins for Nix config files.
+# vim: et ts=2 sw=2 autoindent ft=nix colorcolumn=80

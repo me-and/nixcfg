@@ -7,7 +7,8 @@
       type = lib.types.attrsOf lib.types.str;
       example = {
         nixos = "https://nixos.org/channels/nixos-23.11";
-        home-manager = "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
+        home-manager =
+          "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
       };
       description = lib.mdDoc ''
         The channels to ensure are configured.
@@ -17,7 +18,20 @@
 
   config.system.activationScripts = lib.mkIf config.nix.checkChannels {
     checkNixChannels =
-      let channelListFile = pkgs.writeText "expected-channel-list" (lib.concatLines (lib.mapAttrsToList (k: v: "${v} ${k}") config.nix.channels));
-      in "${pkgs.diffutils}/bin/diff <(sort ${channelListFile}) <(sort ~root/.nix-channels)";
+      let
+        channelListLines =
+          lib.mapAttrsToList (k: v: "${v} ${k}") config.nix.channels;
+        channelListFile = pkgs.writeText
+          "expected-channel-list"
+          (lib.concatLines channelListLines);
+      in
+      ''
+      ${pkgs.diffutils}/bin/diff \
+          <(sort ${channelListFile}) \
+          <(sort ~root/.nix-channels)
+      '';
   };
 }
+
+# TODO Better modeline and/or better Vim plugins for Nix config files.
+# vim: et ts=2 sw=2 autoindent ft=nix colorcolumn=80
