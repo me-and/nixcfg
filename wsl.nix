@@ -36,7 +36,7 @@
     # recursion :(
     users.users.adam.linger = lib.mkForce false;
 
-    nix.channels.nixos-wsl = https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz;
+    nix.channels.nixos-wsl = "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
   };
 }
 

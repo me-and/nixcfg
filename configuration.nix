@@ -12,8 +12,8 @@ let
   hasPackage = p: lib.any (x: x == p) allInstalledPackages;
 
   # https://discourse.nixos.org/t/installing-only-a-single-package-from-unstable/5598/4
-  unstable = import (fetchTarball https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz) { config = config.nixpkgs.config; };
-  tip = import (fetchTarball https://github.com/NixOS/nixpkgs/archive/master.tar.gz) { config = config.nixpkgs.config; };
+  unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") { config = config.nixpkgs.config; };
+  tip = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/master.tar.gz") { config = config.nixpkgs.config; };
 
   #taskwarrior = unstable.taskwarrior3;
   taskwarrior = pkgs.taskwarrior;
@@ -135,8 +135,8 @@ in
     # Check the channel list is as expected.
     nix.checkChannels = true;
     nix.channels = {
-      home-manager = https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz;
-      nixos = https://nixos.org/channels/nixos-23.11;
+      home-manager = "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
+      nixos = "https://nixos.org/channels/nixos-23.11";
     };
 
     # Always want locate running.
