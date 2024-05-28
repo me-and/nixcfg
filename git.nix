@@ -90,6 +90,9 @@ in
     then pkgs.git
     else gitFromSource;
 
+  # This only works for the first build *after* the one where it's required.
+  # For that first build, use `sudo nixos-rebuild --option sandbox relaxed
+  # (test|switch|boot)`.
   config.nix.settings = lib.optionalAttrs (cfg.sourceBranch != null) {
     sandbox = "relaxed";
   };
