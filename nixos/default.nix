@@ -31,7 +31,7 @@ let
 
 in
 {
-  imports = [ ../common/channels.nix <home-manager/nixos> ]
+  imports = [ ../common/channels.nix <home-manager/nixos> ../nix-about ]
     ++ lib.optional (builtins.pathExists ../hardware-configuration.nix) ../hardware-configuration.nix
     ++ [ ./wsl.nix ./hyperv.nix ../local-config.nix ]
   ;
@@ -149,6 +149,9 @@ in
     # Trust anyone in the wheel group
     nix.settings.trusted-users = [ "@wheel" ];
     nix.settings.sandbox = "relaxed";
+
+    # Set up nix-about.
+    programs.nix-about.enable = true;
 
     nixpkgs.config.allowUnfree = true;
 
