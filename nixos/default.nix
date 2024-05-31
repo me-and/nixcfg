@@ -86,7 +86,11 @@ in
     environment.systemPackages = with pkgs; [
       file
       home-manager
+      mailutils
     ];
+
+    # Enable system emails.
+    services.postfix.enable = true;
 
     # If this isn't WSL, want OpenSSH for inbound connections, and mDNS for
     # both inbound and outbound connections.
