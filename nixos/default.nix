@@ -142,12 +142,16 @@ in
       };
     };
 
-    # Clean the Nix config store regularly.
+    # Clean the Nix config store regularly.  TODO integrate this properly with
+    # nix.gc and nix.optimise.
     nix.gc = {
       automatic = true;
       dates = "weekly";
       randomizedDelaySec = "6h";
       options = "--delete-older-than 7d";
+    };
+    systemd.services.nix-gc = {
+      onSuccess = [ "nix-optimise.service" ];
     };
 
     # Trust anyone in the wheel group
