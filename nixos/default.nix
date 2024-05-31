@@ -18,15 +18,16 @@ let
       tarball = fetchTarball url;
       pkgs = import tarball { config = config.nixpkgs.config; };
     });
-  firstPackage =
-    name:
+  mostStablePackageWith = cond: name:
     let
       allPackages =
         [ (pkgs."${name}" or null) ]
         ++ map (c: c.pkgs."${name}" or null) altChannels;
+      package = lib.findFirst (p: (p != null) && (cond p)) null allPackages;
     in
-    assert lib.any (p: p != null) allPackages;
-    lib.findFirst (p: p != null) null allPackages;
+    assert package != null;
+    package;
+  mostStablePackage = mostStablePackageWith (lib.trivial.const true);
 
 in
 {
@@ -54,7 +55,7 @@ in
 
     # Set up printing.
     services.printing.enable = true;
-    services.printing.drivers = [ (firstPackage "cups-kyocera-3500-4500") ];
+    services.printing.drivers = [ (mostStablePackage "cups-kyocera-3500-4500") ];
 
     # Set up sound.
     sound.enable = true;
