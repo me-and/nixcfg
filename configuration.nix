@@ -42,7 +42,7 @@ let
 
 in
 {
-  imports = [ ./channels.nix ./git.nix <home-manager/nixos> ]
+  imports = [ ./channels.nix <home-manager/nixos> ]
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
     ++ lib.optionals isWsl [ <nixos-wsl/modules> ./wsl.nix ]
     ++ lib.optional isHyperV ./hyperv.nix
@@ -80,81 +80,6 @@ in
     programs.vim.defaultEditor = true;
     programs.vim.package = pkgs.vim-full;
 
-    # Configure rclone mount if rclone is installed.
-    systemd.user.services = lib.optionalAttrs (hasPackage pkgs.rclone) {
-      rclone-onedrive = {
-        description = "OneDrive rclone mount";
-        wantedBy = [ "default.target" ];
-        unitConfig.AssertPathExists = "%h/.config/rclone/rclone.conf";
-        serviceConfig.Type = "notify";
-        serviceConfig.CacheDirectory = "rclone";
-        preStart = ''
-          # Make sure the mount point exists, and make sure the system clock is
-          # synchronised as otherwise OneDrive won't be able to connect.
-
-          set -euo pipefail
-
-          ${pkgs.coreutils-full}/bin/mkdir -p "$HOME"/OneDrive
-
-          if [[ -e /run/systemd/timesyncd/synchronized ]]; then
-              # Clock is already synchronised so no need to do anything
-              # complicated.
-              exit 0
-          fi
-
-          # Set up a coprocess to watch for the file that flags synchronisation
-          # is complete.
-          coproc inw {
-              exec ${pkgs.inotify-tools}/bin/inotifywait -e create,moved_to \
-                  --include '/synchronized$' /run/systemd/timesync 2>&1
-          }
-
-          # Wait for the coprocess to indicate it's ready.
-          while read -r -u "''${inw[0]}" line; do
-              if [[ "$line" = 'Watches established.' ]]; then
-                  break
-              fi
-          done
-
-          # Check the file still doesn't exist, to avoid a window condition
-          # between setting up the watch process.
-          if [[ -e /run/systemd/timesync/synchronized ]]; then
-              kill "$inw_PID"
-              rc=0
-              wait "$inw_PID" || rc="$?"
-              if (( rc == 143 )); then
-                  exit 0
-              else
-                  printf 'Unexpected inotifywait return code %s\n' "$rc"
-                  exit 1
-              fi
-          fi
-
-          # Wait for the coprocess to exit, indicating the flag file has been
-          # created.
-          time wait "$inw_PID";
-        '';
-        script = ''
-          set -xeuo pipefail
-
-          if [[ :"$PATH": != *:'${config.security.wrapperDir}':* ]]; then
-              PATH="${config.security.wrapperDir}:$PATH"
-          fi
-
-          # exec necessary here because otherwise Bash will start this as a
-          # subprocess, and systemctl will see the service notification coming
-          # from the wrong PID.
-          exec "${pkgs.rclone}/bin/rclone" mount \
-              --config="$HOME"/.config/rclone/rclone.conf \
-              --vfs-cache-mode=full \
-              --cache-dir="$CACHE_DIRECTORY" \
-              onedrive: "$HOME"/OneDrive
-        '';
-        serviceConfig.ExecReload =
-          "${pkgs.util-linux}/bin/kill -HUP \$MAINPID";
-      };
-    };
-
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
 
@@ -176,9 +101,6 @@ in
     environment.systemPackages = with pkgs; [
       file
       home-manager
-      htop
-      moreutils
-      psmisc
     ];
 
     # If this isn't WSL, want OpenSSH for inbound connections, and mDNS for
@@ -191,7 +113,7 @@ in
     users.mutableUsers = false;
 
     programs.git.enable = true;
-    programs.git.sourceBranch = "next";
+    programs.git.package = pkgs.gitMinimal;
 
     home-manager.useGlobalPkgs = true;
 
@@ -201,16 +123,6 @@ in
       hashedPasswordFile = "/etc/nixos/passwords/adam";
       description = "Adam Dinwoodie";
       extraGroups = [ "wheel" ];
-#      packages = with pkgs; [
-#        fzf
-#        home-manager
-#        lesspipe
-#        mosh
-#        silver-searcher
-#        taskwarrior
-#        gh
-#        mypy
-#      ];
       linger = true;
     };
 
