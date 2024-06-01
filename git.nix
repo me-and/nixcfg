@@ -97,6 +97,3 @@ in
     sandbox = "relaxed";
   };
 }
-
-# TODO Better modeline and/or better Vim plugins for Nix config files.
-# vim: et ts=2 sw=2 autoindent ft=nix colorcolumn=80

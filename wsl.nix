@@ -40,6 +40,3 @@
       "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
   };
 }
-
-# TODO Better modeline and/or better Vim plugins for Nix config files.
-# vim: et ts=2 sw=2 autoindent ft=nix colorcolumn=80
