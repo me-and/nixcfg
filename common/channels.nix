@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 {
   options = {
-    nix.checkChannels = lib.mkEnableOption "Enable channel list checking";
+    nix.checkChannels = lib.mkEnableOption "channel list checking";
     nix.channels = lib.mkOption {
       default = {};
       type = lib.types.attrsOf lib.types.str;
