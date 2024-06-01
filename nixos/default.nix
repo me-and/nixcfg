@@ -1,10 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  isHyperV = false;
   hostname = "multivac-nixos";
-
-  hyperVResolution = "1920x1080";
 
   allInstalledPackages = builtins.concatLists (
     [ config.environment.systemPackages ]
@@ -43,8 +40,7 @@ in
 {
   imports = [ ../common/channels.nix <home-manager/nixos> ]
     ++ lib.optional (builtins.pathExists ../hardware-configuration.nix) ../hardware-configuration.nix
-    ++ [ ./wsl.nix ]
-    ++ lib.optional isHyperV ./hyperv.nix
+    ++ [ ./wsl.nix ./hyperv.nix ]
   ;
 
   config = {
@@ -52,8 +48,6 @@ in
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-
-    virtualisation.hypervGuest.videoMode = hyperVResolution;
 
     # Set network basics.
     networking.hostName = hostname;
