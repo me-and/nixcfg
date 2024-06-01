@@ -9,11 +9,10 @@ in
 
   config = lib.mkIf config.system.isHyperV {
     warnings = lib.optional (options.virtualisation.hypervGuest.videoMode.highestPrio >= 1000) "Hyper-V video mode left at default.  Consider setting virtualisation.hypervGuest.videoMode.";
-
     boot.kernelParams = [ "nomodeset" ];
     virtualisation.hypervGuest.enable = true;
     services.xserver.modules = [ pkgs.xorg.xf86videofbdev ];
-    services.xserver.videoDrivers = "hyperv_fb";
+    services.xserver.videoDrivers = [ "hyperv_fb" ];
     users.groups.video.members = [ "gdm" ] ++ normalUserNames;
   };
 }
