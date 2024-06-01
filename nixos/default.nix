@@ -1,12 +1,6 @@
 { config, lib, options, pkgs, ... }:
 
 let
-  allInstalledPackages = builtins.concatLists (
-    [ config.environment.systemPackages ]
-    ++ (lib.mapAttrsToList (k: v: v.packages) config.users.users)
-  );
-  hasPackage = p: lib.any (x: x == p) allInstalledPackages;
-
   # https://discourse.nixos.org/t/installing-only-a-single-package-from-unstable/5598/4
   # Listed in rough stability order per
   # https://discourse.nixos.org/t/differences-between-nix-channels/13998
@@ -24,15 +18,15 @@ let
       tarball = fetchTarball url;
       pkgs = import tarball { config = config.nixpkgs.config; };
     });
-    firstPackage =
-      name:
-      let
-        allPackages =
-          [ (pkgs."${name}" or null) ]
-          ++ map (c: c.pkgs."${name}" or null) altChannels;
-      in
-      assert lib.any (p: p != null) allPackages;
-      lib.findFirst (p: p != null) null allPackages;
+  firstPackage =
+    name:
+    let
+      allPackages =
+        [ (pkgs."${name}" or null) ]
+        ++ map (c: c.pkgs."${name}" or null) altChannels;
+    in
+    assert lib.any (p: p != null) allPackages;
+    lib.findFirst (p: p != null) null allPackages;
 
 in
 {
