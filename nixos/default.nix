@@ -1,8 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, options, pkgs, ... }:
 
 let
-  hostname = "multivac-nixos";
-
   allInstalledPackages = builtins.concatLists (
     [ config.environment.systemPackages ]
     ++ (lib.mapAttrsToList (k: v: v.packages) config.users.users)
@@ -40,17 +38,16 @@ in
 {
   imports = [ ../common/channels.nix <home-manager/nixos> ]
     ++ lib.optional (builtins.pathExists ../hardware-configuration.nix) ../hardware-configuration.nix
-    ++ [ ./wsl.nix ./hyperv.nix ]
+    ++ [ ./wsl.nix ./hyperv.nix ../local-config.nix ]
   ;
 
   config = {
+    warnings = lib.optional (options.networking.hostName.highestPrio >= 1000) "System hostname left at default.  Consider setting networking.hostName.";
+
     boot.loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-
-    # Set network basics.
-    networking.hostName = hostname;
 
     # Always want to be in the UK.
     time.timeZone = "Europe/London";
