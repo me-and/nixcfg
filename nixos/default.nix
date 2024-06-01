@@ -48,8 +48,8 @@ in
     i18n.defaultLocale = "en_GB.UTF-8";
 
     # Always want to be using UK Dvorak.
-    services.xserver.layout = "gb";
-    services.xserver.xkbVariant = "dvorak";
+    services.xserver.xkb.layout = "gb";
+    services.xserver.xkb.variant = "dvorak";
     console.useXkbConfig = true;
 
     # Set up printing.
@@ -72,7 +72,7 @@ in
     nix.channels = {
       home-manager =
         "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
-      nixos = "https://nixos.org/channels/nixos-23.11";
+      nixos = "https://nixos.org/channels/nixos-unstable";
     };
 
     # Always want locate running.
@@ -91,7 +91,7 @@ in
     # both inbound and outbound connections.
     services.openssh.enable = true;
     services.avahi.enable = true;
-    services.avahi.nssmdns = true;
+    services.avahi.nssmdns4 = true;
 
     # Always want fixed users.
     users.mutableUsers = false;

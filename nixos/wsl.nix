@@ -49,7 +49,7 @@ in {
     sound.enable = lib.mkForce false;
     hardware.pulseaudio.enable = lib.mkForce false;
     services.avahi.enable = lib.mkForce false;
-    services.avahi.nssmdns = lib.mkForce false;
+    services.avahi.nssmdns4 = lib.mkForce false;
 
     # Don't want to connect over SSH.
     services.openssh.enable = lib.mkForce false;
