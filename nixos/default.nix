@@ -96,6 +96,8 @@ in
     # Always want fixed users.
     users.mutableUsers = false;
 
+    # For the system Git installation, gitMinimal is fine; I'll have the full
+    # installation, probably on the tip, in Home Manager.
     programs.git.enable = true;
     programs.git.package = pkgs.gitMinimal;
 
