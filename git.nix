@@ -85,9 +85,7 @@ in
     };
   };
 
-  config.programs.git.package =
-    if cfg.sourceBranch == null
-    then pkgs.git
-    else gitFromSource;
+  config = lib.mkIf (cfg.sourceBranch != null) {
+    programs.git.package = gitFromSource;
   };
 }
