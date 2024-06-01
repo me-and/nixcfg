@@ -4,7 +4,6 @@ let
   isWsl = true;
   isHyperV = false;
   hostname = "multivac-nixos";
-  work = false;
 
   hyperVResolution = "1920x1080";
 
@@ -47,7 +46,6 @@ in
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
     ++ lib.optionals isWsl [ <nixos-wsl/modules> ./wsl.nix ]
     ++ lib.optional isHyperV ./hyperv.nix
-    ++ lib.optional work ./work.nix
   ;
 
   config = {
