@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 
 let
-  isWsl = true;
   isHyperV = false;
   hostname = "multivac-nixos";
 
@@ -44,7 +43,7 @@ in
 {
   imports = [ ../common/channels.nix <home-manager/nixos> ]
     ++ lib.optional (builtins.pathExists ../hardware-configuration.nix) ../hardware-configuration.nix
-    ++ lib.optionals isWsl [ <nixos-wsl/modules> ./wsl.nix ]
+    ++ [ ./wsl.nix ]
     ++ lib.optional isHyperV ./hyperv.nix
   ;
 
