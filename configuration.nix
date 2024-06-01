@@ -161,6 +161,7 @@ in
 
     # Trust anyone in the wheel group
     nix.settings.trusted-users = [ "@wheel" ];
+    nix.settings.sandbox = "relaxed";
 
     nixpkgs.config.allowUnfree = true;
 
