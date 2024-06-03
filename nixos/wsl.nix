@@ -69,6 +69,10 @@ in {
     # recursion :(
     users.users."${config.wsl.defaultUser}".linger = lib.mkForce false;
 
+    # TODO Work out why WSL gives warnings about user IDs without this
+    # configuration.
+    users.users."${config.wsl.defaultUser}".uid = 1001;
+
     nix.channels.nixos-wsl =
       "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
   };
