@@ -10,7 +10,6 @@ let
       { name = "unstable"; branch = "nixos-unstable"; }
       { name = "unstable-small"; branch = "nixos-unstable-small"; }
       { name = "nixpkgs-unstable"; branch = "nixpkgs-unstable"; }
-      { name = "nixpkgs-unstable-small"; branch = "nixpkgs-unstable-small"; }
       { name = "tip"; branch = "master"; }
     ]
     (v: v // rec {
