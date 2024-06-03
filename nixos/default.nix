@@ -1,6 +1,8 @@
 { config, lib, options, pkgs, ... }:
 
-{
+let
+  unstable = import <nixos-unstable> { config = config.nixpkgs.config; };
+in {
   imports = [ ../common/channels.nix <home-manager/nixos> ../nix-about ]
     ++ lib.optional (builtins.pathExists ../hardware-configuration.nix) ../hardware-configuration.nix
     ++ [ ./wsl.nix ./hyperv.nix ../local-config.nix ]
@@ -25,7 +27,7 @@
 
     # Set up printing.
     services.printing.enable = true;
-    services.printing.drivers = [ pkgs.cups-kyocera-3500-4500 ];
+    services.printing.drivers = [ (pkgs.cups-kyocera-3500-4500 or unstable.cups-kyocera-3500-4500) ];
 
     # Set up sound.
     sound.enable = true;
@@ -43,7 +45,8 @@
     nix.channels = {
       home-manager =
         "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
-      nixos = "https://nixos.org/channels/nixos-unstable";
+      nixos = "https://nixos.org/channels/nixos-24.05";
+      nixos-unstable = "https://nixos.org/channels/nixos-unstable";
     };
 
     # Always want locate running.
