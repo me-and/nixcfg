@@ -44,7 +44,7 @@ in {
     nix.checkChannels = true;
     nix.channels = {
       home-manager =
-        "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
+        "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
       nixos = "https://nixos.org/channels/nixos-24.05";
       nixos-unstable = "https://nixos.org/channels/nixos-unstable";
     };
