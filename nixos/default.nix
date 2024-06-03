@@ -1,34 +1,5 @@
 { config, lib, options, pkgs, ... }:
 
-let
-  # https://discourse.nixos.org/t/installing-only-a-single-package-from-unstable/5598/4
-  # Listed in rough stability order per
-  # https://discourse.nixos.org/t/differences-between-nix-channels/13998
-  altChannels = lib.forEach
-    [
-      { name = "small"; branch = "nixos-23.11-small"; }
-      { name = "unstable"; branch = "nixos-unstable"; }
-      { name = "unstable-small"; branch = "nixos-unstable-small"; }
-      { name = "nixpkgs-unstable"; branch = "nixpkgs-unstable"; }
-      { name = "tip"; branch = "master"; }
-    ]
-    (v: v // rec {
-      url = "https://github.com/NixOS/nixpkgs/archive/${v.branch}.tar.gz";
-      tarball = fetchTarball url;
-      pkgs = import tarball { config = config.nixpkgs.config; };
-    });
-  mostStablePackageWith = cond: name:
-    let
-      allPackages =
-        [ (pkgs."${name}" or null) ]
-        ++ map (c: c.pkgs."${name}" or null) altChannels;
-      package = lib.findFirst (p: (p != null) && (cond p)) null allPackages;
-    in
-    assert package != null;
-    package;
-  mostStablePackage = mostStablePackageWith (lib.trivial.const true);
-
-in
 {
   imports = [ ../common/channels.nix <home-manager/nixos> ../nix-about ]
     ++ lib.optional (builtins.pathExists ../hardware-configuration.nix) ../hardware-configuration.nix
@@ -54,7 +25,7 @@ in
 
     # Set up printing.
     services.printing.enable = true;
-    services.printing.drivers = [ (mostStablePackage "cups-kyocera-3500-4500") ];
+    services.printing.drivers = [ pkgs.cups-kyocera-3500-4500 ];
 
     # Set up sound.
     sound.enable = true;
