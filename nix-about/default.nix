@@ -16,7 +16,7 @@ let
   };
 in {
   options.programs.nix-about = {
-    enable = lib.mkEnableOption "Enable nix-about package query.";
+    enable = lib.mkEnableOption "nix-about";
     package = lib.mkOption {
       type = lib.types.package;
       default = nix-about;
