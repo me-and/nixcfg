@@ -135,9 +135,5 @@ in {
     programs.nix-about.enable = true;
 
     nixpkgs.config.allowUnfree = true;
-
-    # This is the thing that comes with An Million Warnings about ever
-    # changing...
-    system.stateVersion = "23.11";
   };
 }
