@@ -20,6 +20,7 @@ in {
       gh
       jq
       lesspipe
+      nix-diff
       silver-searcher
       taskwarrior
 
