@@ -22,6 +22,7 @@ in {
       gh
       jq
       lesspipe
+      mosh
       nix-diff
       psmisc
       python
