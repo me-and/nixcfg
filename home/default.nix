@@ -19,7 +19,9 @@ in {
       fzf
       gh
       jq
+      lesspipe
       silver-searcher
+      taskwarrior
 
       # Use the Git version specified by the branch name.
       config.programs.git.package
