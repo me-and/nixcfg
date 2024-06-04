@@ -3,6 +3,8 @@
 let
   nixOSconfig = (import <nixos/nixos> { }).config;
   nixOSstateVersion = nixOSconfig.system.stateVersion;
+
+  python = pkgs.python3.withPackages (pp: [ pp.dateutil ]);
 in {
   imports = [ ../common/git.nix ../local-config.nix ../common/homeshick.nix ] ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
 
@@ -21,12 +23,17 @@ in {
       jq
       lesspipe
       nix-diff
+      python
       silver-searcher
       taskwarrior
 
       # Use the Git version specified by the branch name.
       config.programs.git.package
     ];
+
+    sessionVariables = {
+      PYTHONPATH = "${python}/${python.sitePackages}";
+    };
   };
 
   homeshick = {
