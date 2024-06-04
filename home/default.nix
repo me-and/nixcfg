@@ -23,6 +23,7 @@ in {
       jq
       lesspipe
       nix-diff
+      psmisc
       python
       silver-searcher
       taskwarrior
