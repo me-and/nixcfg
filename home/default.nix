@@ -13,7 +13,7 @@ in {
   ]
   ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
 
-  warnings = lib.optional (nixOSstateVersion != config.home.stateVersion) ''
+  warnings = lib.optional ((builtins.pathExists /etc/nixos) && (nixOSstateVersion != config.home.stateVersion)) ''
     Different state versions for nixos (${nixOSstateVersion}) and Home Manager
     (${config.home.stateVersion}).
   '';
