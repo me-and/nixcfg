@@ -4,7 +4,10 @@ let
   nixOSconfig = (import <nixos/nixos> { }).config;
   nixOSstateVersion = nixOSconfig.system.stateVersion;
 
-  python = pkgs.python3.withPackages (pp: [ pp.dateutil ]);
+  python = pkgs.python3.withPackages (pp: [
+    # dateutil needed for asmodeus
+    pp.dateutil
+  ]);
 in {
   imports = [
     ./local-config.nix
