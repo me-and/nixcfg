@@ -4,16 +4,19 @@ let
 
   gitFromSource = pkgs.git.overrideAttrs (oldAttrs:
     let
+      gitHubRepo = "gitster/git";
       gitHubAPIInfo = builtins.fetchurl
-        "https://api.github.com/repos/gitster/git/branches/${cfg.sourceBranch}";
-      rev = (builtins.fromJSON (builtins.readFile (gitHubAPIInfo))).commit.sha;
+        "https://api.github.com/repos/${gitHubRepo}/branches/${cfg.ref}";
+      rev =
+        if cfg.rev == null
+        then (builtins.fromJSON (builtins.readFile (gitHubAPIInfo))).commit.sha
+        else cfg.rev;
     in rec {
       # UUID randomly generated to make it possible to reliably find other Git
       # repos in the store, to speed up the fetch stage.
       src = pkgs.runCommand "git-src-2ab053e6-dcf9-4b0d-aef2-c0d4f78bfc09" {
           __noChroot = true;  # Allow the remote fetching
           nativeBuildInputs = [ pkgs.cacert pkgs.gitMinimal pkgs.gnumake ];
-          dummyRev = rev;  # Force rebuild when the rev changes.
         }
         ''
           set -euo pipefail
@@ -30,13 +33,14 @@ let
           export HOME
           git config --global safe.directory '*'
 
-          git clone --branch ${lib.escapeShellArg cfg.sourceBranch} \
+          git clone --branch ${lib.escapeShellArg cfg.ref} \
               --single-branch \
               "''${reference_args[@]}" \
               --dissociate \
               --recurse-submodules \
-              https://github.com/gitster/git $out
+              https://github.com/${lib.escapeShellArg gitHubRepo} $out
           cd $out
+          git switch --detach ${lib.escapeShellArg rev}
           make GIT-VERSION-FILE
         '';
       version = lib.removePrefix
@@ -66,12 +70,21 @@ let
 in
 {
   options = {
-    programs.git.sourceBranch = lib.mkOption {
+    programs.git.ref = lib.mkOption {
       default = null;
       type = lib.types.nullOr lib.types.str;
       example = "master";
-      description = lib.mdDoc ''
-        The name of the branch to build from.
+      description = "The name of the branch or tag to build from.";
+    };
+
+    programs.git.rev = lib.mkOption {
+      default = null;
+      type = lib.types.nullOr lib.types.str;
+      example = "51c0d632d3b6f489f60f2f19f0e8107318335085";
+      description = ''
+        The name of the revision to build from.  If this is
+        specified and it isn't reachable from the master branch, you must also
+        specify the branch to clone to be able to check this revision out.
       '';
     };
 
@@ -79,13 +92,11 @@ in
       default = true;
       type = lib.types.bool;
       example = false;
-      description = lib.mdDoc ''
-        Whether to run the tests while building.
-      '';
+      description = "Whether to run the tests while building.";
     };
   };
 
-  config = lib.mkIf (cfg.sourceBranch != null) {
+  config = lib.mkIf (cfg.ref != null) {
     programs.git.package = gitFromSource;
   };
 }
