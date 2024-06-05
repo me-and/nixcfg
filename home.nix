@@ -8,10 +8,11 @@ let
     # dateutil needed for asmodeus
     pp.dateutil
   ]);
+
+  myPkgs = import ./mypackages.nix { inherit pkgs; };
 in {
   imports = [
     ./local-config.nix
-    ./git
     ./homeshick.nix
   ]
   ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
@@ -37,11 +38,11 @@ in {
       silver-searcher
       taskwarrior
 
-      # Use the Git version specified by the branch name.
+      # Use the Git version possibly configured in local-config.nix
       config.programs.git.package
 
       # Use nix-about
-      (pkgs.callPackage ./nix-about/package.nix {})
+      myPkgs.nix-about
     ];
 
     sessionVariables = {
