@@ -11,7 +11,7 @@ let
 in {
   imports = [
     ./local-config.nix
-    ./git.nix
+    ./git
     ./homeshick.nix
   ]
   ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
