@@ -62,11 +62,6 @@ in {
     ];
   };
 
-  # Don't enable Git -- that also enables Home Manager managing Git config,
-  # where I want to keep managing my Git config with Homeshick -- but do set
-  # the branch to use.
-  programs.git.sourceBranch = "next";
-
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 }
