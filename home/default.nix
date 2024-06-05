@@ -6,7 +6,12 @@ let
 
   python = pkgs.python3.withPackages (pp: [ pp.dateutil ]);
 in {
-  imports = [ ../common/git.nix ../local-config.nix ../common/homeshick.nix ] ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
+  imports = [
+    ../local-config.nix
+    ../common/git.nix
+    ../common/homeshick.nix
+  ]
+  ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
 
   warnings = lib.optional (nixOSstateVersion != config.home.stateVersion) ''
     Different state versions for nixos (${nixOSstateVersion}) and Home Manager
