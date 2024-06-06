@@ -52,6 +52,14 @@ git.overrideAttrs (oldAttrs: rec {
   inherit src;
   version = lib.fileContents "${src}/version";
 
+  nativeBuildInputs = [ autoconf ] ++ oldAttrs.nativeBuildInputs;
+
+  postPatch =
+    if buildWithTests
+    then oldAttrs.postPatch
+    # No need to patch shebangs if we're not running the tests.
+    else builtins.replaceStrings ["patchShebangs t/*.sh"] ["# patchShebangs t/*.sh"] oldAttrs.postPatch;
+
   # Make the configure script.  This isn't required for the release builds,
   # because they include a pre-built configure script, but the Git branches
   # don't include those files so they need making separately.  This based on
@@ -79,10 +87,4 @@ git.overrideAttrs (oldAttrs: rec {
     + ''
       disable_test t9902-completion
     '';
-  postPatch =
-    if buildWithTests
-    then oldAttrs.postPatch
-    # No need to patch shebangs if we're not running the tests.
-    else builtins.replaceStrings ["patchShebangs t/*.sh"] ["# patchShebangs t/*.sh"] oldAttrs.postPatch;
-  nativeBuildInputs = [ autoconf ] ++ oldAttrs.nativeBuildInputs;
 })
