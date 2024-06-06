@@ -39,6 +39,9 @@ in {
 
       # Use the Git version specified by the branch name.
       config.programs.git.package
+
+      # Use nix-about
+      (pkgs.callPackage ./nix-about/package.nix {})
     ];
 
     sessionVariables = {

@@ -3,7 +3,7 @@
 let
   unstable = import <nixos-unstable> { config = config.nixpkgs.config; };
 in {
-  imports = [ ./channels.nix <home-manager/nixos> ./nix-about ]
+  imports = [ ./channels.nix <home-manager/nixos> ]
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
     ++ [ ./nixos-platform ./local-config.nix ]
   ;
@@ -130,9 +130,6 @@ in {
     # Trust anyone in the wheel group
     nix.settings.trusted-users = [ "@wheel" ];
     nix.settings.sandbox = "relaxed";
-
-    # Set up nix-about.
-    programs.nix-about.enable = true;
 
     nixpkgs.config.allowUnfree = true;
   };
