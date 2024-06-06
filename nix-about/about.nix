@@ -8,8 +8,10 @@ let
   noTrailingNewline = lib.strings.removeSuffix "\n";
   formatLong = s: indentAfterFirst (noTrailingNewline s);
   outputLines = [
-    "Package: ${p.name}"
+    "Package: ${p.pname}"
+    "Version: ${p.version}"
     "Description: ${p.meta.description}"
+    "License: ${p.meta.license.fullName or p.meta.license or "Unspecified"}"
   ]
   ++ lib.optional (p.meta ? longDescription) "Long description: ${formatLong p.meta.longDescription}"
   ++ lib.optional (p.meta ? homepage) "Website: ${p.meta.homepage}"
