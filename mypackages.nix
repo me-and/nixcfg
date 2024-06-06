@@ -1,9 +1,8 @@
-{ pkgs }:
+{ pkgs ? import <nixpkgs> {} }:
 let
   inherit (pkgs) callPackage;
 in {
-  gitMaster = callPackage ./git/package.nix { ref = "master"; };
-  gitNext = callPackage ./git/package.nix { ref = "next"; };
+  inherit (import ./git { inherit pkgs; }) gitMaster gitNext;
 
-  nix-about = callPackage ./nix-about/package.nix { };
+  inherit (import ./nix-about { inherit pkgs; }) nix-about;
 }
