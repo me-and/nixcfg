@@ -58,9 +58,9 @@ in {
       { url = "https://github.com/me-and/asmodeus"; link = false; }
       { url = "https://github.com/magicmonty/bash-git-prompt"; link = false; }
       { url = "https://github.com/vito-c/jq.vim"; link = false; }
-      { url = "https://github.com/maklt/plantuml-syntax"; link = false; }
+      { url = "https://github.com/aklt/plantuml-syntax"; link = false; }
       { url = "https://github.com/luochen1990/rainbow"; link = false; }
-      { url = "https://github.com/junegunn/vim-openscad"; link = false; }
+      { url = "https://github.com/sirtaj/vim-openscad"; link = false; }
       { url = "https://github.com/junegunn/vim-plug"; link = false; }
       { url = "https://github.com/lervag/vimtex"; link = false; }
     ];
