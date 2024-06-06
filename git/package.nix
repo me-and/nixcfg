@@ -1,4 +1,4 @@
-{ git, lib, runCommand, rev ? null, ref ? null,
+{ git, lib, runCommand, rev ? null, ref ? null, keepSrc ? true,
 doInstallCheck ? true, cacert, gitMinimal, gnumake, autoconf }:
 let
   gitHubRepo = "gitster/git";
@@ -89,4 +89,12 @@ gitOverridden.overrideAttrs (oldAttrs: rec {
     + ''
       disable_test t9902-completion
     '';
+
+  # If we want to keep the source in the store rather than allowing it to be
+  # garbage collected (useful as it means the next fetch doesn't need to
+  # download the entire Git source repository), add a symlink to the source
+  # in the Nix store from the output.
+  postInstall = oldAttrs.postInstall + lib.optionalString keepSrc ''
+    ln -s ${src} $out/src
+  '';
 })
