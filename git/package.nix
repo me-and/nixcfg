@@ -1,5 +1,5 @@
 { git, lib, runCommand, rev ? null, ref ? null,
-buildWithTests ? true, cacert, gitMinimal, gnumake, autoconf }:
+doInstallCheck ? true, cacert, gitMinimal, gnumake, autoconf }:
 let
   gitHubRepo = "gitster/git";
   ref' = if ref == null then "master" else ref;
@@ -47,15 +47,20 @@ let
       version="''${version_file_contents#GIT_VERSION = }"
       printf '%s\n' "$version" >version
     '';
+
+  gitOverridden = git.override {
+    inherit doInstallCheck;
+  };
+
 in
-git.overrideAttrs (oldAttrs: rec {
+gitOverridden.overrideAttrs (oldAttrs: rec {
   inherit src;
   version = lib.fileContents "${src}/version";
 
   nativeBuildInputs = [ autoconf ] ++ oldAttrs.nativeBuildInputs;
 
   postPatch =
-    if buildWithTests
+    if oldAttrs.doInstallCheck
     then oldAttrs.postPatch
     # No need to patch shebangs if we're not running the tests.
     else builtins.replaceStrings ["patchShebangs t/*.sh"] ["# patchShebangs t/*.sh"] oldAttrs.postPatch;
@@ -73,9 +78,6 @@ git.overrideAttrs (oldAttrs: rec {
     unset flagsArray
   '';
   configureFlags = [ "--prefix=$out" ] ++ oldAttrs.configureFlags;
-
-  installCheckTarget =
-    if buildWithTests then oldAttrs.installCheckTarget else null;
 
   preInstallCheck =
     # https://github.com/NixOS/nixpkgs/pull/314258
