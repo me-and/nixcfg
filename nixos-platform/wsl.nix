@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  tryWslModule = builtins.tryEval (builtins.findFile builtins.nixPath "nixos-wsl/modules");
+  tryWslModule = builtins.tryEval <nixos-wsl/modules>;
   hasWslModule = tryWslModule.success;
   wslModulePath = tryWslModule.value;
 in {
