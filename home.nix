@@ -27,10 +27,12 @@ in {
     homeDirectory = "/home/adam";
 
     packages = with pkgs; [
+      ascii
       fzf
       gh
       jq
       lesspipe
+      moreutils
       mosh
       nix-diff
       psmisc
