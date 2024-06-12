@@ -49,6 +49,9 @@ in {
 
     sessionVariables = {
       PYTHONPATH = "${python}/${python.sitePackages}";
+
+      # Needed for, in particular, the Python mssql module to work.
+      LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
     };
   };
 
