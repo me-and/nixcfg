@@ -57,9 +57,6 @@ in {
       # plenty of things I care about that aren't yet integrated into Home
       # Manager.
       PYTHONPATH = "${python}/${python.sitePackages}";
-
-      # Needed for, in particular, the Python mssql module to work.
-      LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
     };
   };
 
