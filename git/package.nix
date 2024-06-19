@@ -33,7 +33,7 @@ let
           --recurse-submodules \
           https://github.com/${lib.escapeShellArg gitHubRepo} $out
       cd $out
-      git switch --detach ${lib.escapeShellArg rev'}
+      git switch --detach --recurse-submodules ${lib.escapeShellArg rev'}
 
       # Need to mark this as a safe directory for the version calculation
       # magic to work.
