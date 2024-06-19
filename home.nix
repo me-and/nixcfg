@@ -40,18 +40,23 @@ in {
       silver-searcher
       taskwarrior
 
-      # Use the Git version possibly configured in local-config.nix
+      # Use the Git version possibly configured in local-config.nix.  This is
+      # handled here rather than with config.programs.git.enable because that
+      # would also result in Home Manager trying to manage my Git config, which
+      # I'm not (yet) ready for.
       config.programs.git.package
 
-      # Use nix-about
+      # Use nix-about.
       myPkgs.nix-about
     ];
 
     sessionVariables = {
+      # Ideally this wouldn't be handled here but instead by Nix dependency
+      # management -- nothing should rely on the general site environment being
+      # set up correctly -- but this is the quick solution while there are
+      # plenty of things I care about that aren't yet integrated into Home
+      # Manager.
       PYTHONPATH = "${python}/${python.sitePackages}";
-
-      # Needed for, in particular, the Python mssql module to work.
-      LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
     };
   };
 
