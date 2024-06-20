@@ -7,6 +7,18 @@ let
   ]);
 
   myPkgs = import ./mypackages.nix { inherit pkgs; };
+
+  # This used to be a Homeshick castle, and can still be used as one, but it's
+  # used here as a starting point for bringing my systemd config into Home
+  # Manager.
+  systemdHomeshick = pkgs.fetchFromGitHub rec {
+    owner = "me-and";
+    repo = "user-systemd-config";
+    name = repo;
+    rev = "main";
+    private = true;
+    hash = "sha256-HcpXT6crBh2MOVvYwbI/10MhnpzPkxmQZ7/f2EcyvX4=";
+  };
 in {
   imports = [
     ./local-config.nix
@@ -50,6 +62,19 @@ in {
       # plenty of things I care about that aren't yet integrated into Home
       # Manager.
       PYTHONPATH = "${python}/${python.sitePackages}";
+    };
+
+    # This isn't very idiomatic for Nix, but it's a quick and easy solution for
+    # moving my existing config into Nix.
+    file = lib.mkIf config.systemd.user.enable {
+      ".config/systemd" = {
+        recursive = true;
+        source = "${systemdHomeshick}/systemd";
+      };
+      ".local" = {
+        recursive = true;
+        source = "${systemdHomeshick}/home/.local";
+      };
     };
   };
 
