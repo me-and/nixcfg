@@ -1,9 +1,6 @@
 { config, lib, pkgs, ... }:
 
 let
-  nixOSconfig = (import <nixos/nixos> { }).config;
-  nixOSstateVersion = nixOSconfig.system.stateVersion;
-
   python = pkgs.python3.withPackages (pp: [
     # dateutil needed for asmodeus
     pp.dateutil
@@ -16,11 +13,6 @@ in {
     ./homeshick.nix
   ]
   ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
-
-  warnings = lib.optional ((builtins.pathExists /etc/nixos) && (nixOSstateVersion != config.home.stateVersion)) ''
-    Different state versions for nixos (${nixOSstateVersion}) and Home Manager
-    (${config.home.stateVersion}).
-  '';
 
   home = {
     username = "adam";
