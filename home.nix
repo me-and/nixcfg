@@ -30,6 +30,7 @@ in {
       ascii
       fzf
       gh
+      htop
       jq
       lesspipe
       moreutils
