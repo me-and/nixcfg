@@ -11,14 +11,38 @@ let
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
   # Manager.
-  systemdHomeshick = pkgs.fetchFromGitHub rec {
+  #
+  # Would use pkgs.fetchFromGitHub but for
+  # <https://github.com/NixOS/nixpkgs/issues/321481>, so the below is an
+  # unwrapped version of fetchFromGitHub with my patch applied.  The arguments
+  # in the `let` block are the ones I'd otherwise pass to fetchFromGitHub.
+  systemdHomeshick =
+  let
     owner = "me-and";
     repo = "user-systemd-config";
     name = repo;
-    rev = "main";
+    rev = "HEAD";
     private = true;
-    hash = "sha256-HcpXT6crBh2MOVvYwbI/10MhnpzPkxmQZ7/f2EcyvX4=";
-  };
+    hash = "sha256-AwnRP8VGjm+cEq+y7Pqi8XXh8QdXHRdjvNMAjV2CeZ4=";
+  in pkgs.fetchzip ({
+    inherit name hash;
+    url = "https://api.github.com/repos/${owner}/${repo}/tarball" + lib.optionalString (rev != "HEAD") "/${rev}";
+    extension = "tar.gz";
+    passthru = { gitRepoUrl = "https://github.com/${owner}/${repo}.git"; };
+  } // lib.optionalAttrs private {
+    netrcPhase = ''
+      if [ -z "$NIX_GITHUB_PRIVATE_USERNAME" -o -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]; then
+        echo 'Error: cannot get systemdHomeshick without the nix building process (nix-daemon in multi user mode) having the NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD env vars set.' >&2
+        exit 1
+      fi
+      cat >netrc <<EOF
+      machine api.github.com
+              login $NIX_GITHUB_PRIVATE_USERNAME
+              password $NIX_GITHUB_PRIVATE_PASSWORD
+      EOF
+    '';
+    netrcImpureEnvVars = [ "NIX_GITHUB_PRIVATE_USERNAME" "NIX_GITHUB_PRIVATE_PASSWORD" ];
+  });
 in {
   imports = [
     ./local-config.nix
