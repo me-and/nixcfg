@@ -23,7 +23,7 @@ let
     name = repo;
     rev = "HEAD";
     private = true;
-    hash = "sha256-AwnRP8VGjm+cEq+y7Pqi8XXh8QdXHRdjvNMAjV2CeZ4=";
+    hash = "sha256-mk6f4TZLv/ZSCZNVq5pap+bkuG1yXFoLUAgwr3dYbfw=";
   in pkgs.fetchzip ({
     inherit name hash;
     url = "https://api.github.com/repos/${owner}/${repo}/tarball" + lib.optionalString (rev != "HEAD") "/${rev}";
