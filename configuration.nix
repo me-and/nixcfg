@@ -90,6 +90,9 @@ in {
       linger = true;
     };
 
+    # Make sure `apropos` and similar work.
+    documentation.man.generateCaches = true;
+
     # Enable nix-index, run it automatically, and replace command-not-found
     # with it.
     programs.nix-index.enable = true;
