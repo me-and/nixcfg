@@ -130,6 +130,12 @@ in {
       onSuccess = [ "nix-optimise.service" ];
     };
 
+    # Set up the Nix daemon to be able to access environment variables for
+    # things like access to private GitHub repositories.
+    systemd.services.nix-daemon = lib.optionalAttrs (builtins.pathExists ./nix-daemon-environment) {
+      serviceConfig.EnvironmentFile = "/etc/nixos/nix-daemon-environment";
+    };
+
     # Trust anyone in the wheel group
     nix.settings.trusted-users = [ "@wheel" ];
     nix.settings.sandbox = "relaxed";
