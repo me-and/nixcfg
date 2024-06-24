@@ -9,13 +9,19 @@
 
   defaultPriority = (lib.mkOptionDefault {}).priority;
 in {
-  imports = [
-    <home-manager/nixos>
-    ./hardware-configuration.nix
-    ./channels.nix
-    ./nixos-platform
-    ./local-config.nix
-  ];
+  imports =
+    [
+      <home-manager/nixos>
+      ./channels.nix
+      ./nixos-platform
+      ./local-config.nix
+    ]
+    # hardware-configuration.nix is expected to be missing on WSL.
+    ++ (
+      lib.optional
+      (builtins.pathExists ./hardware-configuration.nix)
+      ./hardware-configuration.nix
+    );
 
   config = {
     warnings =
