@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   tryWslModule = builtins.tryEval <nixos-wsl/modules>;
   hasWslModule = tryWslModule.success;
   wslModulePath = tryWslModule.value;
@@ -17,22 +21,24 @@ in {
   # a recursion error because it the interpreter needs to evaluate the entire
   # block to work out if config.system.isWsl is set inside it.
   options.wsl = lib.optionalAttrs (! hasWslModule) {
-    enable = lib.mkOption { type = lib.types.anything; };
-    defaultUser = lib.mkOption { type = lib.types.anything; };
+    enable = lib.mkOption {type = lib.types.anything;};
+    defaultUser = lib.mkOption {type = lib.types.anything;};
   };
 
   config = lib.mkIf config.system.isWsl {
-    assertions = [{
-      assertion = hasWslModule;
-      message = ''
-        Enabling WSL requires the WSL module to be installed.
+    assertions = [
+      {
+        assertion = hasWslModule;
+        message = ''
+          Enabling WSL requires the WSL module to be installed.
 
-        Try running
+          Try running
 
-            sudo nix-channel --add https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz nixos-wsl
-            sudo nix-channel --update nixos-wsl
+              sudo nix-channel --add https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz nixos-wsl
+              sudo nix-channel --update nixos-wsl
         '';
-    }];
+      }
+    ];
 
     wsl.enable = true;
     wsl.defaultUser = "adam";
@@ -55,8 +61,8 @@ in {
     services.openssh.enable = lib.mkForce false;
 
     environment.systemPackages = with pkgs; [
-      putty  # For psusan
-      wslu  # For wslview
+      putty # For psusan
+      wslu # For wslview
     ];
 
     users.users."${config.wsl.defaultUser}" = {
@@ -75,7 +81,6 @@ in {
       uid = lib.mkForce 1001;
     };
 
-    nix.channels.nixos-wsl =
-      "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
+    nix.channels.nixos-wsl = "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
   };
 }

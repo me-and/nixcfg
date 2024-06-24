@@ -1,12 +1,15 @@
-{ config, lib, pkgs, ... }:
-
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   python = pkgs.python3.withPackages (pp: [
     # dateutil needed for asmodeus
     pp.dateutil
   ]);
 
-  myPkgs = import ./mypackages.nix { inherit pkgs; };
+  myPkgs = import ./mypackages.nix {inherit pkgs;};
 
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
@@ -16,39 +19,54 @@ let
   # <https://github.com/NixOS/nixpkgs/issues/321481>, so the below is an
   # unwrapped version of fetchFromGitHub with my patch applied.  The arguments
   # in the `let` block are the ones I'd otherwise pass to fetchFromGitHub.
-  systemdHomeshick =
-  let
+  systemdHomeshick = let
     owner = "me-and";
     repo = "user-systemd-config";
     name = repo;
     rev = "HEAD";
     private = true;
     hash = "sha256-mk6f4TZLv/ZSCZNVq5pap+bkuG1yXFoLUAgwr3dYbfw=";
-  in pkgs.fetchzip ({
-    inherit name hash;
-    url = "https://api.github.com/repos/${owner}/${repo}/tarball" + lib.optionalString (rev != "HEAD") "/${rev}";
-    extension = "tar.gz";
-    passthru = { gitRepoUrl = "https://github.com/${owner}/${repo}.git"; };
-  } // lib.optionalAttrs private {
-    netrcPhase = ''
-      if [ -z "$NIX_GITHUB_PRIVATE_USERNAME" -o -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]; then
-        echo 'Error: cannot get systemdHomeshick without the nix building process (nix-daemon in multi user mode) having the NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD env vars set.' >&2
-        exit 1
-      fi
-      cat >netrc <<EOF
-      machine api.github.com
-              login $NIX_GITHUB_PRIVATE_USERNAME
-              password $NIX_GITHUB_PRIVATE_PASSWORD
-      EOF
-    '';
-    netrcImpureEnvVars = [ "NIX_GITHUB_PRIVATE_USERNAME" "NIX_GITHUB_PRIVATE_PASSWORD" ];
-  });
+  in
+    pkgs.fetchzip ({
+        inherit name hash;
+        url =
+          "https://api.github.com/repos/${owner}/${repo}/tarball"
+          + lib.optionalString (rev != "HEAD") "/${rev}";
+        extension = "tar.gz";
+        passthru = {gitRepoUrl = "https://github.com/${owner}/${repo}.git";};
+      }
+      // lib.optionalAttrs private {
+        netrcPhase = ''
+          if [ -z "$NIX_GITHUB_PRIVATE_USERNAME" -o -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]; then
+            cat <<EOF >&2
+          Error: cannot get systemdHomeshick without the nix building process
+          (nix-daemon in multi-user mode) having the
+          NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD
+          environment variables set.
+          EOF
+            exit 1
+          fi
+          cat >netrc <<EOF
+          machine api.github.com
+                  login $NIX_GITHUB_PRIVATE_USERNAME
+                  password $NIX_GITHUB_PRIVATE_PASSWORD
+          EOF
+        '';
+        netrcImpureEnvVars = [
+          "NIX_GITHUB_PRIVATE_USERNAME"
+          "NIX_GITHUB_PRIVATE_PASSWORD"
+        ];
+      });
 in {
-  imports = [
-    ./local-config.nix
-    ./homeshick.nix
-  ]
-  ++ lib.optional (builtins.pathExists ~/.config/home-manager-work) ~/.config/home-manager-work;
+  imports =
+    [
+      ./local-config.nix
+      ./homeshick.nix
+    ]
+    ++ (
+      lib.optional (builtins.pathExists ~/.config/home-manager-work)
+      ~/.config/home-manager-work
+    );
 
   home = {
     username = "adam";
@@ -102,19 +120,25 @@ in {
     };
   };
 
-  homeshick = {
+  homeshick = let
+    doLink = url: {inherit url;};
+    dontLink = url: {
+      inherit url;
+      link = false;
+    };
+  in {
     enable = true;
     repos = [
-      { url = "https://github.com/me-and/castle"; }
-      { url = "https://github.com/mileszs/ack.vim"; link = false; }
-      { url = "https://github.com/me-and/asmodeus"; link = false; }
-      { url = "https://github.com/magicmonty/bash-git-prompt"; link = false; }
-      { url = "https://github.com/vito-c/jq.vim"; link = false; }
-      { url = "https://github.com/aklt/plantuml-syntax"; link = false; }
-      { url = "https://github.com/luochen1990/rainbow"; link = false; }
-      { url = "https://github.com/sirtaj/vim-openscad"; link = false; }
-      { url = "https://github.com/junegunn/vim-plug"; link = false; }
-      { url = "https://github.com/lervag/vimtex"; link = false; }
+      (doLink "https://github.com/me-and/castle")
+      (dontLink "https://github.com/mileszs/ack.vim")
+      (dontLink "https://github.com/me-and/asmodeus")
+      (dontLink "https://github.com/magicmonty/bash-git-prompt")
+      (dontLink "https://github.com/vito-c/jq.vim")
+      (dontLink "https://github.com/aklt/plantuml-syntax")
+      (dontLink "https://github.com/luochen1990/rainbow")
+      (dontLink "https://github.com/sirtaj/vim-openscad")
+      (dontLink "https://github.com/junegunn/vim-plug")
+      (dontLink "https://github.com/lervag/vimtex")
     ];
   };
 

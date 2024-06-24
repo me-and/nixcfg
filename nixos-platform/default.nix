@@ -1,1 +1,1 @@
-{ ... }: { imports = [ ./wsl.nix ./hyperv.nix ]; }
+{...}: {imports = [./wsl.nix ./hyperv.nix];}

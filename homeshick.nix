@@ -1,6 +1,11 @@
-{ config, lib, options, pkgs, ... }:
-let
-  castleOpts = { config, ... }: {
+{
+  config,
+  lib,
+  options,
+  pkgs,
+  ...
+}: let
+  castleOpts = {config, ...}: {
     options = {
       url = lib.mkOption {
         type = lib.types.str;
@@ -8,7 +13,10 @@ let
       };
       dest = lib.mkOption {
         type = lib.types.str;
-        description = "The subdirectory of ~/.homesick/repos to clone into.  If undefined the destination will be taken from the URL.";
+        description = ''
+          The subdirectory of ~/.homesick/repos to clone into.  If undefined
+          the destination will be taken from the URL.
+        '';
       };
       link = lib.mkOption {
         type = lib.types.bool;
@@ -23,7 +31,11 @@ let
     };
 
     config = {
-      dest = lib.mkDefault (lib.lists.last (lib.strings.split "/" (lib.strings.removeSuffix ".git" config.url)));
+      dest = lib.mkDefault (
+        lib.lists.last (
+          lib.strings.split "/" (lib.strings.removeSuffix ".git" config.url)
+        )
+      );
     };
   };
 
@@ -34,7 +46,7 @@ let
 
   homeshickInit = pkgs.writeShellApplication {
     name = "homeshick-init";
-    runtimeInputs = with pkgs; [ config.programs.git.package gh coreutils bash ];
+    runtimeInputs = with pkgs; [config.programs.git.package gh coreutils bash];
     text = ''
       set -euo pipefail
 
@@ -72,22 +84,30 @@ let
     '';
   };
 
-  homeshickUnit = { dest, description, url, link, forceLink, after ? [ "homeshick.service" ] }:
-  let
-    linkString =
-      if !link
-      then ""
-      else if forceLink
-      then "-f"
-      else "-l";
+  homeshickUnit = {
+    dest,
+    description,
+    url,
+    link,
+    forceLink,
+    after ? ["homeshick.service"],
+  }: let
+    shellArgs =
+      (
+        if !link
+        then []
+        else if forceLink
+        then ["-f"]
+        else ["-l"]
+      )
+      ++ [dest url];
   in {
     Unit.Description = description;
     Unit.After = after;
     Service.Type = "oneshot";
-    Service.ExecStart = "${homeshickInit}/bin/homeshick-init ${linkString} ${dest} ${url}";
-    Install.WantedBy = [ "default.target" ];
+    Service.ExecStart = "${homeshickInit}/bin/homeshick-init ${lib.strings.escapeShellArgs shellArgs}";
+    Install.WantedBy = ["default.target"];
   };
-
 in {
   options.homeshick = {
     enable = lib.mkEnableOption "Homeshick";
@@ -101,9 +121,9 @@ in {
     repos = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule castleOpts);
       description = "Other Homeshick repositories to configure.";
-      default = [ ];
+      default = [];
       example = [
-        { url = "https://github.com/me-and/castle"; }
+        {url = "https://github.com/me-and/castle";}
       ];
     };
   };
@@ -113,20 +133,17 @@ in {
       homeshick = homeshickUnit {
         inherit (config.homeshick.homeshick) dest url link forceLink;
         description = "Homeshick installation";
-        after = [ ];
+        after = [];
       };
     }
     // (
-      lib.attrsets.mergeAttrsList (
-        map (
-          h: {
-            "homeshick@${h.dest}" = homeshickUnit {
-              inherit (h) dest url link forceLink;
-              description = "Homeshick %i installation";
-            };
-          })
-          config.homeshick.repos
-      )
+      lib.attrsets.mergeAttrsList (map (h: {
+          "homeshick@${h.dest}" = homeshickUnit {
+            inherit (h) dest url link forceLink;
+            description = "Homeshick %i installation";
+          };
+        })
+        config.homeshick.repos)
     )
   );
 }

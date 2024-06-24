@@ -1,5 +1,8 @@
-{ lib, pkgs, ... }:
 {
+  lib,
+  pkgs,
+  ...
+}: {
   options.pd = {
     enable = lib.mkEnableOption "PD configuration";
   };

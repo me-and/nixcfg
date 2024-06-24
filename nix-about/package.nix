@@ -1,4 +1,7 @@
-{ writeShellApplication, nix }:
+{
+  writeShellApplication,
+  nix,
+}:
 writeShellApplication {
   name = "nix-about";
   text = ''

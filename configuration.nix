@@ -1,15 +1,27 @@
-{ config, lib, options, pkgs, ... }:
+{
+  config,
+  lib,
+  options,
+  pkgs,
+  ...
+}: let
+  unstable = import <nixos-unstable> {config = config.nixpkgs.config;};
 
-let
-  unstable = import <nixos-unstable> { config = config.nixpkgs.config; };
+  defaultPriority = (lib.mkOptionDefault {}).priority;
 in {
-  imports = [ ./channels.nix <home-manager/nixos> ]
-    ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
-    ++ [ ./nixos-platform ./local-config.nix ]
-  ;
+  imports = [
+    <home-manager/nixos>
+    ./hardware-configuration.nix
+    ./channels.nix
+    ./nixos-platform
+    ./local-config.nix
+  ];
 
   config = {
-    warnings = lib.optional (options.networking.hostName.highestPrio >= 1000) "System hostname left at default.  Consider setting networking.hostName.";
+    warnings =
+      lib.optional
+      (options.networking.hostName.highestPrio == defaultPriority)
+      "System hostname left at default.  Consider setting networking.hostName.";
 
     boot.loader = {
       systemd-boot.enable = true;
@@ -27,7 +39,9 @@ in {
 
     # Set up printing.
     services.printing.enable = true;
-    services.printing.drivers = [ (pkgs.cups-kyocera-3500-4500 or unstable.cups-kyocera-3500-4500) ];
+    services.printing.drivers = [
+      (pkgs.cups-kyocera-3500-4500 or unstable.cups-kyocera-3500-4500)
+    ];
 
     # Set up sound.
     sound.enable = true;
@@ -43,8 +57,7 @@ in {
     # Check the channel list is as expected.
     nix.checkChannels = true;
     nix.channels = {
-      home-manager =
-        "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
+      home-manager = "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
       nixos = "https://nixos.org/channels/nixos-24.05";
       nixos-unstable = "https://nixos.org/channels/nixos-unstable";
     };
@@ -53,7 +66,7 @@ in {
     services.locate = {
       enable = true;
       package = pkgs.plocate;
-      localuser = null;  # Needed to silence warning about running as root.
+      localuser = null; # Needed to silence warning about running as root.
     };
 
     environment.systemPackages = with pkgs; [
@@ -86,7 +99,7 @@ in {
       isNormalUser = true;
       hashedPasswordFile = "/etc/nixos/passwords/adam";
       description = "Adam Dinwoodie";
-      extraGroups = [ "wheel" ];
+      extraGroups = ["wheel"];
       linger = true;
     };
 
@@ -109,7 +122,7 @@ in {
       ];
     };
     systemd.timers.nix-index = {
-      wantedBy = [ "timers.target" ];
+      wantedBy = ["timers.target"];
       timerConfig = {
         OnCalendar = "Mon 18:00";
         AccuracySec = "24h";
@@ -127,17 +140,18 @@ in {
       options = "--delete-older-than 7d";
     };
     systemd.services.nix-gc = {
-      onSuccess = [ "nix-optimise.service" ];
+      onSuccess = ["nix-optimise.service"];
     };
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
-    systemd.services.nix-daemon = lib.optionalAttrs (builtins.pathExists ./nix-daemon-environment) {
-      serviceConfig.EnvironmentFile = "/etc/nixos/nix-daemon-environment";
-    };
+    systemd.services.nix-daemon =
+      lib.optionalAttrs
+      (builtins.pathExists ./nix-daemon-environment)
+      {serviceConfig.EnvironmentFile = "/etc/nixos/nix-daemon-environment";};
 
     # Trust anyone in the wheel group
-    nix.settings.trusted-users = [ "@wheel" ];
+    nix.settings.trusted-users = ["@wheel"];
     nix.settings.sandbox = "relaxed";
 
     nixpkgs.config.allowUnfree = true;
