@@ -7,6 +7,14 @@
   tryWslModule = builtins.tryEval <nixos-wsl/modules>;
   hasWslModule = tryWslModule.success;
   wslModulePath = tryWslModule.value;
+
+  windowsUsername = builtins.readFile (
+    pkgs.runCommandLocal "username" {__noChroot = true;}
+    ''
+      /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserName' |
+          ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
+    ''
+  );
 in {
   imports = lib.optional hasWslModule wslModulePath;
 
@@ -76,9 +84,14 @@ in {
       # recursion :(
       linger = lib.mkForce false;
 
-      # TODO Work out why WSL gives warnings about user IDs without this
-      # configuration.
-      uid = lib.mkForce 1001;
+      # If the WSL username matches the host username, use UID 1000.  If not,
+      # use UID 1001.  Seems like this shouldn't be necessary, but it avoids a
+      # bunch of error messages.
+      uid = lib.mkForce (
+        if config.wsl.defaultUser == windowsUsername
+        then 1000
+        else 1001
+      );
     };
 
     nix.channels.nixos-wsl = "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
