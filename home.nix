@@ -73,6 +73,7 @@ in {
     homeDirectory = "/home/adam";
 
     packages = with pkgs; [
+      alejandra
       ascii
       fzf
       gh
