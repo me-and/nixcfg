@@ -4,6 +4,8 @@
   pkgs,
   ...
 }: let
+  inherit (config.lib.file) mkOutOfStoreSymlink;
+
   python = pkgs.python3.withPackages (pp: [
     # dateutil needed for asmodeus
     pp.dateutil
@@ -57,6 +59,32 @@
           "NIX_GITHUB_PRIVATE_PASSWORD"
         ];
       });
+
+  isWsl =
+    (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop)
+    || (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop-late);
+  windowsHomeDir = builtins.readFile (
+    # TODO Can I convert this to use ${pkgs.wslu}/bin/wslvar
+    pkgs.runCommandLocal "homedir" {__noChroot = true;}
+    ''
+      /bin/wslpath "$(/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserProfile')" |
+          ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
+    ''
+  );
+
+  nix-locate-bin = pkgs.writeShellApplication {
+    name = "nix-locate-bin";
+    text = ''
+      ${pkgs.nix-index}/bin/nix-locate \
+          --minimal \
+          --no-group \
+          --type x --type s \
+          --top-level \
+          --whole-name \
+          --at-root \
+          "/bin/$1"
+    '';
+  };
 in {
   imports =
     [
@@ -75,6 +103,7 @@ in {
     packages = with pkgs; [
       alejandra
       ascii
+      dos2unix
       fzf
       gh
       htop
@@ -83,6 +112,7 @@ in {
       moreutils
       mosh
       nix-diff
+      nix-locate-bin
       psmisc
       pv
       python
@@ -108,18 +138,25 @@ in {
       PYTHONPATH = "${python}/${python.sitePackages}";
     };
 
-    # This isn't very idiomatic for Nix, but it's a quick and easy solution for
-    # moving my existing config into Nix.
-    file = lib.mkIf config.systemd.user.enable {
-      ".config/systemd" = {
-        recursive = true;
-        source = "${systemdHomeshick}/systemd";
+    file = let
+      winHomeLink = lib.optionalAttrs isWsl {
+        WinHome = {source = mkOutOfStoreSymlink windowsHomeDir;};
       };
-      ".local" = {
-        recursive = true;
-        source = "${systemdHomeshick}/home/.local";
+
+      # This isn't very idiomatic for Nix, but it's a quick and easy solution
+      # for moving my existing config into Nix.
+      systemdLinkTree = lib.optionalAttrs config.systemd.user.enable {
+        ".config/systemd" = {
+          recursive = true;
+          source = "${systemdHomeshick}/systemd";
+        };
+        ".local" = {
+          recursive = true;
+          source = "${systemdHomeshick}/home/.local";
+        };
       };
-    };
+    in
+      winHomeLink // systemdLinkTree;
 
     # Get Bash to check for local mail.
     sessionVariables.MAILPATH = "/var/spool/mail/${config.home.username}";
