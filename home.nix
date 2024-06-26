@@ -84,6 +84,7 @@ in {
       mosh
       nix-diff
       psmisc
+      pv
       python
       silver-searcher
       taskwarrior
