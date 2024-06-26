@@ -120,6 +120,9 @@ in {
         source = "${systemdHomeshick}/home/.local";
       };
     };
+
+    # Get Bash to check for local mail.
+    sessionVariables.MAILPATH = "/var/spool/mail/${config.home.username}";
   };
 
   homeshick = let
