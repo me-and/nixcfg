@@ -71,6 +71,20 @@
           ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
     ''
   );
+
+  nix-locate-bin = pkgs.writeShellApplication {
+    name = "nix-locate-bin";
+    text = ''
+      ${pkgs.nix-index}/bin/nix-locate \
+          --minimal \
+          --no-group \
+          --type x --type s \
+          --top-level \
+          --whole-name \
+          --at-root \
+          "/bin/$1"
+    '';
+  };
 in {
   imports =
     [
@@ -98,6 +112,7 @@ in {
       moreutils
       mosh
       nix-diff
+      nix-locate-bin
       psmisc
       python
       silver-searcher
