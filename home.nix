@@ -75,6 +75,7 @@ in {
     packages = with pkgs; [
       alejandra
       ascii
+      dos2unix
       fzf
       gh
       htop
