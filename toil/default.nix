@@ -13,5 +13,5 @@ in
       rev = "v${version}";
       hash = "sha256-IW/p1H3QteyyU1BkmIpb/U9XrXZjr/+xVy596KNLgPE=";
     };
-    makeFlags = ["prefix=/" "DESTDIR=${placeholder "out"}"];
+    makeFlags = ["prefix=${placeholder "out"}"];
   }
