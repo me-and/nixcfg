@@ -19,7 +19,17 @@
       "Package: ${p.pname}"
       "Version: ${p.version}"
       "Description: ${p.meta.description}"
-      "License: ${p.meta.license.fullName or p.meta.license or "Unspecified"}"
+      (
+        if ((builtins.typeOf p.meta.license) == "list")
+        then
+          (
+            if (builtins.length p.meta.license) == 1
+            then "License: "
+            else "Licenses: "
+          )
+          + (lib.strings.concatStringsSep " / " (map (l: l.fullName or l) p.meta.license))
+        else p.meta.license.fullName or p.meta.license or "Unspecified"
+      )
     ]
     ++ (
       lib.optional
