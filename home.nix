@@ -126,6 +126,7 @@ in {
       config.programs.git.package
 
       # My packages.
+      myPkgs.mtimewait
       myPkgs.nix-about
       myPkgs.toil
     ];
