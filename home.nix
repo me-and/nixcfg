@@ -11,7 +11,7 @@
     pp.dateutil
   ]);
 
-  myPkgs = import ./mypackages.nix {inherit pkgs;};
+  myPkgs = pkgs.callPackage ./mypackages.nix {};
 
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
@@ -100,36 +100,39 @@ in {
     username = "adam";
     homeDirectory = "/home/adam";
 
-    packages = with pkgs; [
-      alejandra
-      ascii
-      dos2unix
-      fzf
-      gh
-      htop
-      jq
-      lesspipe
-      moreutils
-      mosh
-      nix-diff
-      nix-locate-bin
-      psmisc
-      pv
-      python
-      silver-searcher
-      taskwarrior
-
+    packages = let
+      nixpkgs = with pkgs; [
+        alejandra
+        ascii
+        dos2unix
+        fzf
+        gh
+        htop
+        jq
+        lesspipe
+        moreutils
+        mosh
+        nix-diff
+        nix-locate-bin
+        psmisc
+        pv
+        python
+        silver-searcher
+        taskwarrior
+      ];
+      mypkgs = with myPkgs; [
+        mtimewait
+        nix-about
+        toil
+      ];
+    in
+      nixpkgs
+      ++ mypkgs
       # Use the Git version possibly configured in local-config.nix.  This is
       # handled here rather than with config.programs.git.enable because that
       # would also result in Home Manager trying to manage my Git config, which
       # I'm not (yet) ready for.
-      config.programs.git.package
-
-      # My packages.
-      myPkgs.mtimewait
-      myPkgs.nix-about
-      myPkgs.toil
-    ];
+      ++ [config.programs.git.package];
 
     sessionVariables = {
       # Ideally this wouldn't be handled here but instead by Nix dependency
