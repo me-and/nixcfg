@@ -125,8 +125,9 @@ in {
       # I'm not (yet) ready for.
       config.programs.git.package
 
-      # Use nix-about.
+      # My packages.
       myPkgs.nix-about
+      myPkgs.toil
     ];
 
     sessionVariables = {
