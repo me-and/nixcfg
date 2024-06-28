@@ -6,7 +6,7 @@
 in
   stdenv.mkDerivation {
     inherit version;
-    name = "toil";
+    pname = "toil";
     src = fetchFromGitHub {
       owner = "me-and";
       repo = "toil";
