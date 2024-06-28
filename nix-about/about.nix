@@ -3,7 +3,8 @@
   lib ? pkgs.lib,
   pkgname,
 }: let
-  p = pkgs."${pkgname}";
+  packagePath = lib.strings.splitString "." pkgname;
+  p = lib.attrsets.attrByPath packagePath null pkgs;
   indentAfterFirst = s: let
     lines = lib.strings.splitString "\n" s;
   in
@@ -42,5 +43,8 @@
       "Website: ${p.meta.homepage}"
     );
 in {
-  output = (lib.strings.concatStringsSep "\n" outputLines) + "\n";
+  output =
+    if p == null
+    then "No package ${pkgname} found\n"
+    else (lib.strings.concatStringsSep "\n" outputLines) + "\n";
 }
