@@ -2,14 +2,14 @@
   fetchFromGitHub,
   stdenvNoCC,
 }:
-stdenvNoCC.mkDerivation {
+stdenvNoCC.mkDerivation rec {
   pname = "mtimewait";
-  version = "2024.06.28";
+  version = "1.0.0";
   src = fetchFromGitHub {
     owner = "me-and";
     repo = "mtimewait";
-    rev = "HEAD";
-    hash = "sha256-rfoeOVjZ8vt+G5DoQ0KjJJuGgrk+aRjCsuuQYlkY3w8=";
+    rev = "v${version}";
+    hash = "sha256-7usTM6pKv6toLs61RGVtOHC4Yzh1YIgqFclA265vmtg=";
   };
   installPhase = ''
     mkdir -p $out/bin
