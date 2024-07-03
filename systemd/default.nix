@@ -20,7 +20,7 @@
     name = repo;
     rev = "HEAD";
     private = true;
-    hash = "sha256-a6dHg0QwTkgfVNKeVBYw0L1mYKVna60/sHptD7+e4gI=";
+    hash = "sha256-qJFIb7M0TODrMmC3e0dRGx7EsIPqE0w94M3v7B1AnSc=";
   in
     pkgs.fetchzip ({
         inherit name hash;
@@ -64,5 +64,31 @@ in {
       recursive = true;
       source = "${systemdHomeshick}/home/.local";
     };
+  };
+
+  systemd.user.services."mail-state@" = {
+    Unit.Description = "Unit %i state report";
+    Service.Type = "oneshot";
+    Service.ExecStart = let
+      reportScript = pkgs.writeShellApplication {
+        name = "mailstate.sh";
+        bashOptions = ["errexit" "nounset"];
+        text = ''
+          unit="$1"
+          user="$2"
+          shorthost="$3"
+          longhost="$4"
+
+          unit_state="$(systemctl --user show -PActiveState "$unit")"
+
+          SYSTEMD_COLORS=True SYSTEMD_URLIFY=False \
+              systemctl --user status "$unit" |
+              ${myPkgs.colourmail}/bin/colourmail \
+                  -s "Unit $unit $unit_state on $shorthost" \
+                  -r "$user on $shorthost <''${user}@''${longhost}>" \
+                  -- "$user"
+        '';
+      };
+    in "${reportScript}/bin/mailstate.sh %i %u %l $H";
   };
 }
