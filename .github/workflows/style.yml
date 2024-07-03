@@ -11,4 +11,4 @@ jobs:
       - name: Set up Nix cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
       - name: Run alejandra
-        run: nix-shell -p findutils -p alejandra --run 'find . -path ./git -prune -o -type f -name "*.nix" -exec alejandra -c {} +'
+        run: nix-shell -p findutils -p alejandra --run 'find . -path ./.git -prune -o -type f -name "*.nix" -exec alejandra -c {} +'
