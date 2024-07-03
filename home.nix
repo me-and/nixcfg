@@ -100,6 +100,7 @@ in {
 
     file = lib.mkIf isWsl {
       WinHome = {source = mkOutOfStoreSymlink windowsHomeDir;};
+      ".bashrc.d/winget" = {text = "alias winget=winget.exe";};
     };
 
     # Get Bash to check for local mail.
