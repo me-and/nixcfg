@@ -17,7 +17,6 @@
     (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop)
     || (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop-late);
   windowsHomeDir = builtins.readFile (
-    # TODO Can I convert this to use ${pkgs.wslu}/bin/wslvar
     pkgs.runCommandLocal "homedir" {__noChroot = true;}
     ''
       /bin/wslpath "$(/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserProfile')" |
