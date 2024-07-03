@@ -98,7 +98,7 @@ in {
       PYTHONPATH = "${python}/${python.sitePackages}";
     };
 
-    file = lib.optionalAttrs isWsl {
+    file = lib.mkIf isWsl {
       WinHome = {source = mkOutOfStoreSymlink windowsHomeDir;};
     };
 

@@ -53,7 +53,7 @@
 in {
   # This isn't very idiomatic for Nix, but it's a quick and easy solution for
   # moving my existing config into Nix.
-  home.file = lib.optionalAttrs config.systemd.user.enable {
+  home.file = lib.mkIf config.systemd.user.enable {
     ".config/systemd" = {
       recursive = true;
       source = "${systemdHomeshick}/systemd";
