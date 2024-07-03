@@ -113,6 +113,7 @@ in {
         lesspipe
         moreutils
         mosh
+        ncdu
         nix-diff
         nix-locate-bin
         psmisc
