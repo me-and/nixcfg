@@ -89,6 +89,6 @@ in {
                   -- "$user"
         '';
       };
-    in "${reportScript}/bin/mailstate.sh %i %u %l $H";
+    in "${reportScript}/bin/mailstate.sh %i %u %l %H";
   };
 }
