@@ -23,6 +23,13 @@
           ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
     ''
   );
+  windowsUsername = builtins.readFile (
+    pkgs.runCommandLocal "username" {__noChroot = true;}
+    ''
+      /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserName' |
+          ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
+    ''
+  );
 
   nix-locate-bin = pkgs.writeShellApplication {
     name = "nix-locate-bin";
@@ -37,6 +44,11 @@
           "/bin/$1"
     '';
   };
+
+  username =
+    if isWsl
+    then windowsUsername
+    else "adam";
 in {
   imports =
     [
@@ -50,8 +62,8 @@ in {
     );
 
   home = {
-    username = "adam";
-    homeDirectory = "/home/adam";
+    inherit username;
+    homeDirectory = "/home/${username}";
 
     packages = let
       nixpkgs = with pkgs; [
