@@ -49,7 +49,7 @@ in {
     ];
 
     wsl.enable = true;
-    wsl.defaultUser = "adam";
+    wsl.defaultUser = windowsUsername;
 
     # Override config from the regular config file.
     boot.loader = lib.mkForce {
@@ -83,15 +83,6 @@ in {
       # isNormalUser, but I can't work out how to do that without infinite
       # recursion :(
       linger = lib.mkForce false;
-
-      # If the WSL username matches the host username, use UID 1000.  If not,
-      # use UID 1001.  Seems like this shouldn't be necessary, but it avoids a
-      # bunch of error messages.
-      uid = lib.mkForce (
-        if config.wsl.defaultUser == windowsUsername
-        then 1000
-        else 1001
-      );
     };
 
     nix.channels.nixos-wsl = "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";

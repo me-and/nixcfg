@@ -8,6 +8,15 @@
   unstable = import <nixos-unstable> {config = config.nixpkgs.config;};
 
   defaultPriority = (lib.mkOptionDefault {}).priority;
+
+  # If this is a WSL system, use the Windows username; in theory that's not
+  # necessary, but in practice a bunch of things need extra work without this
+  # (e.g. the UIDs get confused, and you can't launch GUI applications as a
+  # result).
+  username =
+    if config.system.isWsl
+    then config.wsl.defaultUser
+    else "adam";
 in {
   imports =
     [
@@ -101,7 +110,7 @@ in {
     home-manager.useGlobalPkgs = true;
 
     # Set up my user account.
-    users.users.adam = {
+    users.users."${username}" = {
       isNormalUser = true;
       hashedPasswordFile = "/etc/nixos/passwords/adam";
       description = "Adam Dinwoodie";
