@@ -73,18 +73,6 @@ in {
       wslu # For wslview
     ];
 
-    users.users."${config.wsl.defaultUser}" = {
-      # TODO Work out why having linger enabled manages to _break_ commands
-      # like `systemctl --user status`.  Probably related to
-      # https://github.com/microsoft/WSL/issues/10205 although I don't quite
-      # understand how.
-      #
-      # Ideally this would apply the configuration to all users that have
-      # isNormalUser, but I can't work out how to do that without infinite
-      # recursion :(
-      linger = lib.mkForce false;
-    };
-
     nix.channels.nixos-wsl = "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
   };
 }
