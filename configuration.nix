@@ -43,6 +43,8 @@ in {
       efi.canTouchEfiVariables = true;
     };
 
+    boot.tmp.useTmpfs = true;
+
     # Always want to be in the UK.
     time.timeZone = "Europe/London";
     i18n.defaultLocale = "en_GB.UTF-8";
