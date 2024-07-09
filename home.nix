@@ -137,6 +137,7 @@ in {
       (dontLink "https://github.com/luochen1990/rainbow")
       (dontLink "https://github.com/sirtaj/vim-openscad")
       (dontLink "https://github.com/junegunn/vim-plug")
+      (dontLink "https://github.com/junegunn/fzf.vim")
       (dontLink "https://github.com/lervag/vimtex")
     ];
   };
