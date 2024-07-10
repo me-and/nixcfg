@@ -28,7 +28,7 @@
             else "Licenses: "
           )
           + (lib.strings.concatStringsSep " / " (map (l: l.fullName or l) p.meta.license))
-        else p.meta.license.fullName or p.meta.license or "Unspecified"
+        else ("License: " + p.meta.license.fullName or p.meta.license or "Unspecified")
       )
     ]
     ++ (
