@@ -5,6 +5,8 @@
   pkgs,
   ...
 }: let
+  cfg = config.homeshick;
+
   castleOpts = {config, ...}: {
     options = {
       url = lib.mkOption {
@@ -70,7 +72,7 @@
       set -x
       if [[ "$link_mode" ]]; then
           homeshick () {
-              ~/.homesick/repos/${config.homeshick.homeshick.dest}/bin/homeshick "$@"
+              ~/.homesick/repos/${cfg.homeshick.dest}/bin/homeshick "$@"
           }
           if [[ "$link_mode" = link ]]; then
               homeshick --skip link "$dest"
@@ -128,10 +130,10 @@ in {
     };
   };
 
-  config.systemd.user.services = lib.mkIf config.homeshick.enable (
+  config.systemd.user.services = lib.mkIf cfg.enable (
     {
       homeshick = homeshickUnit {
-        inherit (config.homeshick.homeshick) dest url link forceLink;
+        inherit (cfg.homeshick) dest url link forceLink;
         description = "Homeshick installation";
         after = [];
       };
@@ -143,7 +145,7 @@ in {
             description = "Homeshick %i installation";
           };
         })
-        config.homeshick.repos)
+        cfg.repos)
     )
   );
 }
