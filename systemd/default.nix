@@ -6,6 +6,8 @@
 }: let
   myPkgs = pkgs.callPackage ../mypackages.nix {};
 
+  writeShellScript = pkgs.callPackage ../writeshellscript.nix {};
+
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
   # Manager.
@@ -31,22 +33,25 @@
         passthru = {gitRepoUrl = "https://github.com/${owner}/${repo}.git";};
       }
       // lib.optionalAttrs private {
-        netrcPhase = ''
-          if [ -z "$NIX_GITHUB_PRIVATE_USERNAME" -o -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]; then
-            cat <<EOF >&2
-          Error: cannot get systemdHomeshick without the nix building process
-          (nix-daemon in multi-user mode) having the
-          NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD
-          environment variables set.
-          EOF
-            exit 1
-          fi
-          cat >netrc <<EOF
-          machine api.github.com
-                  login $NIX_GITHUB_PRIVATE_USERNAME
-                  password $NIX_GITHUB_PRIVATE_PASSWORD
-          EOF
-        '';
+        netrcPhase = writeShellScript {
+          name = "fetch-systemd-homeshick.sh";
+          text = ''
+            if [[ -z "$NIX_GITHUB_PRIVATE_USERNAME" || -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]]; then
+              cat <<EOF >&2
+            Error: cannot get systemdHomeshick without the nix building process
+            (nix-daemon in multi-user mode) having the
+            NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD
+            environment variables set.
+            EOF
+              exit 1
+            fi
+            cat >netrc <<EOF
+            machine api.github.com
+                    login $NIX_GITHUB_PRIVATE_USERNAME
+                    password $NIX_GITHUB_PRIVATE_PASSWORD
+            EOF
+          '';
+        };
         netrcImpureEnvVars = [
           "NIX_GITHUB_PRIVATE_USERNAME"
           "NIX_GITHUB_PRIVATE_PASSWORD"
@@ -70,7 +75,7 @@ in {
     Unit.Description = "Unit %i state report";
     Service.Type = "oneshot";
     Service.ExecStart = let
-      reportScript = pkgs.writeShellApplication {
+      reportScript = writeShellScript {
         name = "mailstate.sh";
         bashOptions = ["errexit" "nounset"];
         text = ''
@@ -89,6 +94,6 @@ in {
                   -- "$user"
         '';
       };
-    in "${reportScript}/bin/mailstate.sh %i %u %l %H";
+    in "${reportScript} %i %u %l %H";
   };
 }

@@ -7,6 +7,8 @@
 }: let
   cfg = config.homeshick;
 
+  writeShellScript = pkgs.callPackage ./writeshellscript.nix {};
+
   castleOpts = {config, ...}: {
     options = {
       url = lib.mkOption {
@@ -46,8 +48,8 @@
     link = false;
   };
 
-  homeshickInit = pkgs.writeShellApplication {
-    name = "homeshick-init";
+  homeshickInit = pkgs.writeShellScript {
+    name = "homeshick-init.sh";
     runtimeInputs = with pkgs; [config.programs.git.package gh coreutils bash];
     text = ''
       set -euo pipefail
