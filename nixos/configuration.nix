@@ -19,7 +19,7 @@
     else "adam";
 
   fileIfExtant = file: lib.optional (builtins.pathExists file) file;
-  filesIfExtant = files: lib.lists.concatLists (map fileIfExtant files);
+  filesIfExtant = files: lib.lists.concatMap fileIfExtant files;
 in {
   imports =
     [
