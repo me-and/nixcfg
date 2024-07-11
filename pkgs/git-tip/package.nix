@@ -3,7 +3,7 @@
   lib,
   runCommand,
   rev ? null,
-  ref ? "master",
+  ref ? "next",
   keepSrc ? true,
   doInstallCheck ? true,
   cacert,

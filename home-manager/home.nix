@@ -11,8 +11,6 @@
     pp.dateutil
   ]);
 
-  myPkgs = pkgs.callPackage ./mypackages.nix {};
-
   isWsl =
     (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop)
     || (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop-late);
@@ -31,75 +29,65 @@
     ''
   );
 
-  nix-locate-bin = pkgs.writeShellApplication {
-    name = "nix-locate-bin";
-    text = ''
-      ${pkgs.nix-index}/bin/nix-locate \
-          --minimal \
-          --no-group \
-          --type x --type s \
-          --top-level \
-          --whole-name \
-          --at-root \
-          "/bin/$1"
-    '';
-  };
-
   username =
     if isWsl
     then windowsUsername
     else "adam";
+
+  fileIfExtant = file: lib.optional (builtins.pathExists file) file;
 in {
   imports =
     [
-      ./local-config.nix
-      ./homeshick.nix
-      ./systemd
+      ./local-config
+      ../modules/home-manager
     ]
-    ++ (
-      lib.optional (builtins.pathExists ~/.config/home-manager-work)
-      ~/.config/home-manager-work
-    );
+    ++ fileIfExtant ~/.config/home-manager-work;
+
+  nixpkgs.overlays = let
+    overlayDirContents = builtins.readDir ../overlays;
+    overlayDirImportableContents = let
+      importable = n: v: v == "directory" || (builtins.match ".*\\.nix" n) != null;
+    in
+      lib.filterAttrs importable overlayDirContents;
+    overlayNames = builtins.attrNames overlayDirImportableContents;
+    overlayPaths = builtins.map (n: lib.path.append ../overlays n) overlayNames;
+  in
+    builtins.map import overlayPaths;
 
   home = {
     inherit username;
     homeDirectory = "/home/${username}";
 
-    packages = let
-      nixpkgs = with pkgs; [
-        alejandra
-        ascii
-        dos2unix
-        fzf
-        gh
-        git-filter-repo
-        htop
-        jq
-        lesspipe
-        moreutils
-        mosh
-        ncdu
-        nix-diff
-        nix-locate-bin
-        psmisc
-        pv
-        python
-        silver-searcher
-        taskwarrior
-      ];
-      mypkgs = with myPkgs; [
-        mtimewait
-        nix-about
-        toil
-      ];
-    in
-      nixpkgs
-      ++ mypkgs
+    packages = with pkgs; [
+      alejandra
+      ascii
+      dos2unix
+      fzf
+      gh
+      git-filter-repo
+      htop
+      jq
+      lesspipe
+      moreutils
+      mosh
+      mtimewait
+      ncdu
+      nix-about
+      nix-diff
+      nix-locate-bin
+      psmisc
+      pv
+      python
+      silver-searcher
+      taskwarrior
+      toil
+
       # Use the Git version possibly configured in local-config.nix.  This is
       # handled here rather than with config.programs.git.enable because that
       # would also result in Home Manager trying to manage my Git config, which
       # I'm not (yet) ready for.
-      ++ [config.programs.git.package];
+      config.programs.git.package
+    ];
 
     sessionVariables = {
       # Ideally this wouldn't be handled here but instead by Nix dependency

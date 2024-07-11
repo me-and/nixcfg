@@ -4,10 +4,6 @@
   pkgs,
   ...
 }: let
-  myPkgs = pkgs.callPackage ../mypackages.nix {};
-
-  writeShellScript = pkgs.callPackage ../writeshellscript.nix {};
-
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
   # Manager.
@@ -33,7 +29,7 @@
         passthru = {gitRepoUrl = "https://github.com/${owner}/${repo}.git";};
       }
       // lib.optionalAttrs private {
-        netrcPhase = writeShellScript {
+        netrcPhase = pkgs.writeCheckedShellScript {
           name = "fetch-systemd-homeshick.sh";
           text = ''
             if [[ -z "$NIX_GITHUB_PRIVATE_USERNAME" || -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]]; then
@@ -75,7 +71,7 @@ in {
     Unit.Description = "Unit %i state report";
     Service.Type = "oneshot";
     Service.ExecStart = let
-      reportScript = writeShellScript {
+      reportScript = pkgs.writeCheckedShellScript {
         name = "mailstate.sh";
         bashOptions = ["errexit" "nounset"];
         text = ''
@@ -88,7 +84,7 @@ in {
 
           SYSTEMD_COLORS=True SYSTEMD_URLIFY=False \
               systemctl --user status "$unit" |
-              ${myPkgs.colourmail}/bin/colourmail \
+              ${pkgs.colourmail}/bin/colourmail \
                   -s "Unit $unit $unit_state on $shorthost" \
                   -r "$user on $shorthost <''${user}@''${longhost}>" \
                   -- "$user"
