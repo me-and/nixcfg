@@ -40,19 +40,9 @@ in {
     [
       ./local-config.nix
       ./modules/home-manager
+      ./modules/shared
     ]
     ++ fileIfExtant ~/.config/home-manager-work;
-
-  nixpkgs.overlays = let
-    overlayDirContents = builtins.readDir ../overlays;
-    overlayDirImportableContents = let
-      importable = n: v: v == "directory" || (builtins.match ".*\\.nix" n) != null;
-    in
-      lib.filterAttrs importable overlayDirContents;
-    overlayNames = builtins.attrNames overlayDirImportableContents;
-    overlayPaths = builtins.map (n: lib.path.append ../overlays n) overlayNames;
-  in
-    builtins.map import overlayPaths;
 
   home = {
     inherit username;
