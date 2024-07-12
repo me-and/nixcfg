@@ -28,8 +28,7 @@ in {
       ./modules/shared
     ]
     # hardware-configuration.nix is expected to be missing on WSL.
-    ++ fileIfExtant ./hardware-configuration.nix
-    ;
+    ++ fileIfExtant ./hardware-configuration.nix;
 
   config = {
     warnings =
