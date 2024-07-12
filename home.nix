@@ -38,8 +38,8 @@
 in {
   imports =
     [
-      ./local-config
-      ../modules/home-manager
+      ./local-config.nix
+      ./modules/home-manager
     ]
     ++ fileIfExtant ~/.config/home-manager-work;
 
