@@ -82,6 +82,7 @@ in {
 
           unit_state="$(systemctl --user show -PActiveState "$unit")"
 
+          # shellcheck disable=SC2312 # systemctl expected to return non-zero
           SYSTEMD_COLORS=True SYSTEMD_URLIFY=False \
               systemctl --user status "$unit" |
               ${pkgs.colourmail}/bin/colourmail \

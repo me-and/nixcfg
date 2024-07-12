@@ -36,7 +36,7 @@ final: prev: {
           #!${runtimeShell}
         ''
         + lib.optionalString (bashOptions != []) ''
-          set -o ${lib.escapeShellArgs bashOptions}
+          shopt -so ${lib.escapeShellArgs bashOptions}
         ''
         + lib.concatStrings (lib.mapAttrsToList (name: value: ''
             ${lib.toShellVar name value}

@@ -107,7 +107,7 @@
     Unit.Description = description;
     Unit.After = after;
     Service.Type = "oneshot";
-    Service.ExecStart = "${homeshickInit}/bin/homeshick-init ${lib.strings.escapeShellArgs shellArgs}";
+    Service.ExecStart = "${homeshickInit} ${lib.strings.escapeShellArgs shellArgs}";
     Install.WantedBy = ["default.target"];
   };
 in {
