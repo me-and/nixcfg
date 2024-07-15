@@ -5,8 +5,6 @@
   pkgs,
   ...
 }: let
-  unstable = import <nixos-unstable> {config = config.nixpkgs.config;};
-
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
   # If this is a WSL system, use the Windows username; in theory that's not
@@ -47,16 +45,6 @@ in {
     services.xserver.xkb.variant = "dvorak";
     console.useXkbConfig = true;
 
-    # Set up printing.
-    services.printing.enable = true;
-    services.printing.drivers = [
-      (pkgs.cups-kyocera-3500-4500 or unstable.cups-kyocera-3500-4500)
-    ];
-
-    # Set up sound.
-    sound.enable = true;
-    hardware.pulseaudio.enable = true;
-
     # Always want Vim to be my editor.
     programs.vim.defaultEditor = true;
     programs.vim.package = pkgs.vim-full;
@@ -69,7 +57,6 @@ in {
     nix.channels = {
       home-manager = "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
       nixos = "https://nixos.org/channels/nixos-24.05";
-      nixos-unstable = "https://nixos.org/channels/nixos-unstable";
     };
 
     # Always want locate running.
