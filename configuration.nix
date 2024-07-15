@@ -5,8 +5,6 @@
   pkgs,
   ...
 }: let
-  unstable = import <nixos-unstable> {config = config.nixpkgs.config;};
-
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
   # If this is a WSL system, use the Windows username; in theory that's not
@@ -36,11 +34,6 @@ in {
       (options.networking.hostName.highestPrio == defaultPriority)
       "System hostname left at default.  Consider setting networking.hostName.";
 
-    boot.loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-    };
-
     boot.tmp.useTmpfs = true;
 
     # Always want to be in the UK.
@@ -52,19 +45,8 @@ in {
     services.xserver.xkb.variant = "dvorak";
     console.useXkbConfig = true;
 
-    # Set up printing.
-    services.printing.enable = true;
-    services.printing.drivers = [
-      (pkgs.cups-kyocera-3500-4500 or unstable.cups-kyocera-3500-4500)
-    ];
-
-    # Set up sound.
-    sound.enable = true;
-    hardware.pulseaudio.enable = true;
-
     # Always want Vim to be my editor.
     programs.vim.defaultEditor = true;
-    programs.vim.package = pkgs.vim-full;
 
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
@@ -74,7 +56,6 @@ in {
     nix.channels = {
       home-manager = "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
       nixos = "https://nixos.org/channels/nixos-24.05";
-      nixos-unstable = "https://nixos.org/channels/nixos-unstable";
     };
 
     # Always want locate running.
@@ -160,10 +141,7 @@ in {
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
-    systemd.services.nix-daemon =
-      lib.optionalAttrs
-      (builtins.pathExists ./nix-daemon-environment)
-      {serviceConfig.EnvironmentFile = "/etc/nixos/nix-daemon-environment";};
+    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-/etc/nixos/passwords/nix-daemon-environment";
 
     # Trust anyone in the wheel group
     nix.settings.trusted-users = ["@wheel"];
