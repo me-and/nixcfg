@@ -36,11 +36,6 @@ in {
       (options.networking.hostName.highestPrio == defaultPriority)
       "System hostname left at default.  Consider setting networking.hostName.";
 
-    boot.loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-    };
-
     boot.tmp.useTmpfs = true;
 
     # Always want to be in the UK.
