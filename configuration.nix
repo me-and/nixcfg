@@ -47,7 +47,6 @@ in {
 
     # Always want Vim to be my editor.
     programs.vim.defaultEditor = true;
-    programs.vim.package = pkgs.vim-full;
 
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
