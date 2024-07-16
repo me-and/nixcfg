@@ -98,6 +98,6 @@ in {
 
   nixpkgs.overlays = map import [
     ./overlays/pkgs.nix
-    ./overlays/home-manager
+    ./overlays/home-manager.nix
   ];
 }
