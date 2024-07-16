@@ -72,7 +72,6 @@ in {
 
     environment.systemPackages = with pkgs; [
       file
-      home-manager
       mailutils
     ];
 
@@ -141,5 +140,7 @@ in {
     nix.settings.sandbox = "relaxed";
 
     nixpkgs.config.allowUnfree = true;
+
+    nixpkgs.overlays = [(import ./overlays/home-manager.nix)];
   };
 }

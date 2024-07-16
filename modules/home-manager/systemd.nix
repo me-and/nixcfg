@@ -12,53 +12,23 @@
   # <https://github.com/NixOS/nixpkgs/issues/321481>, so the below is an
   # unwrapped version of fetchFromGitHub with my patch applied.  The arguments
   # in the `let` block are the ones I'd otherwise pass to fetchFromGitHub.
-  systemdHomeshick = let
+  systemdHomeshick = pkgs.fetchFromGitHub rec {
     owner = "me-and";
     repo = "user-systemd-config";
     name = repo;
     rev = "HEAD";
     private = true;
     hash = "sha256-F6HurEz6nzNToKeuZGbvz9YXvvV15ykdKqrRLkosBnU=";
-  in
-    pkgs.fetchzip ({
-        inherit name hash;
-        url =
-          "https://api.github.com/repos/${owner}/${repo}/tarball"
-          + lib.optionalString (rev != "HEAD") "/${rev}";
-        extension = "tar.gz";
-        passthru = {gitRepoUrl = "https://github.com/${owner}/${repo}.git";};
-      }
-      // lib.optionalAttrs private {
-        netrcPhase = pkgs.writeCheckedShellScript {
-          name = "fetch-systemd-homeshick.sh";
-          text = ''
-            if [[ -z "$NIX_GITHUB_PRIVATE_USERNAME" || -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]]; then
-              cat <<EOF >&2
-            Error: cannot get systemdHomeshick without the nix building process
-            (nix-daemon in multi-user mode) having the
-            NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD
-            environment variables set.
-            EOF
-              exit 1
-            fi
-            cat >netrc <<EOF
-            machine api.github.com
-                    login $NIX_GITHUB_PRIVATE_USERNAME
-                    password $NIX_GITHUB_PRIVATE_PASSWORD
-            EOF
-          '';
-        };
-        netrcImpureEnvVars = [
-          "NIX_GITHUB_PRIVATE_USERNAME"
-          "NIX_GITHUB_PRIVATE_PASSWORD"
-        ];
-      });
+  };
 in
   lib.mkMerge [
     {
       # Not sure why this needs to be unconditional, but I get a recursion
       # error if it isn't.
-      nixpkgs.overlays = [(import ../../overlays/checkedshellscript.nix)];
+      nixpkgs.overlays = map import [
+        ../../overlays/checkedshellscript.nix
+        ../../overlays/fetchgithub.nix
+      ];
 
       # The systemd configuration will look after not evaluating this if
       # systemd isn't enabled.
