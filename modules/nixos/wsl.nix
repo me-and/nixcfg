@@ -57,11 +57,7 @@ in {
       efi.canTouchEfiVariables = false;
     };
 
-    # Don't want printing, sound or mDNS services, as I can get them from
-    # Windows.
-    services.printing.enable = lib.mkForce false;
-    sound.enable = lib.mkForce false;
-    hardware.pulseaudio.enable = lib.mkForce false;
+    # Don't want mDNS services, as I can get them from Windows.
     services.avahi.enable = lib.mkForce false;
     services.avahi.nssmdns4 = lib.mkForce false;
 

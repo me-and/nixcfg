@@ -107,7 +107,7 @@
     Unit.Description = description;
     Unit.After = after;
     Service.Type = "oneshot";
-    Service.ExecStart = "${homeshickInit}/bin/homeshick-init ${lib.strings.escapeShellArgs shellArgs}";
+    Service.ExecStart = "${homeshickInit} ${lib.strings.escapeShellArgs shellArgs}";
     Install.WantedBy = ["default.target"];
   };
 in {
@@ -130,22 +130,25 @@ in {
     };
   };
 
-  config.systemd.user.services = lib.mkIf cfg.enable (
-    {
-      homeshick = homeshickUnit {
-        inherit (cfg.homeshick) dest url link forceLink;
-        description = "Homeshick installation";
-        after = [];
-      };
-    }
-    // (
-      lib.attrsets.mergeAttrsList (map (h: {
-          "homeshick@${h.dest}" = homeshickUnit {
-            inherit (h) dest url link forceLink;
-            description = "Homeshick %i installation";
-          };
-        })
-        cfg.repos)
-    )
-  );
+  config = lib.mkIf cfg.enable {
+    systemd.user.services =
+      {
+        homeshick = homeshickUnit {
+          inherit (cfg.homeshick) dest url link forceLink;
+          description = "Homeshick installation";
+          after = [];
+        };
+      }
+      // (
+        lib.attrsets.mergeAttrsList (map (h: {
+            "homeshick@${h.dest}" = homeshickUnit {
+              inherit (h) dest url link forceLink;
+              description = "Homeshick %i installation";
+            };
+          })
+          cfg.repos)
+      );
+
+    nixpkgs.overlays = [(import ../../overlays/checkedshellscript.nix)];
+  };
 }

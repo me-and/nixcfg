@@ -68,9 +68,14 @@ in {
       psmisc
       pv
       python
+      screen
       silver-searcher
       taskwarrior
       toil
+
+      # This is in place of setting programs.home-manager.enable, since that
+      # doesn't pick up my overlay.
+      home-manager
 
       # Use the Git version possibly configured in local-config.nix.  This is
       # handled here rather than with config.programs.git.enable because that
@@ -107,6 +112,7 @@ in {
     enable = true;
     repos = [
       (doLink "https://github.com/me-and/castle")
+      (dontLink "https://github.com/me-and/nixcfg")
       (dontLink "https://github.com/mileszs/ack.vim")
       (dontLink "https://github.com/me-and/asmodeus")
       (dontLink "https://github.com/magicmonty/bash-git-prompt")
@@ -120,6 +126,8 @@ in {
     ];
   };
 
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  nixpkgs.overlays = map import [
+    ./overlays/pkgs.nix
+    ./overlays/home-manager
+  ];
 }
