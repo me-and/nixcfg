@@ -4,35 +4,10 @@
   pkgs,
   ...
 }: let
-  inherit (config.lib.file) mkOutOfStoreSymlink;
-
   python = pkgs.python3.withPackages (pp: [
     # dateutil needed for asmodeus
     pp.dateutil
   ]);
-
-  isWsl =
-    (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop)
-    || (builtins.pathExists /proc/sys/fs/binfmt_misc/WSLInterop-late);
-  windowsHomeDir = builtins.readFile (
-    pkgs.runCommandLocal "homedir" {__noChroot = true;}
-    ''
-      /bin/wslpath "$(/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserProfile')" |
-          ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
-    ''
-  );
-  windowsUsername = builtins.readFile (
-    pkgs.runCommandLocal "username" {__noChroot = true;}
-    ''
-      /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserName' |
-          ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
-    ''
-  );
-
-  username =
-    if isWsl
-    then windowsUsername
-    else "adam";
 
   fileIfExtant = file: lib.optional (builtins.pathExists file) file;
 in {
@@ -45,8 +20,8 @@ in {
     ++ fileIfExtant ~/.config/home-manager-work;
 
   home = {
-    inherit username;
-    homeDirectory = "/home/${username}";
+    username = lib.mkDefault "adam";
+    homeDirectory = lib.mkDefault "/home/adam";
 
     packages = with pkgs; [
       alejandra
@@ -91,11 +66,6 @@ in {
       # plenty of things I care about that aren't yet integrated into Home
       # Manager.
       PYTHONPATH = "${python}/${python.sitePackages}";
-    };
-
-    file = lib.mkIf isWsl {
-      WinHome = {source = mkOutOfStoreSymlink windowsHomeDir;};
-      ".bashrc.d/winget" = {text = "alias winget=winget.exe";};
     };
 
     # Get Bash to check for local mail.
