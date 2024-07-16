@@ -1,8 +1,14 @@
-# Pull in the changes from my PR:
-# https://github.com/nix-community/home-manager/pull/5600
 final: prev: {
   home-manager = prev.home-manager.overrideAttrs (oldAttrs: {
-    patches = (oldAttrs.patches or []) ++ [./repl.patch];
+    patches =
+      (oldAttrs.patches or [])
+      # Add patches I've made / requested.
+      ++ [
+        # https://github.com/nix-community/home-manager/pull/5600
+        ./repl.patch
+        # https://github.com/nix-community/home-manager/pull/5576
+        ./service-instance-restarts.patch
+      ];
     postFixup =
       oldAttrs.postFixup
       + ''
