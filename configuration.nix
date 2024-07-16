@@ -8,6 +8,8 @@
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
   fileIfExtant = file: lib.optional (builtins.pathExists file) file;
+
+  currentDir = builtins.toString ./.;
 in {
   imports =
     [
@@ -104,7 +106,7 @@ in {
       environment.NIX_INDEX_DATABASE = "/var/cache/nix-index";
       environment.NIX_PATH = lib.concatStringsSep ":" [
         "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos"
-        "nixos-config=/etc/nixos/configuration.nix"
+        "nixos-config=${currentDir}/configuration.nix"
         "/nix/var/nix/profiles/per-user/root/channels"
       ];
     };
@@ -132,7 +134,7 @@ in {
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
-    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-/etc/nixos/passwords/nix-daemon-environment";
+    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${currentDir}/secrets/nix-daemon-environment";
 
     # Trust anyone in the wheel group
     nix.settings.trusted-users = ["@wheel"];
