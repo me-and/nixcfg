@@ -7,15 +7,6 @@
 }: let
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
-  # If this is a WSL system, use the Windows username; in theory that's not
-  # necessary, but in practice a bunch of things need extra work without this
-  # (e.g. the UIDs get confused, and you can't launch GUI applications as a
-  # result).
-  username =
-    if config.system.isWsl
-    then config.wsl.defaultUser
-    else "adam";
-
   fileIfExtant = file: lib.optional (builtins.pathExists file) file;
 in {
   imports =
@@ -39,6 +30,10 @@ in {
         {
           assertion = options.networking.hostName.highestPrio != defaultPriority;
           message = "System hostname left at default.  Consider setting networking.hostName";
+        }
+        {
+          assertion = !(builtins.pathExists ./passwords);
+          message = "./passwords exists, and has been renamed ./secrets";
         }
       ];
 
@@ -88,24 +83,12 @@ in {
     services.avahi.enable = true;
     services.avahi.nssmdns4 = true;
 
-    # Always want fixed users.
-    users.mutableUsers = false;
-
     # For the system Git installation, gitMinimal is fine; I'll have the full
     # installation, probably on the tip, in Home Manager.
     programs.git.enable = true;
     programs.git.package = pkgs.gitMinimal;
 
     home-manager.useGlobalPkgs = true;
-
-    # Set up my user account.
-    users.users."${username}" = {
-      isNormalUser = true;
-      hashedPasswordFile = "/etc/nixos/passwords/adam";
-      description = "Adam Dinwoodie";
-      extraGroups = ["wheel"];
-      linger = true;
-    };
 
     # Make sure `apropos` and similar work.
     documentation.man.generateCaches = true;
