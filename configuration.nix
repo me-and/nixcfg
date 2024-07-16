@@ -29,10 +29,18 @@ in {
     ++ fileIfExtant ./hardware-configuration.nix;
 
   config = {
-    warnings =
-      lib.optional
-      (options.networking.hostName.highestPrio == defaultPriority)
-      "System hostname left at default.  Consider setting networking.hostName.";
+    warnings = let
+      # Emulate the nicer-in-my-opinion interface provided by the assertions
+      # configuration.
+      toWarningList = warning: lib.optional (!warning.assertion) warning.message;
+      toWarningsList = builtins.concatMap toWarningList;
+    in
+      toWarningsList [
+        {
+          assertion = options.networking.hostName.highestPrio != defaultPriority;
+          message = "System hostname left at default.  Consider setting networking.hostName";
+        }
+      ];
 
     boot.tmp.useTmpfs = true;
 
