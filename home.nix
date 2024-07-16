@@ -73,6 +73,10 @@ in {
       taskwarrior
       toil
 
+      # This is in place of setting programs.home-manager.enable, since that
+      # doesn't pick up my overlay.
+      home-manager
+
       # Use the Git version possibly configured in local-config.nix.  This is
       # handled here rather than with config.programs.git.enable because that
       # would also result in Home Manager trying to manage my Git config, which
@@ -122,8 +126,8 @@ in {
     ];
   };
 
-  nixpkgs.overlays = [(import ./overlays/pkgs.nix)];
-
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  nixpkgs.overlays = map import [
+    ./overlays/pkgs.nix
+    ./overlays/home-manager
+  ];
 }
