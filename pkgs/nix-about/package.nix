@@ -38,22 +38,35 @@ writeShellApplication {
         esac
     done
 
+    if (( "''${#packages[*]}" == 0 )); then
+        exit 0
+    fi
+
     first=Yes
     for p in "''${packages[@]}"; do
         if [[ "$first" ]]; then
+            package_names='['
             first=
         else
-            echo
+            package_names+=' '
         fi
-        ${nix}/bin/nix \
-            --extra-experimental-features nix-command \
-            eval \
-            --read-only \
-            --argstr pkgname "$p" \
-            "''${nixpkgs_args[@]}" \
-            --file ${./about.nix} \
-            --raw \
-            output
+        # shellcheck disable=SC1003
+        escaped_name="''${p//'\'/'\\'}"
+        # shellcheck disable=SC2016
+        escaped_name="''${escaped_name//${"'"}''${'/'\''${'}"
+        escaped_name="''${escaped_name//'"'/'\"'}"
+        package_names+="\"$escaped_name\""
     done
+    package_names+=']'
+
+    ${nix}/bin/nix \
+        --extra-experimental-features nix-command \
+        eval \
+        --read-only \
+        --arg pkgnames "$package_names" \
+        "''${nixpkgs_args[@]}" \
+        --file ${./about.nix} \
+        --raw \
+        output
   '';
 }
