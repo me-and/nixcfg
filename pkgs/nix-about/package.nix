@@ -26,6 +26,11 @@ writeShellApplication {
             set_nixpkgs_args "''${1#--nixpkgs=}"
             shift
             ;;
+        --)
+            shift
+            packages+=("$@")
+            break
+            ;;
         *)
             packages+=("$1")
             shift
