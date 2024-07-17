@@ -102,4 +102,16 @@ in
 
       runHook postInstallCheck
     '';
+
+    meta = {
+      description = "Git dotfiles synchronizer written in Bash";
+      longDescription = ''
+        A Git dotfiles synchronising and management tool similar to Homesick,
+        but written in Bash rather than Ruby.
+      '';
+      homepage = "https://github.com/andsens/homeshick";
+      license = lib.licenses.mit;
+      maintainers = [lib.maintainers.me-and];
+      mainProgram = "homeshick";
+    };
   }
