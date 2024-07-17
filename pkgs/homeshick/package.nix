@@ -25,6 +25,12 @@
   version = "2.0.1";
   runtimeDeps = [git coreutils findutils gnused] ++ extraRuntimeDeps;
 
+  # Homeshick tests have effectively pinned their Bats libraries to specific
+  # versions, and also expect to find the files in specific locations, as
+  # defined in its test/get_bats_libs.sh file.  Respect that paradigm and use
+  # the same library versions, rather than using Nixpkgs' bats.withLibraries to
+  # install what may be the wrong version and will definitely still need
+  # linking to the place Homeshick's tests expect to find them.
   batsSupport = fetchFromGitHub {
     owner = "bats-core";
     repo = "bats-support";
@@ -104,6 +110,8 @@ in
       runHook preInstallCheck
 
       cd $out
+
+      # Emulate the Bats library building that test/get_bats_libs.sh does.
       mkdir -p test/bats/lib
       ln -sfn ${batsSupport} test/bats/lib/support
       ln -sfn ${batsAssert} test/bats/lib/assert
