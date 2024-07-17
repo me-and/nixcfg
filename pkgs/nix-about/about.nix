@@ -5,43 +5,59 @@
 }: let
   packagePath = lib.strings.splitString "." pkgname;
   p = lib.attrsets.attrByPath packagePath null pkgs;
+
   indentAfterFirst = s: let
     lines = lib.strings.splitString "\n" s;
   in
-    lib.strings.concatImapStringsSep "\n" (line: s:
+    lib.strings.concatImapStringsSep "\n"
+    (line: s:
       if line == 1
       then s
       else "    " + s)
     lines;
   noTrailingNewline = lib.strings.removeSuffix "\n";
   formatLong = s: indentAfterFirst (noTrailingNewline s);
-  outputLines =
+
+  outputValues = {
+    # Output that will always appear and therefore must have a fallback if the
+    # value isn't specified.
+    Package =
+      p.pname
+      or (
+        if p ? name
+        then "${p.name} (pname unspecified)"
+        else "Unspecified"
+      );
+    Version = p.version or "Unspecified";
+    Description = p.meta.description or "Unspecified";
+    License = let
+      license = p.meta.license or "Unspecified";
+      licenseName = l: l.fullName or l;
+    in
+      if (builtins.typeOf license) == "list"
+      then lib.concatStringSep " / " (map licenseName license)
+      else licenseName license;
+
+    # Output that will only appear if it's defined, and therefore can fail if
+    # it's not defined.
+    "Long description" = formatLong p.meta.longDescription;
+    Website = p.meta.homepage;
+  };
+
+  outputSections = (
     [
-      "Package: ${p.pname}"
-      "Version: ${p.version}"
-      "Description: ${p.meta.description}"
-      (
-        if ((builtins.typeOf p.meta.license) == "list")
-        then
-          (
-            if (builtins.length p.meta.license) == 1
-            then "License: "
-            else "Licenses: "
-          )
-          + (lib.strings.concatStringsSep " / " (map (l: l.fullName or l) p.meta.license))
-        else ("License: " + p.meta.license.fullName or p.meta.license or "Unspecified")
-      )
+      "Package"
+      "Version"
+      "Description"
     ]
-    ++ (
-      lib.optional
-      (p.meta ? longDescription)
-      "Long description: ${formatLong p.meta.longDescription}"
-    )
-    ++ (
-      lib.optional
-      (p.meta ? homepage)
-      "Website: ${p.meta.homepage}"
-    );
+    ++ (lib.optional (p ? meta && p.meta ? longDescription) "Long description")
+    ++ ["License"]
+    ++ (lib.optional (p ? meta && p.meta ? homepage) "Website")
+  );
+
+  outputLiner = section: "${section}: ${outputValues."${section}"}";
+
+  outputLines = map outputLiner outputSections;
 in {
   output =
     if p == null
