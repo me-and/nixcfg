@@ -12,6 +12,7 @@
   gnused,
   fish,
   dash,
+  doInstallCheck ? true,
 }: let
   version = "2.0.1";
   runtimeDeps = [git coreutils findutils gnused];
@@ -51,14 +52,22 @@ in
     # TODO Install completion files.  See e.g.
     # https://github.com/moaxcp/nur/blob/master/pkgs/micronaut-cli/default.nix
     # with installShellFiles and installShellCompletion
-    installPhase = ''
-      runHook preInstall
+    installPhase =
+      ''
+        runHook preInstall
 
-      mkdir $out
-      cp -r * $out
+        mkdir $out
+        cp -r *.md LICENSE bin completions homeshick.sh homeshick.fish lib $out
+      ''
+      # Only copy the test directories if we'll need them for the install test
+      # phase.
+      + lib.optionalString doInstallCheck ''
+        cp -r test $out
+      ''
+      + ''
 
-      runHook postInstall
-    '';
+        runHook postInstall
+      '';
 
     # Wrap homeshick so it has the expected paths.  Can't wrap homeshick.sh or
     # homeshick.fish as they need to edit the caller's environment, so instead
@@ -76,7 +85,7 @@ in
 
     # Run the tests as install tests, as they usefully test the wrapper
     # handling of HOMESHICK_DIR and PATH.
-    doInstallCheck = true;
+    inherit doInstallCheck;
     installCheckInputs = [bats git bash expect fish dash];
     installCheckPhase = ''
       runHook preInstallCheck
