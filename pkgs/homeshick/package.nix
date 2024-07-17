@@ -71,7 +71,7 @@ in
 
       ${gnused}/bin/sed -i \
           's!$HOME/\.homesick/repos/homeshick!'"$out"'!' \
-          homeshick.sh homeshick.fish
+          $out/homeshick.sh $out/homeshick.fish
     '';
 
     # Run the tests as install tests, as they usefully test the wrapper
