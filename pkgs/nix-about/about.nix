@@ -19,9 +19,15 @@
     noTrailingNewline = lib.strings.removeSuffix "\n";
     formatLong = s: indentAfterFirst (noTrailingNewline s);
 
+    boolToYN = b:
+      if b
+      then "Yes"
+      else "No";
+
     outputValues = {
       # Output that will always appear and therefore must have a fallback if the
       # value isn't specified.
+      Attribute = pkgname;
       Package =
         p.pname
         or (
@@ -43,16 +49,27 @@
       # it's not defined.
       "Long description" = formatLong p.meta.longDescription;
       Website = p.meta.homepage;
+      Available = boolToYN p.meta.available;
+      Broken = boolToYN p.meta.broken;
+      Insecure = boolToYN p.meta.insecure;
+      Definition = p.meta.position;
+      Unsupported = boolToYN p.meta.unsupported;
     };
 
     outputSections = (
       [
+        "Attribute"
         "Package"
         "Version"
-        "Description"
       ]
+      ++ (lib.optional (p ? meta && p.meta ? available && p.meta.available != true) "Available")
+      ++ (lib.optional (p ? meta && p.meta ? broken && p.meta.broken != false) "Broken")
+      ++ (lib.optional (p ? meta && p.meta ? insecure && p.meta.insecure != false) "Insecure")
+      ++ (lib.optional (p ? meta && p.meta ? unsupported && p.meta.unsupported != false) "Unsupported")
+      ++ ["Description"]
       ++ (lib.optional (p ? meta && p.meta ? longDescription) "Long description")
       ++ ["License"]
+      ++ (lib.optional (p ? meta && p.meta ? position) "Definition")
       ++ (lib.optional (p ? meta && p.meta ? homepage) "Website")
     );
 
