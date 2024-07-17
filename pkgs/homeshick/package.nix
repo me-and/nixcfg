@@ -73,9 +73,13 @@ in
     # homeshick.fish as they need to edit the caller's environment, so instead
     # rewrite them to something that has the correct directory for the location
     # of the homeshick script.
+    #
+    # We use --prefix rather than --set for PATH so that any Git authentication
+    # programs the user might have in their path will work without us needing
+    # prior knowledge of every such authentication program a user might want.
     postFixup = ''
       wrapProgram $out/bin/homeshick \
-          --set PATH ${lib.makeBinPath runtimeDeps} \
+          --prefix PATH : ${lib.makeBinPath runtimeDeps} \
           --set-default HOMESHICK_DIR $out
 
       ${gnused}/bin/sed -i \
