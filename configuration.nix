@@ -140,6 +140,12 @@ in {
     nix.settings.trusted-users = ["@wheel"];
     nix.settings.sandbox = "relaxed";
 
+    # Keep intermediate build stages around to speed up subsequent builds.
+    nix.extraOptions = ''
+      keep-outputs = true
+      keep-derivations = true
+    '';
+
     nixpkgs.config.allowUnfree = true;
   };
 }
