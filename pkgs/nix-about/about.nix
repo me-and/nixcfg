@@ -35,7 +35,7 @@
       licenseName = l: l.fullName or l;
     in
       if (builtins.typeOf license) == "list"
-      then lib.concatStringSep " / " (map licenseName license)
+      then lib.concatStringsSep " / " (map licenseName license)
       else licenseName license;
 
     # Output that will only appear if it's defined, and therefore can fail if
