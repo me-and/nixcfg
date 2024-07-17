@@ -13,9 +13,17 @@
   fish,
   dash,
   doInstallCheck ? true,
+  # Whether to include the user environment in Homeshick's path.  Set this to
+  # true for a more pure program, leave it as false to allow Homeshick to find
+  # programs like Git authentication helpers in the user PATH.
+  purePath ? false,
+  # Extra packages added as runtime dependencies.  Use this in particular if
+  # you want to use purePath but rely on other packages such as GitHub CLI as
+  # Git authentication helpers.
+  extraRuntimeDeps ? [],
 }: let
   version = "2.0.1";
-  runtimeDeps = [git coreutils findutils gnused];
+  runtimeDeps = [git coreutils findutils gnused] ++ extraRuntimeDeps;
 
   batsSupport = fetchFromGitHub {
     owner = "bats-core";
@@ -73,13 +81,14 @@ in
     # homeshick.fish as they need to edit the caller's environment, so instead
     # rewrite them to something that has the correct directory for the location
     # of the homeshick script.
-    #
-    # We use --prefix rather than --set for PATH so that any Git authentication
-    # programs the user might have in their path will work without us needing
-    # prior knowledge of every such authentication program a user might want.
-    postFixup = ''
+    postFixup = let
+      pathArgs =
+        if purePath
+        then "--set PATH ${lib.makeBinPath runtimeDeps}"
+        else "--prefix PATH : ${lib.makeBinPath runtimeDeps}";
+    in ''
       wrapProgram $out/bin/homeshick \
-          --prefix PATH : ${lib.makeBinPath runtimeDeps} \
+          ${pathArgs} \
           --set-default HOMESHICK_DIR $out
 
       ${gnused}/bin/sed -i \
