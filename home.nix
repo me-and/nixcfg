@@ -95,9 +95,4 @@ in {
       (dontLink "https://github.com/lervag/vimtex")
     ];
   };
-
-  nixpkgs.overlays = map import [
-    ./overlays/pkgs.nix
-    ./overlays/home-manager.nix
-  ];
 }

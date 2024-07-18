@@ -148,7 +148,5 @@ in {
           })
           cfg.repos)
       );
-
-    nixpkgs.overlays = [(import ../../overlays/checkedshellscript.nix)];
   };
 }

@@ -56,10 +56,6 @@
 in
   lib.mkMerge [
     {
-      # Not sure why this needs to be unconditional, but I get a recursion
-      # error if it isn't.
-      nixpkgs.overlays = [(import ../../overlays/checkedshellscript.nix)];
-
       # The systemd configuration will look after not evaluating this if
       # systemd isn't enabled.
       systemd.user.services."mail-state@" = {

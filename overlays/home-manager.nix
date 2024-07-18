@@ -1,6 +1,4 @@
-final: prev:
-(import ./fetchgithubpatch.nix final prev)
-// {
+final: prev: {
   home-manager = prev.home-manager.overrideAttrs (prevAttrs: {
     # Home Manager references its own source directory when it's looking for
     # *.nix files, so for my patches to take effect, I need to apply them to
