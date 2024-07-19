@@ -3,7 +3,7 @@
 # of the Nix store rather than putting them in an (often unnecessary for my
 # purposes) bin directory, and the latter's ability to do some safety checks on
 # the result.  This is that function.
-final: prev: {
+final: prev: rec {
   writeCheckedShellScript = {
     name,
     text,
@@ -22,12 +22,13 @@ final: prev: {
     extraShellCheckFlags ? [],
     bashOptions ? ["errexit" "nounset" "pipefail"],
     derivationArgs ? {},
+    destination ? "",
     purePath ? false,
   }: let
     inherit (final) lib writeTextFile runtimeShell stdenv shellcheck-minimal;
   in
     writeTextFile {
-      inherit name meta derivationArgs;
+      inherit name meta destination derivationArgs;
       executable = true;
       allowSubstitutes = true;
       preferLocalBuild = false;
@@ -73,4 +74,6 @@ final: prev: {
           ''
         else checkPhase;
     };
+
+  writeCheckedShellApplication = args: writeCheckedShellScript ({destination = "/bin/${args.name}";} // args);
 }
