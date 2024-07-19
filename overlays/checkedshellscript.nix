@@ -3,7 +3,7 @@
 # of the Nix store rather than putting them in an (often unnecessary for my
 # purposes) bin directory, and the latter's ability to do some safety checks on
 # the result.  This is that function.
-final: prev: rec {
+final: prev: {
   writeCheckedShellScript = {
     name,
     text,
@@ -75,5 +75,5 @@ final: prev: rec {
         else checkPhase;
     };
 
-  writeCheckedShellApplication = args: writeCheckedShellScript ({destination = "/bin/${args.name}";} // args);
+  writeCheckedShellApplication = args: final.writeCheckedShellScript ({destination = "/bin/${args.name}";} // args);
 }
