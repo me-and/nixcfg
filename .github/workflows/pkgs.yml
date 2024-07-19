@@ -1,0 +1,56 @@
+name: Check package builds
+on: [push, pull_request]
+jobs:
+  get-packages:
+    name: Get package names
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v12
+      - name: Set up Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+      - name: Work out package list
+        id: packages
+        run: |
+          delim="$(uuidgen)"
+          exec >"$GITHUB_OUTPUT"
+          printf 'packages<<%s\n' "$delim"
+          nix-instantiate --eval --json -E 'builtins.attrNames (import ./pkgs {})'
+          printf '%s\n' "$delim"
+
+  build-packages:
+    name: Build packages
+    needs: get-packages
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.get-packages.outputs.packages) }}
+        channel:
+          - nixos-24.05
+          - nixos-24.05-small
+          - nixos-unstable
+          - nixos-unstable-small
+          - nixpkgs-unstable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v12
+        with:
+          extra-conf: sandbox = relaxed
+      - name: Set up Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+      - name: Get Nix channel ${{ matrix.channel }}
+        env:
+          CHANNEL: ${{ matrix.channel }}
+        run: |
+          nix-channel --add https://nixos.org/channels/"$CHANNEL" nixos
+          nix-channel --update
+      - name: Build ${{ matrix.package }}
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: nix-build pkgs -A "$PACKAGE" -I nixpkgs-overlays="$PWD"/overlays
