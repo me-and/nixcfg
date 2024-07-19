@@ -5,34 +5,41 @@
   pkgs,
   ...
 }: let
-  unstable = import <nixos-unstable> {config = config.nixpkgs.config;};
-
   defaultPriority = (lib.mkOptionDefault {}).priority;
+
+  fileIfExtant = file: lib.optional (builtins.pathExists file) file;
+
+  currentDir = builtins.toString ./.;
 in {
   imports =
     [
       <home-manager/nixos>
-      ./channels.nix
-      ./nixos-platform
       ./local-config.nix
+      ./modules/nixos
+      ./modules/shared
     ]
     # hardware-configuration.nix is expected to be missing on WSL.
-    ++ (
-      lib.optional
-      (builtins.pathExists ./hardware-configuration.nix)
-      ./hardware-configuration.nix
-    );
+    ++ fileIfExtant ./hardware-configuration.nix;
 
   config = {
-    warnings =
-      lib.optional
-      (options.networking.hostName.highestPrio == defaultPriority)
-      "System hostname left at default.  Consider setting networking.hostName.";
+    warnings = let
+      # Emulate the nicer-in-my-opinion interface provided by the assertions
+      # configuration.
+      toWarningList = warning: lib.optional (!warning.assertion) warning.message;
+      toWarningsList = builtins.concatMap toWarningList;
+    in
+      toWarningsList [
+        {
+          assertion = options.networking.hostName.highestPrio != defaultPriority;
+          message = "System hostname left at default.  Consider setting networking.hostName";
+        }
+        {
+          assertion = !(builtins.pathExists ./passwords);
+          message = "./passwords exists, and has been renamed ./secrets";
+        }
+      ];
 
-    boot.loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-    };
+    boot.tmp.useTmpfs = true;
 
     # Always want to be in the UK.
     time.timeZone = "Europe/London";
@@ -43,19 +50,8 @@ in {
     services.xserver.xkb.variant = "dvorak";
     console.useXkbConfig = true;
 
-    # Set up printing.
-    services.printing.enable = true;
-    services.printing.drivers = [
-      (pkgs.cups-kyocera-3500-4500 or unstable.cups-kyocera-3500-4500)
-    ];
-
-    # Set up sound.
-    sound.enable = true;
-    hardware.pulseaudio.enable = true;
-
     # Always want Vim to be my editor.
     programs.vim.defaultEditor = true;
-    programs.vim.package = pkgs.vim-full;
 
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
@@ -65,7 +61,6 @@ in {
     nix.channels = {
       home-manager = "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
       nixos = "https://nixos.org/channels/nixos-24.05";
-      nixos-unstable = "https://nixos.org/channels/nixos-unstable";
     };
 
     # Always want locate running.
@@ -84,14 +79,8 @@ in {
     # Enable system emails.
     services.postfix.enable = true;
 
-    # If this isn't WSL, want OpenSSH for inbound connections, and mDNS for
-    # both inbound and outbound connections.
-    services.openssh.enable = true;
     services.avahi.enable = true;
     services.avahi.nssmdns4 = true;
-
-    # Always want fixed users.
-    users.mutableUsers = false;
 
     # For the system Git installation, gitMinimal is fine; I'll have the full
     # installation, probably on the tip, in Home Manager.
@@ -99,15 +88,6 @@ in {
     programs.git.package = pkgs.gitMinimal;
 
     home-manager.useGlobalPkgs = true;
-
-    # Set up my user account.
-    users.users.adam = {
-      isNormalUser = true;
-      hashedPasswordFile = "/etc/nixos/passwords/adam";
-      description = "Adam Dinwoodie";
-      extraGroups = ["wheel"];
-      linger = true;
-    };
 
     # Make sure `apropos` and similar work.
     documentation.man.generateCaches = true;
@@ -123,7 +103,7 @@ in {
       environment.NIX_INDEX_DATABASE = "/var/cache/nix-index";
       environment.NIX_PATH = lib.concatStringsSep ":" [
         "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos"
-        "nixos-config=/etc/nixos/configuration.nix"
+        "nixos-config=${currentDir}/configuration.nix"
         "/nix/var/nix/profiles/per-user/root/channels"
       ];
     };
@@ -151,10 +131,7 @@ in {
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
-    systemd.services.nix-daemon =
-      lib.optionalAttrs
-      (builtins.pathExists ./nix-daemon-environment)
-      {serviceConfig.EnvironmentFile = "/etc/nixos/nix-daemon-environment";};
+    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${currentDir}/secrets/nix-daemon-environment";
 
     nix.settings = {
       trusted-users = ["@wheel"];
@@ -162,6 +139,10 @@ in {
       experimental-features = ["nix-command"];
     };
 
-    nixpkgs.config.allowUnfree = true;
+    # Keep intermediate build stages around to speed up subsequent builds.
+    nix.extraOptions = ''
+      keep-outputs = true
+      keep-derivations = true
+    '';
   };
 }

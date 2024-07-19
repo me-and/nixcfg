@@ -49,7 +49,7 @@ in {
     ];
 
     wsl.enable = true;
-    wsl.defaultUser = "adam";
+    wsl.defaultUser = windowsUsername;
 
     # Override config from the regular config file.
     boot.loader = lib.mkForce {
@@ -57,42 +57,17 @@ in {
       efi.canTouchEfiVariables = false;
     };
 
-    # Don't want printing, sound or mDNS services, as I can get them from
-    # Windows.
-    services.printing.enable = lib.mkForce false;
-    sound.enable = lib.mkForce false;
-    hardware.pulseaudio.enable = lib.mkForce false;
+    # Don't want mDNS services, as I can get them from Windows.
     services.avahi.enable = lib.mkForce false;
     services.avahi.nssmdns4 = lib.mkForce false;
 
-    # Don't want to connect over SSH.
-    services.openssh.enable = lib.mkForce false;
+    # Don't want to connect over SSH; there's no need for that.
+    services.openssh.enable = false;
 
     environment.systemPackages = with pkgs; [
       putty # For psusan
       wslu # For wslview
     ];
-
-    users.users."${config.wsl.defaultUser}" = {
-      # TODO Work out why having linger enabled manages to _break_ commands
-      # like `systemctl --user status`.  Probably related to
-      # https://github.com/microsoft/WSL/issues/10205 although I don't quite
-      # understand how.
-      #
-      # Ideally this would apply the configuration to all users that have
-      # isNormalUser, but I can't work out how to do that without infinite
-      # recursion :(
-      linger = lib.mkForce false;
-
-      # If the WSL username matches the host username, use UID 1000.  If not,
-      # use UID 1001.  Seems like this shouldn't be necessary, but it avoids a
-      # bunch of error messages.
-      uid = lib.mkForce (
-        if config.wsl.defaultUser == windowsUsername
-        then 1000
-        else 1001
-      );
-    };
 
     # OS should look after the clock.  Hopefully.
     services.timesyncd.enable = false;

@@ -5,6 +5,8 @@
   pkgs,
   ...
 }: let
+  cfg = config.homeshick;
+
   castleOpts = {config, ...}: {
     options = {
       url = lib.mkOption {
@@ -44,8 +46,8 @@
     link = false;
   };
 
-  homeshickInit = pkgs.writeShellApplication {
-    name = "homeshick-init";
+  homeshickInit = pkgs.writeCheckedShellScript {
+    name = "homeshick-init.sh";
     runtimeInputs = with pkgs; [config.programs.git.package gh coreutils bash];
     text = ''
       set -euo pipefail
@@ -70,7 +72,7 @@
       set -x
       if [[ "$link_mode" ]]; then
           homeshick () {
-              ~/.homesick/repos/${config.homeshick.homeshick.dest}/bin/homeshick "$@"
+              ~/.homesick/repos/${cfg.homeshick.dest}/bin/homeshick "$@"
           }
           if [[ "$link_mode" = link ]]; then
               homeshick --skip link "$dest"
@@ -105,7 +107,7 @@
     Unit.Description = description;
     Unit.After = after;
     Service.Type = "oneshot";
-    Service.ExecStart = "${homeshickInit}/bin/homeshick-init ${lib.strings.escapeShellArgs shellArgs}";
+    Service.ExecStart = "${homeshickInit} ${lib.strings.escapeShellArgs shellArgs}";
     Install.WantedBy = ["default.target"];
   };
 in {
@@ -128,22 +130,23 @@ in {
     };
   };
 
-  config.systemd.user.services = lib.mkIf config.homeshick.enable (
-    {
-      homeshick = homeshickUnit {
-        inherit (config.homeshick.homeshick) dest url link forceLink;
-        description = "Homeshick installation";
-        after = [];
-      };
-    }
-    // (
-      lib.attrsets.mergeAttrsList (map (h: {
-          "homeshick@${h.dest}" = homeshickUnit {
-            inherit (h) dest url link forceLink;
-            description = "Homeshick %i installation";
-          };
-        })
-        config.homeshick.repos)
-    )
-  );
+  config = lib.mkIf cfg.enable {
+    systemd.user.services =
+      {
+        homeshick = homeshickUnit {
+          inherit (cfg.homeshick) dest url link forceLink;
+          description = "Homeshick installation";
+          after = [];
+        };
+      }
+      // (
+        lib.attrsets.mergeAttrsList (map (h: {
+            "homeshick@${h.dest}" = homeshickUnit {
+              inherit (h) dest url link forceLink;
+              description = "Homeshick %i installation";
+            };
+          })
+          cfg.repos)
+      );
+  };
 }

@@ -1,5 +1,4 @@
-/passwords/
+/secrets/
 /hardware-configuration.nix
 /local-config.nix
-/nix-daemon-environment
 result
