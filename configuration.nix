@@ -156,9 +156,11 @@ in {
       (builtins.pathExists ./nix-daemon-environment)
       {serviceConfig.EnvironmentFile = "/etc/nixos/nix-daemon-environment";};
 
-    # Trust anyone in the wheel group
-    nix.settings.trusted-users = ["@wheel"];
-    nix.settings.sandbox = "relaxed";
+    nix.settings = {
+      trusted-users = ["@wheel"];
+      sandbox = "relaxed";
+      experimental-features = ["nix-command"];
+    };
 
     nixpkgs.config.allowUnfree = true;
   };
