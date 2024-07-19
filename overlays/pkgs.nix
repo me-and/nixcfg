@@ -1,6 +1,6 @@
 # This file based heavily on <nixpkgs/pkgs/top-level/by-name-overlay.nix>
 let
-  lib = import <nixos/lib>;
+  lib = import <nixpkgs/lib>;
 
   inherit (lib.attrsets) filterAttrs mapAttrs;
 

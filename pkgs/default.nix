@@ -8,4 +8,4 @@
   possiblePackageFiles = mapAttrs (name: _: ./. + "/${name}/package.nix") (builtins.readDir ./.);
   packageFiles = filterAttrs (_: value: builtins.pathExists value) possiblePackageFiles;
 in
-  mapAttrs (name: value: callPackage value {}) possiblePackageFiles
+  mapAttrs (name: value: callPackage value {}) packageFiles
