@@ -22,6 +22,7 @@ final: prev: {
     extraShellCheckFlags ? [],
     bashOptions ? ["errexit" "nounset" "pipefail"],
     derivationArgs ? {},
+    purePath ? false,
   }: let
     inherit (final) lib writeTextFile runtimeShell stdenv shellcheck-minimal;
   in
@@ -43,8 +44,11 @@ final: prev: {
             export ${name}
           '')
           runtimeEnv)
+	+ lib.optionalString purePath ''
+	  export PATH=
+	''
         + lib.optionalString (runtimeInputs != []) ''
-          export PATH=${lib.makeBinPath runtimeInputs}:$PATH
+          export PATH=${lib.makeBinPath runtimeInputs}''${PATH:+:$PATH}
         ''
         + ''
           ${text}
