@@ -45,9 +45,9 @@ final: prev: rec {
             export ${name}
           '')
           runtimeEnv)
-	+ lib.optionalString purePath ''
-	  export PATH=
-	''
+        + lib.optionalString purePath ''
+          export PATH=
+        ''
         + lib.optionalString (runtimeInputs != []) ''
           export PATH=${lib.makeBinPath runtimeInputs}''${PATH:+:$PATH}
         ''
