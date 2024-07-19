@@ -1,8 +1,10 @@
 let
   overlayDir = ../overlays;
-  overlayFiles =
+  overlayFiles = let
+    lib = import <nixpkgs/lib>;
+  in
     lib.attrsets.mapAttrsToList
-    (name: value: lib.apth.append overlayDir name)
+    (name: value: lib.path.append overlayDir name)
     (builtins.readDir overlayDir);
 in
   {
