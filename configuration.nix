@@ -133,9 +133,11 @@ in {
     # things like access to private GitHub repositories.
     systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${currentDir}/secrets/nix-daemon-environment";
 
-    # Trust anyone in the wheel group
-    nix.settings.trusted-users = ["@wheel"];
-    nix.settings.sandbox = "relaxed";
+    nix.settings = {
+      trusted-users = ["@wheel"];
+      sandbox = "relaxed";
+      experimental-features = ["nix-command"];
+    };
 
     # Keep intermediate build stages around to speed up subsequent builds.
     nix.extraOptions = ''
