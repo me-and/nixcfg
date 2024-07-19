@@ -79,9 +79,6 @@ in {
     # Enable system emails.
     services.postfix.enable = true;
 
-    # If this isn't WSL, want OpenSSH for inbound connections, and mDNS for
-    # both inbound and outbound connections.
-    services.openssh.enable = true;
     services.avahi.enable = true;
     services.avahi.nssmdns4 = true;
 

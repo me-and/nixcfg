@@ -61,8 +61,8 @@ in {
     services.avahi.enable = lib.mkForce false;
     services.avahi.nssmdns4 = lib.mkForce false;
 
-    # Don't want to connect over SSH.
-    services.openssh.enable = lib.mkForce false;
+    # Don't want to connect over SSH; there's no need for that.
+    services.openssh.enable = false;
 
     environment.systemPackages = with pkgs; [
       putty # For psusan
