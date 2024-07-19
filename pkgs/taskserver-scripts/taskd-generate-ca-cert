@@ -1,0 +1,89 @@
+cn=
+# shellcheck disable=SC2034 # Referenced indirectly
+country=GB
+# shellcheck disable=SC2034 # Referenced indirectly
+expiration_days=365
+bits=4096
+
+_help () {
+    cat <<EOF
+$0 [-h] [-n <cn>] [-c <country>] [-d <days>] [-b <bits>] <org>
+
+<org>: Organization name, e.g. \`'Adam Dinwoodie CA'\`.
+
+-h: Show this help message
+-n: Set the common name on the certificate, e.g. \`-n dinwoodie.org\`.
+    Defaults to using the system hostname.
+-c: Set the country code on the certificate, e.g. \`-c US\`.  Defaults to GB.
+-d: Set the certificate expiry time in days from now, e.g. \`-d 28\`.  Defaults
+    to 365.
+-b: Set the key length in bits, e.g. \`-b 2048\`.  Defaults to 4096.
+EOF
+}
+
+while getopts ':n:c:d:b:h' opt; do
+    # shellcheck disable=SC2034 # Referenced indirectly
+    case "$opt" in
+    n)  cn="$OPTARG";;
+    c)  country="$OPTARG";;
+    d)  expiration_days="$OPTARG";;
+    b)  bits="$OPTARG";;
+    h)  _help
+        exit 0
+        ;;
+    *)  printf -- '-%s is not a valid option!\n\n' "$OPTARG" >&2
+        _help >&2
+        exit 64 # EX_USAGE
+        ;;
+    esac
+done
+
+[[ "$cn" ]] || cn="$(hostname -f)"
+
+if [[ -z "$cn" ]]; then
+    echo "No common name specified or found on the host" >&2
+    echo
+    _help >&2
+    exit 65 # EX_DATAERR
+fi
+
+shift "$((OPTIND-1))"
+if (( $# != 1 )); then
+    echo "Unexpected number of non-option arguments: $#" >&2
+    echo
+    _help >&2
+    exit 64 # EX_USAGE
+fi
+
+# shellcheck disable=SC2034 # Referenced indirectly
+organization="$1"
+
+template () {
+    for arg in organization cn country expiration_days; do
+        if [[ "${!arg}" ]]; then
+            echo "$arg = ${!arg}"
+        fi
+    done
+    echo "ca"
+}
+
+umask 077
+certtool --generate-privkey --bits "$bits" >ca.key.pem
+
+umask 022
+certtool \
+    --generate-self-signed \
+    --load-privkey ca.key.pem \
+    --template <(template || :) \
+    >ca.cert.pem
+
+cat <<EOF
+Self-signed CA certificate created successfully. Now you need to:
+
+- Copy ca.cert.pem to wherever Taskserver is expecting to find it, and make
+  sure the Taskserver daemon has permission to read it.
+- Copy ca.key.pem somewhere secure so you can find it when you need to create
+  user certificates or renew the CA certificate.
+EOF
+
+# vim: ft=bash et ts=4
