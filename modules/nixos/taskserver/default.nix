@@ -1,11 +1,11 @@
-{config, ...}: let
+{lib, config, ...}: let
   cfg = config.services.taskserver;
 in {
   services.taskserver = {
     # I want to connect to this server from other systems.
     openFirewall = true;
     listenHost = "0.0.0.0";
-    fqdn = config.networking.fqdn;
+    fqdn = lib.mkDefault config.networking.fqdn;
 
     # I have my own key setup already.
     pki.manual = let
