@@ -6,11 +6,13 @@
   thisRepoCleaned = lib.sources.cleanSourceWith {
     src = ../../.;
     # Filter out all hidden files, including but not limited to the .git
-    # directory.
+    # directory, and any symlinks, as they're going to be symlinks to Nix build
+    # results.
     filter = path: type: let
       baseName = builtins.baseNameOf path;
     in
-      (builtins.match "\\..*" baseName) == null;
+      (type != "symlink")
+      && ((builtins.match "\\..*" baseName) == null);
     name = "nixcfg";
   };
 in {
