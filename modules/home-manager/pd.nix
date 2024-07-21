@@ -10,15 +10,15 @@
     name = "pd-sync-with-fileserver";
     purePath = true;
     text = ''
-         exec ${unison}/bin/unison \
-             -ignore 'Name Thumbs.db' \
-             -ignore 'Name .*' \
-             -dontchmod -perms 0 \
-             -fastcheck true \
-             -ui text \
-             "$@" \
-             ${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Documents/GOD"} \
-             /usr/share/gonzo/Empire/GOD
+      exec ${unison}/bin/unison \
+          -ignore 'Name Thumbs.db' \
+          -ignore 'Name .*' \
+          -dontchmod -perms 0 \
+          -fastcheck true \
+          -ui text \
+          "$@" \
+          ${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Documents/GOD"} \
+          /usr/share/gonzo/Empire/GOD
     '';
   };
 in {
