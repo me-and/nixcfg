@@ -42,7 +42,11 @@ in {
       home.file = {
         WinHome = {source = mkOutOfStoreSymlink windowsHomeDir;};
         OneDrive = {source = mkOutOfStoreSymlink "${config.home.homeDirectory}/WinHome/OneDrive";};
-        ".bashrc.d/winget" = {text = "alias winget=winget.exe";};
+        ".bashrc.d/winexealiases".text = ''
+          alias winget=winget.exe
+          alias wsl=wsl.exe
+          alias explorer=explorer.exe
+        '';
       };
     })
   ];
