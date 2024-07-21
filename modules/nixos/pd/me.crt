@@ -1,0 +1,87 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            e1:a8:84:a7:d8:2a:1d:59:06:fc:b2:7e:a0:3f:d6:12
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=www.profounddecisions.co.uk
+        Validity
+            Not Before: Aug 30 18:26:25 2022 GMT
+            Not After : Aug 27 18:26:25 2032 GMT
+        Subject: C=GB, O=Profound Decisions, CN=Adam Dinwoodie/emailAddress=adam@profounddecisions.co.uk
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:dd:7f:0f:5f:8a:78:fd:ff:b2:42:98:7c:20:2d:
+                    d7:ee:eb:21:c4:31:ac:2a:ec:fa:80:6e:81:26:4f:
+                    35:82:a8:c4:5d:d7:85:dd:bb:93:c2:73:52:79:4f:
+                    6f:f6:ef:f3:52:34:28:2e:21:c3:ad:49:11:cd:7d:
+                    57:a1:04:3a:33:33:16:b6:b9:ea:b0:31:3f:ce:76:
+                    91:8d:c3:90:b3:dc:b1:72:22:21:24:6e:24:0f:aa:
+                    a6:04:c2:50:76:2a:b7:54:17:2d:9a:30:a6:a3:ba:
+                    97:b9:d4:00:d3:07:78:c5:cb:e3:91:f6:45:9c:b4:
+                    3e:70:88:6b:72:ab:15:c3:41:e6:55:0c:bb:b5:8c:
+                    32:d4:89:99:64:d6:3b:b3:46:4d:d1:45:4b:25:ac:
+                    a7:83:14:52:45:3e:fd:66:0f:0b:84:e4:e1:ff:e3:
+                    b4:9f:04:d9:83:86:7f:44:49:4b:5b:3b:38:6f:e2:
+                    09:a6:09:7f:a5:df:ae:a4:e3:e8:25:14:b6:ea:59:
+                    ab:8c:b2:eb:7b:05:bf:03:30:b2:61:f9:e3:ce:02:
+                    cc:28:8e:d7:f0:77:6c:ee:de:ef:30:7a:c6:33:3b:
+                    c6:3c:b4:72:f5:1c:e1:0c:a2:b4:18:cd:60:6a:8b:
+                    1d:00:5f:59:4f:2e:74:64:81:2a:f3:a6:b0:87:9d:
+                    4e:1b
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Subject Key Identifier: 
+                6F:BC:62:24:5C:03:FD:77:37:DD:FC:FC:94:83:18:63:68:B5:50:D2
+            X509v3 Authority Key Identifier: 
+                keyid:CF:52:FF:CD:46:84:26:C4:19:0C:30:BC:72:E0:2B:97:4E:A5:DA:B3
+                DirName:/CN=www.profounddecisions.co.uk
+                serial:C3:2A:BE:08:14:53:E1:4C
+
+            X509v3 Extended Key Usage: 
+                TLS Web Client Authentication
+            X509v3 Key Usage: 
+                Digital Signature
+    Signature Algorithm: sha256WithRSAEncryption
+         47:0b:de:3e:54:70:68:09:4c:25:5e:4b:b7:33:fd:e4:84:87:
+         6d:34:bd:8f:52:f6:b6:8e:04:b5:95:b8:1e:b8:0c:3e:2c:63:
+         e6:86:71:c1:59:04:b3:fc:d3:91:01:5b:68:04:b8:6d:68:ea:
+         dc:17:7c:70:e0:0d:67:dc:0a:99:f6:eb:36:89:fe:34:76:41:
+         46:a0:7f:ad:db:a5:77:27:54:7c:ee:c5:0d:e3:00:93:7a:64:
+         87:ac:14:23:9f:e1:44:07:77:ba:0e:bb:2c:e0:5b:0a:7e:99:
+         e3:62:91:5e:c7:c2:40:50:34:97:f1:01:56:10:84:cf:83:25:
+         3d:5c:e1:1c:d3:f9:9e:de:36:aa:af:15:41:d2:a0:2f:f9:c4:
+         92:87:47:d2:8a:de:1b:27:b1:8e:af:68:18:3e:21:e0:55:9b:
+         58:aa:be:0b:0a:a3:c8:a3:9f:ce:ad:31:21:62:95:2c:6e:aa:
+         9e:cd:7b:b0:b7:ef:32:50:09:01:bd:bc:6b:8f:2d:12:c6:c9:
+         e7:41:89:0a:22:cc:19:26:fc:9e:e9:c0:bf:df:ea:e9:29:20:
+         cf:1c:ef:83:da:c0:c2:a0:66:2d:0d:ec:20:70:04:ad:7a:e4:
+         fd:80:15:16:37:36:29:ec:d3:37:bb:82:0e:94:ec:c9:6c:bf:
+         e3:5e:f6:da
+-----BEGIN CERTIFICATE-----
+MIIDyTCCArGgAwIBAgIRAOGohKfYKh1ZBvyyfqA/1hIwDQYJKoZIhvcNAQELBQAw
+JjEkMCIGA1UEAwwbd3d3LnByb2ZvdW5kZGVjaXNpb25zLmNvLnVrMB4XDTIyMDgz
+MDE4MjYyNVoXDTMyMDgyNzE4MjYyNVowcDELMAkGA1UEBhMCR0IxGzAZBgNVBAoM
+ElByb2ZvdW5kIERlY2lzaW9uczEXMBUGA1UEAwwOQWRhbSBEaW53b29kaWUxKzAp
+BgkqhkiG9w0BCQEWHGFkYW1AcHJvZm91bmRkZWNpc2lvbnMuY28udWswggEiMA0G
+CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDdfw9finj9/7JCmHwgLdfu6yHEMawq
+7PqAboEmTzWCqMRd14Xdu5PCc1J5T2/27/NSNCguIcOtSRHNfVehBDozMxa2ueqw
+MT/OdpGNw5Cz3LFyIiEkbiQPqqYEwlB2KrdUFy2aMKajupe51ADTB3jFy+OR9kWc
+tD5wiGtyqxXDQeZVDLu1jDLUiZlk1juzRk3RRUslrKeDFFJFPv1mDwuE5OH/47Sf
+BNmDhn9ESUtbOzhv4gmmCX+l366k4+glFLbqWauMsut7Bb8DMLJh+ePOAswojtfw
+d2zu3u8wesYzO8Y8tHL1HOEMorQYzWBqix0AX1lPLnRkgSrzprCHnU4bAgMBAAGj
+gacwgaQwCQYDVR0TBAIwADAdBgNVHQ4EFgQUb7xiJFwD/Xc33fz8lIMYY2i1UNIw
+VgYDVR0jBE8wTYAUz1L/zUaEJsQZDDC8cuArl06l2rOhKqQoMCYxJDAiBgNVBAMM
+G3d3dy5wcm9mb3VuZGRlY2lzaW9ucy5jby51a4IJAMMqvggUU+FMMBMGA1UdJQQM
+MAoGCCsGAQUFBwMCMAsGA1UdDwQEAwIHgDANBgkqhkiG9w0BAQsFAAOCAQEARwve
+PlRwaAlMJV5LtzP95ISHbTS9j1L2to4EtZW4HrgMPixj5oZxwVkEs/zTkQFbaAS4
+bWjq3Bd8cOANZ9wKmfbrNon+NHZBRqB/rduldydUfO7FDeMAk3pkh6wUI5/hRAd3
+ug67LOBbCn6Z42KRXsfCQFA0l/EBVhCEz4MlPVzhHNP5nt42qq8VQdKgL/nEkodH
+0oreGyexjq9oGD4h4FWbWKq+CwqjyKOfzq0xIWKVLG6qns17sLfvMlAJAb28a48t
+EsbJ50GJCiLMGSb8nunAv9/q6Skgzxzvg9rAwqBmLQ3sIHAErXrk/YAVFjc2KezT
+N7uCDpTsyWy/41722g==
+-----END CERTIFICATE-----
