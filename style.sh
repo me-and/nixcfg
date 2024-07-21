@@ -1,7 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p alejandra -p gitMinimal -p findutils -p gnugrep
+#!nix-shell -i bash -p alejandra -p findutils
 set -euo pipefail
 
-git ls-files -z |
-	grep -z '\.nix$' |
-	xargs -0 alejandra -c
+find . -path ./.git -prune -o -type f -name '*.nix' -exec alejandra -c {} +
