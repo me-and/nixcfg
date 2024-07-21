@@ -1,4 +1,8 @@
-{lib, config, ...}: let
+{
+  lib,
+  config,
+  ...
+}: let
   cfg = config.services.taskserver;
 in {
   services.taskserver = {
