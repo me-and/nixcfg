@@ -69,6 +69,9 @@ in {
       wslu # For wslview
     ];
 
+    # OS should look after the clock.  Hopefully.
+    services.timesyncd.enable = false;
+
     nix.channels.nixos-wsl = "https://github.com/nix-community/NixOS-WSL/archive/refs/heads/main.tar.gz";
   };
 }
