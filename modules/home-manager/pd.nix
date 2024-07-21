@@ -14,6 +14,7 @@
              -ignore 'Name Thumbs.db' \
              -ignore 'Name .*' \
              -dontchmod -perms 0 \
+             -fastcheck true \
              -ui text \
              "$@" \
              ${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Documents/GOD"} \
