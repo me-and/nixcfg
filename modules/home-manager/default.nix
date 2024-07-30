@@ -5,6 +5,7 @@
     ./pd.nix
     ./rclone.nix
     ./systemd.nix
+    ./vim.nix
     ./wsl.nix
   ];
 }
