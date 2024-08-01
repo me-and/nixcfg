@@ -4,6 +4,7 @@
     ./hyperv.nix
     ./mosh.nix
     ./pd
+    ./phone-backup.nix
     ./pi.nix
     ./sshd.nix
     ./syncthing.nix
