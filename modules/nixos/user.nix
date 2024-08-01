@@ -7,6 +7,8 @@
   # necessary, but in practice a bunch of things need extra work without this
   # (e.g. the UIDs get confused, and you can't launch GUI applications as a
   # result).
+  #
+  # TODO Remove duplication with modules/nixos/pd/default.nix
   username =
     if config.system.isWsl
     then config.wsl.defaultUser
