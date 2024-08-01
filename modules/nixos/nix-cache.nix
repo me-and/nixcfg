@@ -22,7 +22,7 @@ in {
     services.nginx = {
       enable = true;
       appendHttpConfig = ''
-        proxy_cache_path /tmp/pkgcache levels=1:2 keys_zone=cachecache:100m max_size=20g inactive=365d use_temp_path=off;
+        proxy_cache_path /var/cache/nginx/nixBinaryCache levels=1:2 keys_zone=cachecache:100m max_size=20g inactive=365d use_temp_path=off;
 
         # Cache only success status codes; in particular we don't want to cache 404s.
         # See https://serverfault.com/a/690258/128321
