@@ -6,10 +6,10 @@
 }: let
   cfg = config.services.rclone;
 
-  escapeSystemd = str:
+  escapeSystemdPath = str:
     lib.strings.fileContents (
       pkgs.runCommandLocal "escape" {}
-      "${pkgs.systemd}/bin/systemd-escape ${lib.strings.escapeShellArg str} >$out"
+      "${pkgs.systemd}/bin/systemd-escape -p ${lib.strings.escapeShellArg str} >$out"
     );
 
   waitForTimesync = pkgs.writeCheckedShellScript {
@@ -57,7 +57,7 @@
   };
 
   mountToService = mountpoint: target: let
-    escapedMountpoint = escapeSystemd mountpoint;
+    escapedMountpoint = escapeSystemdPath mountpoint;
   in {
     "rclone-mount@${escapedMountpoint}" = {
       Unit = {
@@ -67,9 +67,9 @@
       };
       Service = {
         Type = "notify";
-        ExecStartPre = "mkdir -p %h/%I";
+        ExecStartPre = "mkdir -vp %f";
         CacheDirectory = "rclone";
-        ExecStart = "${pkgs.rclone}/bin/rclone mount --config=%h/.config/rclone/rclone.conf --cache-dir=\${CACHE_DIRECTORY} --vfs-cache-mode=full ${lib.strings.escapeShellArg target} %h/%I";
+        ExecStart = "${pkgs.rclone}/bin/rclone mount --config=%h/.config/rclone/rclone.conf --cache-dir=\${CACHE_DIRECTORY} --vfs-cache-mode=full ${lib.strings.escapeShellArg target} %f";
         # fusermount has to come from the system, because it requires setuid/setgid.
         ExecStop = "fusermount -u %h/%I";
         ExecReload = "kill -HUP $MAINPID";
@@ -82,14 +82,11 @@ in {
     enable = lib.mkEnableOption "rclone";
     mountPoints = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      description = ''
-        Mount points under the home directory, and the rclone path to mount
-        there.
-      '';
+      description = "Mount points and the rclone paths to mount there.";
       example = ''
         {
-          OneDrive = "onedrive:";
-          GoogleDrive = "gdrive:";
+          "/home/adam/OneDrive" = "onedrive:";
+          "/home/adam/GDrive" = "gdrive:";
         }
       '';
       default = {};
