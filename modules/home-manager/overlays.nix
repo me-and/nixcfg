@@ -3,14 +3,19 @@
   lib,
   ...
 }: let
+  # TODO Remove duplication of the below in modules/shared/overlays.nix
   thisRepoCleaned = lib.sources.cleanSourceWith {
     src = ../../.;
-    # Filter out all hidden files, including but not limited to the .git
-    # directory.
+    # Filter out:
+    # - All hidden files, including but not limited to the .git directory
+    # - Any symlinks, as they're almost certainly symlinks to Nix build results
+    # - The secrets directory, as that should never make it into the Nix store
     filter = path: type: let
       baseName = builtins.baseNameOf path;
     in
-      (builtins.match "\\..*" baseName) == null;
+      (type != "symlink")
+      && (baseName != "secrets")
+      && ((builtins.match "\\..*" baseName) == null);
     name = "nixcfg";
   };
 in {

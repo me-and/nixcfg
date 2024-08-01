@@ -58,6 +58,10 @@ in {
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
 
+    # Always want screen.  Including this here looks like it also sets up some
+    # PAM configuration, which is presumably relevant...
+    programs.screen.enable = true;
+
     # Check the channel list is as expected.
     nix.checkChannels = true;
     nix.channels = {
@@ -129,6 +133,10 @@ in {
     };
     systemd.services.nix-gc = {
       onSuccess = ["nix-optimise.service"];
+      serviceConfig = {
+        IOSchedulingClass = "idle";
+        CPUSchedulingPriority = "idle";
+      };
     };
 
     # Set up the Nix daemon to be able to access environment variables for
@@ -140,6 +148,10 @@ in {
       sandbox = "relaxed";
       experimental-features = ["nix-command"];
     };
+
+    # Prioritize non-build work.
+    nix.daemonIOSchedPriority = 7;
+    nix.daemonCPUSchedPolicy = "batch";
 
     # Keep intermediate build stages around to speed up subsequent builds.
     nix.extraOptions = ''

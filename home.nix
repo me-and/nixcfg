@@ -43,7 +43,6 @@ in {
       psmisc
       pv
       python
-      screen
       silver-searcher
       taskwarrior
       toil
@@ -83,16 +82,8 @@ in {
     repos = [
       (doLink "https://github.com/me-and/castle")
       (dontLink "https://github.com/me-and/nixcfg")
-      (dontLink "https://github.com/mileszs/ack.vim")
       (dontLink "https://github.com/me-and/asmodeus")
       (dontLink "https://github.com/magicmonty/bash-git-prompt")
-      (dontLink "https://github.com/vito-c/jq.vim")
-      (dontLink "https://github.com/aklt/plantuml-syntax")
-      (dontLink "https://github.com/luochen1990/rainbow")
-      (dontLink "https://github.com/sirtaj/vim-openscad")
-      (dontLink "https://github.com/junegunn/vim-plug")
-      (dontLink "https://github.com/junegunn/fzf.vim")
-      (dontLink "https://github.com/lervag/vimtex")
     ];
   };
 }
