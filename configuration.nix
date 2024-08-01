@@ -56,6 +56,10 @@ in {
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
 
+    # Always want screen.  Including this here looks like it also sets up some
+    # PAM configuration, which is presumably relevant...
+    programs.screen.enable = true;
+
     # Check the channel list is as expected.
     nix.checkChannels = true;
     nix.channels = {
