@@ -133,7 +133,7 @@ in {
       onSuccess = ["nix-optimise.service"];
       serviceConfig = {
         IOSchedulingClass = "idle";
-        CPUSchedulingPriority = "idle";
+        CPUSchedulingPolicy = "idle";
       };
     };
 
