@@ -20,16 +20,18 @@ in {
     default = username;
   };
 
-  # Always want fixed users.
-  users.mutableUsers = false;
+  config = {
+    # Always want fixed users.
+    users.mutableUsers = false;
 
-  # Set up my user account.
-  users.users."${cfg.me}" =
-    {
-      isNormalUser = true;
-      description = "Adam Dinwoodie";
-      extraGroups = ["wheel"];
-      linger = true;
-      hashedPasswordFile = builtins.toString ../../secrets/adam;
-    };
+    # Set up my user account.
+    users.users."${cfg.me}" =
+      {
+        isNormalUser = true;
+        description = "Adam Dinwoodie";
+        extraGroups = ["wheel"];
+        linger = true;
+        hashedPasswordFile = builtins.toString ../../secrets/adam;
+      };
+  };
 }
