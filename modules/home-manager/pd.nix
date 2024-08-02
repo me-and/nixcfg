@@ -10,15 +10,35 @@
     name = "pd-sync-with-fileserver";
     purePath = true;
     text = ''
+      UNISON=${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions/.unison-state"}
+      export UNISON
+
+      this_year="$(date +%Y)"
+
       exec ${unison}/bin/unison \
           -ignore 'Name Thumbs.db' \
           -ignore 'Name .*' \
+          -ignore 'Name ~$*' \
+          -ignore 'Name ~*.idlk' \
           -dontchmod -perms 0 \
           -fastcheck true \
           -ui text \
-          "$@" \
-          ${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Documents/GOD"} \
-          /usr/share/gonzo/Empire/GOD
+          -times \
+          -root ${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions"} \
+          -root /usr/share/gonzo \
+          -path Empire/GOD \
+          -path 'IT/Front End/Empire.mdb' \
+          -path IT/Fonts \
+          -path 'IT/Software/Printer Drivers' \
+          -path Artwork/Logos \
+          -path Empire/Art/Font \
+          -path Event \
+          -ignore 'Path Event/*' \
+          -ignorenot "Path Event/* - $this_year" \
+          -path Site/Signs \
+          -path 'Unknown Worlds/art' \
+          -path 'Weapon Check' \
+          "$@"
     '';
   };
 in {

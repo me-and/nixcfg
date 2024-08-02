@@ -3,6 +3,7 @@
     ./channels.nix
     ./hyperv.nix
     ./mosh.nix
+    ./nix-cache.nix
     ./pd
     ./phone-backup.nix
     ./pi.nix

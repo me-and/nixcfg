@@ -39,7 +39,9 @@ in {
         }
       ];
 
-    boot.tmp.useTmpfs = true;
+    # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
+    # Nix builds -- notably install images -- from being able to complete.
+    boot.tmp.cleanOnBoot = true;
 
     # Always want to be in the UK.
     time.timeZone = "Europe/London";
