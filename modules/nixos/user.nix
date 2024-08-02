@@ -24,12 +24,11 @@ in {
   users.mutableUsers = false;
 
   # Set up my user account.
-  users.users."${cfg.me}" =
-    {
-      isNormalUser = true;
-      description = "Adam Dinwoodie";
-      extraGroups = ["wheel"];
-      linger = true;
-      hashedPasswordFile = builtins.toString ../../secrets/adam;
-    };
+  users.users."${cfg.me}" = {
+    isNormalUser = true;
+    description = "Adam Dinwoodie";
+    extraGroups = ["wheel"];
+    linger = true;
+    hashedPasswordFile = builtins.toString ../../secrets/adam;
+  };
 }
