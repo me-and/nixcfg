@@ -12,7 +12,7 @@
     then config.wsl.defaultUser
     else "adam";
 
-  cfg = config.users.users;
+  cfg = config.users;
 in {
   options.users.me = lib.mkOption {
     type = lib.types.str;
