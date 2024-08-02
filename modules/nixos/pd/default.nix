@@ -7,12 +7,6 @@
   currentDir = builtins.toString ./.;
   secretsDir = builtins.toString ../../../secrets;
 
-  # TODO Remove duplication with modules/nixos/user.nix
-  username =
-    if config.system.isWsl
-    then config.wsl.defaultUser
-    else "adam";
-
   vpnConfigTemplate = builtins.readFile ./pd.ovpn;
 
   # Only need VPN config on non-WSL systems; on WSL systems the VPN will be
@@ -42,7 +36,7 @@
         [
           "rw"
           "credentials=${secretsDir}/gonzo-mount-creds"
-          "uid=${username}"
+          "uid=${config.users.me}"
           "gid=users"
           "forceuid"
           "forcegid"
