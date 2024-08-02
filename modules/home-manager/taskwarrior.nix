@@ -42,7 +42,6 @@
   };
 in {
   options.programs.taskwarrior = {
-
     createRecurringTasks = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -179,15 +178,18 @@ in {
             sort = ["due+"];
           };
 
-          oldest = {
-            context = false;
-          } // oldOrNewColumnConfig;
-          newest = {
-            context = false;
-          } // oldOrNewColumnConfig;
+          oldest =
+            {
+              context = false;
+            }
+            // oldOrNewColumnConfig;
+          newest =
+            {
+              context = false;
+            }
+            // oldOrNewColumnConfig;
           all.context = false;
           completed.context = false;
-
         };
 
         # Don't show logs in task info -- it's not worth the screen space.
