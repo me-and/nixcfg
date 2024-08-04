@@ -2,6 +2,7 @@
   imports = [
     ./channels.nix
     ./hyperv.nix
+    ./jellyfin.nix
     ./mosh.nix
     ./nix-cache.nix
     ./pd
