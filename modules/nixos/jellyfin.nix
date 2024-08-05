@@ -43,6 +43,18 @@ in {
         type = bool;
         default = false;
       };
+      internalPort = mkOption {
+        description = ''
+          The internal port to use to connect to the Jellyfin server.  This is
+          configured as part of the Jellyfin server setup, and means that the
+          server will not be accessible until the initial server configuration
+          is complete.
+        '';
+        type = ints.u16;
+        # Default selected at random, excluding all the ports that were listed at
+        # https://en.wikipedia.org/w/index.php?title=List_of_TCP_and_UDP_port_numbers&oldid=1237031823
+        default = 16896;
+      };
     };
 
     localisation = {
@@ -142,167 +154,198 @@ in {
             then cfg.virtualHost.fqdn
             else config.networking.fqdn;
           version = "0";
-        in ''
-          set -x
+        in
+          ''
+            INTERNAL_PORT=${
+              escapeShellArg (toString cfg.virtualHost.internalPort)
+            }
+            CONFIG_TIMEOUT=${escapeShellArg (toString cfg.configTimeout)}
+            NETWORK_CONFIG_FILE=${escapeShellArg cfg.configDir}/network.xml
+            DEVICE_ID="$(</etc/machine-id)"
 
-          CONFIG_TIMEOUT=${escapeShellArg (toString cfg.configTimeout)}
-          DEVICE_ID="$(</etc/machine-id)"
+            access_token=
 
-          access_token=
+            sleep () { ${pkgs.coreutils}/bin/sleep "$@"; }
+            xmllint () { ${pkgs.libxml2}/bin/xmllint "$@"; }
 
-          sleep () { ${pkgs.coreutils}/bin/sleep "$@"; }
+            jq () {
+                # Always want compact output.
+                ${pkgs.jq}/bin/jq \
+                    --compact-output \
+                    "$@"
+            }
 
-          jq () {
-              # Always want compact output.
-              ${pkgs.jq}/bin/jq \
-                  --compact-output \
-                  "$@"
-          }
+            # Pre-parse and store login details.  In particular, we're reading
+            # the password from a file, so it might have a trailing newline
+            # that needs trimming.
+            jq \
+                --null-input \
+                --arg initUser ${escapeShellArg cfg.users.initialUser.name} \
+                --rawfile initPass \
+                    ${escapeShellArg cfg.users.initialUser.passwordFile} \
+                '{initUser: $initUser, initPass: $initPass | rtrimstr("\n")}' \
+                > "$RUNTIME_DIRECTORY/inituser.json"
 
-          # Pre-parse and store login details.  In particular, we're reading
-          # the password from a file, so it might have a trailing newline that
-          # needs trimming.
-          jq \
-              --null-input \
-              --arg initUser ${escapeShellArg cfg.users.initialUser.name} \
-              --rawfile initPass \
-                  ${escapeShellArg cfg.users.initialUser.passwordFile} \
-              '{initUser: $initUser, initPass: $initPass | rtrimstr("\n")}' \
-              > "$RUNTIME_DIRECTORY/inituser.json"
+            printf -v plain_auth_header \
+                'Authorization: MediaBrowser Client="%s", Device="%s", Version="%s", DeviceId="%s"' \
+                ${escapeShellArgs [client device version]} \
+                "$DEVICE_ID"
 
-          printf -v plain_auth_header \
-              'Authorization: MediaBrowser Client="%s", Device="%s", Version="%s", DeviceId="%s"' \
-              ${escapeShellArgs [client device version]} \
-              "$DEVICE_ID"
+            if [[ -e "$NETWORK_CONFIG_FILE" ]]; then
+                current_port="$(
+                    xmllint \
+                        --xpath \
+                            'string(NetworkConfiguration/InternalHttpPort)' \
+                        "$NETWORK_CONFIG_FILE"
+                    )"
+            else
+                # If the network.xml file doesn't exist, that means the server
+                # hasn't yet been configured, so the current port will be the
+                # default.
+                current_port=8096
+            fi
 
-          curljfapi () {
-              local auth_header
+            curljfapi () {
+                local auth_header
 
-              local endpoint="$1"
-              shift
+                local endpoint="$1"
+                shift
 
-              if [[ "$access_token" ]]; then
-                  printf -v auth_header \
-                      '%s, Token="%s"' \
-                      "$plain_auth_header" "$access_token"
-              else
-                  auth_header="$plain_auth_header"
-              fi
+                if [[ "$access_token" ]]; then
+                    printf -v auth_header \
+                        '%s, Token="%s"' \
+                        "$plain_auth_header" "$access_token"
+                else
+                    auth_header="$plain_auth_header"
+                fi
 
-              ${pkgs.curl}/bin/curl \
-                  --silent \
-                  --location \
-                  --fail \
-                  --header "$auth_header" \
-                  "$@" \
-                  127.0.0.1:8096/"$endpoint"
-          }
+                ${pkgs.curl}/bin/curl \
+                    --silent \
+                    --location \
+                    --fail \
+                    --header "$auth_header" \
+                    "$@" \
+                    127.0.0.1:"$current_port"/"$endpoint"
+            }
 
-          # Jellyfin can take a while to first respond, so just loop until it's
-          # ready to respond and can provide its public info.
-          declare -i config_attempts=0
-          while :; do
-              (( ++config_attempts ))
+            # Jellyfin can take a while to first respond, so just loop until
+            # it's ready to respond and can provide its public info.
+            declare -i config_attempts=0
+            while :; do
+                (( ++config_attempts ))
 
-              if curljfapi System/Info/Public \
-                  -o "$RUNTIME_DIRECTORY/publicinfo.json"
-              then
-                  # Jellyfin server ready
-                  break
-              else
-                  rc="$?"
-              fi
+                if curljfapi System/Info/Public \
+                    -o "$RUNTIME_DIRECTORY/publicinfo.json"
+                then
+                    # Jellyfin server ready
+                    break
+                else
+                    rc="$?"
+                fi
 
-              if (( CONFIG_TIMEOUT == 0 )); then
-                  printf -v attempt_msg '(attempt %d)' "$config_attempts"
-              elif (( config_attempts > CONFIG_TIMEOUT )); then
-                  echo 'Too many errors trying to connect to the Jellyfin server' >&2
-                  exit 69 # EX_UNAVAILABLE
-              else
-                  printf -v attempt_msg \
-                      '(attempt %d/%d)' \
-                      "$config_attempts" \
-                      "$CONFIG_TIMEOUT"
-              fi
+                if (( CONFIG_TIMEOUT == 0 )); then
+                    printf -v attempt_msg '(attempt %d)' "$config_attempts"
+                elif (( config_attempts > CONFIG_TIMEOUT )); then
+                    echo 'Too many errors trying to connect to the Jellyfin server' >&2
+                    exit 69 # EX_UNAVAILABLE
+                else
+                    printf -v attempt_msg \
+                        '(attempt %d/%d)' \
+                        "$config_attempts" \
+                        "$CONFIG_TIMEOUT"
+                fi
 
-              if (( rc == 7 )); then
-                  # Failed to connect to host.
-                  printf 'Failed to connect to host %s\n' "$attempt_msg" >&2
-              elif (( rc == 22 )); then
-                  # HTTP page not retrieved.
-                  printf 'Server error %s\n' "$attempt_msg" >&2
-              else
-                  # Not an expected error code for while we're waiting for
-                  # Jellyfin to be available, so bail out immediately.
-                  printf 'curl error code %d %s\n' "$rc" "$attempt_msg" >&2
-                  exit 76 # EX_PROTOCOL
-              fi
+                if (( rc == 7 )); then
+                    # Failed to connect to host.
+                    printf 'Failed to connect to host %s\n' "$attempt_msg" >&2
+                elif (( rc == 22 )); then
+                    # HTTP page not retrieved.
+                    printf 'Server error %s\n' "$attempt_msg" >&2
+                fi
 
-              sleep 1
-          done
+                sleep 1
+            done
 
-          startup_wizard_completed="$(
-              jq --raw-output \
-                  '
-                    .StartupWizardCompleted
-                    | if . == true
-                      then "Yes"
-                      elif . == false
-                      then ""
-                      else
-                        "Unexpected value for .StartupWizardCompleted: \(.)"
-                        | error
-                      end
-                ' \
-                "$RUNTIME_DIRECTORY/publicinfo.json"
-          )"
+            startup_wizard_completed="$(
+                jq --raw-output \
+                    '
+                      .StartupWizardCompleted
+                      | if . == true
+                        then "Yes"
+                        elif . == false
+                        then ""
+                        else
+                          "Unexpected value for .StartupWizardCompleted: \(.)"
+                          | error
+                        end
+                  ' \
+                  "$RUNTIME_DIRECTORY/publicinfo.json"
+            )"
 
-          if [[ -z "$startup_wizard_completed" ]]; then
-              curljfapi Startup/Configuration --json @${wizardConfigFile}
+            if [[ -z "$startup_wizard_completed" ]]; then
+                curljfapi Startup/Configuration --json @${wizardConfigFile}
 
-              # Doing a GET of Startup/User seems pointless, but the following
-              # POST doesn't work unless the GET has been completed first.
-              curljfapi Startup/User -o /dev/null
-              jq '{Name: .initUser, Password: .initPass}' \
-                      "$RUNTIME_DIRECTORY/inituser.json" \
-                  | curljfapi Startup/User --json @-
+                # Doing a GET of Startup/User seems pointless, but the
+                # following POST doesn't work unless the GET has been completed
+                # first.
+                curljfapi Startup/User -o /dev/null
+                jq '{Name: .initUser, Password: .initPass}' \
+                        "$RUNTIME_DIRECTORY/inituser.json" \
+                    | curljfapi Startup/User --json @-
 
-              curljfapi Startup/RemoteAccess --json @${remoteAccessConfigFile}
+                curljfapi Startup/RemoteAccess \
+                    --json @${remoteAccessConfigFile}
 
-              curljfapi Startup/Complete -X POST
-          fi
+                curljfapi Startup/Complete -X POST
+            fi
 
-          # TODO: allow authentication with API key rather than requiring a
-          # username and password.
-          jq '{Username: .initUser, Pw: .initPass}' \
-                  "$RUNTIME_DIRECTORY/inituser.json" \
-              | curljfapi Users/AuthenticateByName \
-                  --json @- \
-                  -o "$RUNTIME_DIRECTORY/auth.json"
-          access_token="$(
-              jq -r '.AccessToken' "$RUNTIME_DIRECTORY/auth.json"
-          )"
+            # TODO: allow authentication with API key rather than requiring a
+            # username and password.
+            jq '{Username: .initUser, Pw: .initPass}' \
+                    "$RUNTIME_DIRECTORY/inituser.json" \
+                | curljfapi Users/AuthenticateByName \
+                    --json @- \
+                    -o "$RUNTIME_DIRECTORY/auth.json"
+            access_token="$(
+                jq -r '.AccessToken' "$RUNTIME_DIRECTORY/auth.json"
+            )"
+          ''
+          + lib.optionalString cfg.virtualHost.enable ''
 
-          # TODO Remove this line; it's only present to confirm the
-          # authentication has succeeded in the absence of doing anything more
-          # practical with the authentication token during the initial setup.
-          curljfapi System/Configuration
-        '';
+            if [[ "$current_port" != "$INTERNAL_PORT" ]]; then
+                # This relies on an undocumented API endpoint :(
+                curljfapi System/Configuration/Network \
+                    | jq --argjson internalPort "$INTERNAL_PORT" \
+                        '.InternalHttpPort |= $internalPort' \
+                    | curljfapi System/Configuration/Network \
+                        --json @-
+
+                # Need to restart to use the configured port number.
+                curljfapi System/Restart -XPOST
+            fi
+          '';
       };
 
     virtualHostConfig = lib.mkIf cfg.virtualHost.enable {
+      assertions = [
+        {
+          assertion = cfg.virtualHost.internalPort != 8096;
+          message = ''
+            You cannot use port 8096 as the internal port for connecting to the
+            Jellyfin server, as that is the default port and would therefore
+            allow access to the server before it has been secured by setting up
+            the initial user configuration.
+          '';
+        }
+      ];
+
       networking.firewall.allowedTCPPorts = [80];
 
       services.nginx = {
-        # TODO Work out how to make sure the Nginx proxying is only available
-        # after the initial configuration has completed, and therefore there's
-        # no timing window where an attacker might be able to log in from
-        # elsewhere to set the initial user config before the configuration
-        # script has done so.
         enable = true;
 
         virtualHosts."${cfg.virtualHost.fqdn}".locations."/" = {
-          proxyPass = "http://127.0.0.1:8096";
+          proxyPass = "http://127.0.0.1:${toString cfg.virtualHost.internalPort}";
           recommendedProxySettings = true;
         };
       };
@@ -330,10 +373,10 @@ in {
 
     # TODO Remove this configuration, as I'm only including it for testing
     # purposes.
-    reconfigureConfig = lib.mkIf cfg.forceReconfigure {
+    reconfigureConfig = {
       systemd.services.jellyfin-reconfigure = {
         description = "removing existing Jellyfin configuration";
-        requiredBy = ["jellyfin.service"];
+        requiredBy = lib.mkIf cfg.forceReconfigure ["jellyfin.service"];
         before = ["jellyfin.service"];
         serviceConfig.Type = "oneshot";
         script = ''
@@ -344,9 +387,12 @@ in {
           systemctl restart systemd-tmpfiles-resetup.service
         '';
       };
-      systemd.services.jellyfin.restartTriggers = [
-        config.systemd.units."jellyfin-reconfigure.service".unit
-      ];
+      systemd.services.jellyfin.restartTriggers =
+        lib.mkIf cfg.forceReconfigure
+        [
+          config.systemd.units."jellyfin-configure.service".unit
+          config.systemd.units."jellyfin-reconfigure.service".unit
+        ];
     };
 
     configureConfig = {
@@ -373,14 +419,15 @@ in {
           ProtectSystem = "strict";
 
           ExecStart = toString configScript;
+
+          # Need remainAfterExit so nixos-rebuild knows it needs to restart
+          # this unit if it changes.
+          RemainAfterExit = true;
         };
         requiredBy = ["jellyfin.service"];
         bindsTo = ["jellyfin.service"];
         after = ["jellyfin.service"];
       };
-      systemd.services.jellyfin.restartTriggers = [
-        config.systemd.units."jellyfin-configure.service".unit
-      ];
     };
   in
     lib.mkIf cfg.enable (
