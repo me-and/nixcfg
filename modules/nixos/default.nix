@@ -6,6 +6,7 @@
     ./mosh.nix
     ./nix-cache.nix
     ./pd
+    ./per-system
     ./phone-backup.nix
     ./pi.nix
     ./syncthing.nix
