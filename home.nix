@@ -44,7 +44,6 @@ in {
       psmisc
       pv
       python
-      screen
       silver-searcher
       taskwarrior
       toil
