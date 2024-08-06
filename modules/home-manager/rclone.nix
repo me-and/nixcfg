@@ -62,8 +62,7 @@
     "rclone-mount@${escapedMountpoint}" = {
       Unit = {
         Description = "rclone mount of ${target} at ${mountpoint}";
-        Wants = ["timesynced.service"];
-        After = ["timesynced.service"];
+        After = ["time-sync.target"];
       };
       Service = {
         Type = "notify";
@@ -77,9 +76,19 @@
       Install.WantedBy = ["default.target"];
     };
   };
+
+  systemdConfig =
+    lib.attrsets.concatMapAttrs
+    (name: value: mountToService name value)
+    cfg.mountPoints;
 in {
   options.services.rclone = {
     enable = lib.mkEnableOption "rclone";
+    includeManPage = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Whether to install the rclone man page";
+    };
     mountPoints = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       description = "Mount points and the rclone paths to mount there.";
@@ -93,28 +102,55 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [pkgs.rclone];
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
+      assertions = [
+        {
+          assertion = (cfg.mountPoints == {}) || config.systemd.user.enable;
+          message = "Rclone mountpoints require the user systemd service.";
+        }
+      ];
 
-    assertions = [
-      {
-        assertion = (cfg.mountPoints == {}) || config.systemd.user.enable;
-        message = "Rclone mountpoints require the user systemd service.";
-      }
-    ];
+      home.packages = lib.mkMerge [
+        [pkgs.rclone]
+        (lib.mkIf cfg.includeManPage [pkgs.rclone.man])
+      ];
 
-    systemd.user.services = lib.mkIf (cfg.mountPoints != {}) (
-      {
-        timesynced = {
-          Unit.Description = "waiting for time synchronization to complete";
-          Service = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            ExecStart = waitForTimesync;
+      # This emulates the time-sync configuration for the system Systemd
+      # instance.
+      systemd.user = {
+        targets.time-sync = {
+          Unit = {
+            Description = "System Time Synchronized";
+            Documentation = "man:systemd.special(7)";
+            RefuseManualStart = true;
+            After = ["time-set.target"];
+            Wants = ["time-set.target"];
           };
         };
-      }
-      // (lib.attrsets.concatMapAttrs (name: value: mountToService name value) cfg.mountPoints)
-    );
-  };
+        services.systemd-time-wait-sync = {
+          Unit = {
+            Decsription = "Wait Until Kernel Time Synchronized";
+            Documentation = "man:systemd-time-wait-sync.service(8)";
+            ConditionCapability = "CAP_SYS_TIME";
+            ConditionVirtualization = "!container";
+            DefaultDependencies = false;
+            Before = ["time-sync.target"];
+            Wants = ["time-sync.target"];
+            Conflicts = ["shutdown.target"];
+            WantedBy = ["basic.target"];
+          };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.systemd}/lib/systemd/systemd-time-wait-sync";
+            TimeoutStartSec = "infinity";
+            RemainAfterExit = true;
+          };
+        };
+      };
+    }
+    {
+      systemd.user.services = systemdConfig;
+    }
+  ]);
 }
