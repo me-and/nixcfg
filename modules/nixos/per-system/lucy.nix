@@ -89,4 +89,6 @@ lib.mkIf (config.system.name == "lucy") {
   # <https://github.com/NetworkConfiguration/dhcpcd/issues/80>, but it clearly
   # is still happening!
   networking.dhcpcd.IPv6rs = false;
+
+  services.postfix.enable = true;
 }

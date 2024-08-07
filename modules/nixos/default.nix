@@ -3,6 +3,7 @@
     ./channels.nix
     ./hyperv.nix
     ./jellyfin.nix
+    ./mail.nix
     ./mosh.nix
     ./nix-cache.nix
     ./pd
