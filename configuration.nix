@@ -79,11 +79,10 @@ in {
     environment.systemPackages = with pkgs; [
       file
       home-manager
-      mailutils
     ];
 
-    # Enable system emails.
-    services.postfix.enable = true;
+    # Normally want SSHD.
+    services.openssh.enable = lib.mkDefault true;
 
     services.avahi.enable = true;
     services.avahi.nssmdns4 = true;

@@ -26,6 +26,7 @@ in {
     packages = with pkgs; [
       alejandra
       ascii
+      dig.dnsutils
       dos2unix
       fzf
       gh
