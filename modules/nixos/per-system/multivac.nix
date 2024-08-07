@@ -10,5 +10,9 @@ lib.mkIf (config.system.name == "multivac") {
 
   networking.accessPD = true;
 
-  services.postfix.enable = true;
+  services.postfix = {
+    enable = true;
+    relayHost = "smtp.tastycake.net";
+    relayPort = 587;
+  };
 }
