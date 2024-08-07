@@ -1,5 +1,6 @@
 {
   imports = [
+    ./forward.nix
     ./homeshick.nix
     ./overlays.nix
     ./pd.nix
