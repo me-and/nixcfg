@@ -190,6 +190,14 @@ in {
             // oldOrNewColumnConfig;
           all.context = false;
           completed.context = false;
+
+          # More useful "completed" report details, which shows less extraneous
+          # detail and prioritises showing the most recently completed tasks.
+          completed = {
+            columns = ["id" "uuid.short" "end.age" "priority" "project" "tags" "due" "description"];
+            labels = ["ID" "UUID" "Done" "P" "Proj" "Tags" "Due" "Description"];
+            sort = ["end-"];
+          };
         };
 
         # Don't show logs in task info -- it's not worth the screen space.
@@ -211,78 +219,81 @@ in {
 
         # I have a big shell prompt, so allow multiple lines for it.
         reserved.lines = 3;
+
+        context = let
+          readFilter = s: "( ${s} ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )";
+        in {
+          evening-weekend.read = readFilter "-business -southport -dadford -work";
+          allotment.read = readFilter "-home -southport -dadford -enfield -work";
+          day-off = {
+            # Prioritise things that can only be done in business hours.
+            read = readFilter "-southport -dadford -work";
+            rc.urgency.user.tag.business.coefficient = 6;
+          };
+          work = {
+            # Prioritise things that can only be done at work or in business
+            # hours.
+            read = readFilter "-southport -dadford -multivac -allotment -nsfw -alex";
+            rc.urgency.user.tag = {
+              work.coefficient = 6;
+              business.coefficient = 4;
+            };
+          };
+          dadford = {
+            # Prioritise things that can only be done on site, and filter out
+            # things that aren't urgent and aren't PD related.
+            read = readFilter "-home -southport -enfield -business -work -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
+            write = "+dadford";
+            rc.urgency.user.tag.dadford.coefficient = 10;
+          };
+          southport = {
+            # Prioritise things that can only be done in Southport.
+            read = readFilter "-allotment -enfield -dadford -home -work";
+            rc.urgency.user.tag.southport.coefficient = 20;
+          };
+          bike.read = readFilter "-home -southport -dadford -enfield -work -car -multivac -cornwall -phone";
+          bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -pc -multivac -audio -business -alex -car -cornwall -phone -surface";
+          office = {
+            # Prioritise things that can only be done in the office.
+            read = readFilter "-southport -dadford -multivac -allotment -nsfw -alex -home -car";
+            rc.urgency.user.tag = {
+              business.coefficient = 2;
+              work.coefficient = 6;
+              office.coefficient = 10;
+            };
+          };
+        };
+
+        urgency.user.tag = {
+          # Default urgency coefficients for things that have context-specific
+          # urgencies.  Without this configuration, the context-specific
+          # urgencies don't seem to work.
+          work.coefficient = 0;
+          business.coefficient = 0;
+          dadford.coefficient = 0;
+          southport.coefficient = 0;
+          office.coefficient = 0;
+
+          # Tasks in the inbox should be right at the top to get sorted.
+          inbox.coefficient = 20;
+
+          # Tasks tagged later should be significantly less urgent than they
+          # otherwise might.  Taskwarrior also has "wait:later", which could do
+          # a similar job, except that seems to break Taskserver sync.
+          later.coefficient = -10;
+        };
+
+        # Remove "special" from the set of verbose values, since I know what
+        # "next" does and I don't use any of the other special tags.
+        verbose = ["affected" "blank" "context" "edit" "header" "footnote" "label" "new-id" "project" "sync" "override" "recur"];
       }
 
       taskdConfig
       taskshReviewConfig
       priorityConfig
     ];
+
     extraConfig = ''
-      # Context: evening and weekend
-      context.evening-weekend.read=( -business -southport -dadford -work ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-
-      # Context: allotment
-      context.allotment.read=( -home -southport -dadford -enfield -work ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-
-      # Context: day off.  Prioritise things that can only be done in business hours.
-      context.day-off.read=( -southport -dadford -work ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-      context.day-off.rc.urgency.user.tag.business.coefficient=6
-
-      # Context: work.  Prioritise things that can only be done at work or in
-      # business hours
-      context.work.read=( -southport -dadford -multivac -allotment -nsfw -alex ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-      context.work.rc.urgency.user.tag.work.coefficient=6
-      context.work.rc.urgency.user.tag.business.coefficient=4
-
-      # Context: dadford.  Prioritise things that can only be done on site.
-      context.dadford.read=( -home -southport -enfield -business -work -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. ) ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-      context.dadford.write=+dadford
-      context.dadford.rc.urgency.user.tag.dadford.coefficient=10
-
-      # Context: southport.  Prioritise things that can only be done there.
-      context.southport.read=( -allotment -enfield -dadford -home -work ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-      context.southport.rc.urgency.user.tag.southport.coefficient=20
-
-      # Context: exercise bike
-      context.bike.read=( -home -southport -dadford -enfield -work -car -multivac -cornwall -phone ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-
-      # Context: bed.
-      context.bed.read=( -home -southport -dadford -enfield -daylight -work -pc -multivac -audio -business -alex -car -cornwall -phone -surface ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-
-      # Context: office.
-      context.office.read=( -southport -dadford -multivac -allotment -nsfw -alex -home -car ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )
-      context.office.rc.urgency.user.tag.business.coefficient=2
-      context.office.rc.urgency.user.tag.work.coefficient=6
-      context.office.rc.urgency.user.tag.office.coefficient=10
-
-      # Default urgency coefficients for things that have context-specific urgencies,
-      # otherwise the context-specific ones seem to not take effect.
-      urgency.user.tag.work.coefficient=0
-      urgency.user.tag.business.coefficient=0
-      urgency.user.tag.dadford.coefficient=0
-      urgency.user.tag.southport.coefficient=0
-      urgency.user.tag.office.coefficient=0
-
-      # Tasks in the inbox should be right at the top to get sorted, unless there is
-      # something even more burningly urgent.
-      urgency.user.tag.inbox.coefficient=20
-
-      # Tasks tagged "later" should be significantly less urgent than they otherwise
-      # might.  This is an alternative to using "wait:later" or similar, since
-      # "wait:later" seems to break TaskServer sync :(
-      urgency.user.tag.later.coefficient=-10
-
-      # More useful "completed" report details, limited to only showing a sensible
-      # number of most recently completed tasks.
-      report.completed.columns=id,uuid.short,end.age,priority,project,tags,due,description
-      report.completed.labels=ID,UUID,Done,P,Proj,Tags,Due,Description
-      report.completed.filter=status:completed
-      report.completed.sort=end-
-
-      # Remove "special" from the set of verbose values, since I know what "next"
-      # does and don't use any of the other tags.
-      verbose=affected,blank,context,edit,header,footnote,label,new-id,project,sync,override,recur
-
       # Taskwarrior seems confused about whether tasks that are waiting should be
       # included in status:pending or not.  The default report definitions seem to
       # assume they will be, but the behaviour assumes they won't be.  Change the
