@@ -34,6 +34,7 @@ in {
       htop
       jq
       lesspipe
+      man-pages
       moreutils
       mosh
       mtimewait

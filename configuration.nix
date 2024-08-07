@@ -82,6 +82,9 @@ in {
       mailutils
     ];
 
+    # Normally want SSHD.
+    services.openssh.enable = lib.mkDefault true;
+
     # Enable system emails.
     services.postfix.enable = true;
 
