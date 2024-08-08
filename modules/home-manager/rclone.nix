@@ -130,7 +130,7 @@ in {
         };
         services.systemd-time-wait-sync = {
           Unit = {
-            Decsription = "Wait Until Kernel Time Synchronized";
+            Description = "Wait Until Kernel Time Synchronized";
             Documentation = "man:systemd-time-wait-sync.service(8)";
             ConditionCapability = "CAP_SYS_TIME";
             ConditionVirtualization = "!container";

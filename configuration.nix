@@ -152,6 +152,16 @@ in {
     nix.daemonIOSchedPriority = 7;
     nix.daemonCPUSchedPolicy = "batch";
 
+    # Set up basic ACME certificate configuration.
+    security.acme = {
+      acceptTerms = true;
+      defaults = {
+        email = lib.fileContents ./local-config/certbot-email-address;
+        dnsProvider = "mythicbeasts";
+        environmentFile = builtins.toString ./secrets/mythic-beasts;
+      };
+    };
+
     # Keep intermediate build stages around to speed up subsequent builds.
     nix.extraOptions = ''
       keep-outputs = true
