@@ -5,6 +5,7 @@
     ./jellyfin.nix
     ./mail.nix
     ./mosh.nix
+    ./nginx.nix
     ./nix-cache.nix
     ./pd
     ./per-system
