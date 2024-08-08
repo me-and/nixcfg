@@ -11,6 +11,7 @@
     ./per-system
     ./phone-backup.nix
     ./pi.nix
+    ./scantoonedrive.nix
     ./syncthing.nix
     ./taskserver
     ./time-sync.nix

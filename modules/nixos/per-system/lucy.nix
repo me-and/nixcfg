@@ -100,4 +100,14 @@ lib.mkIf (config.system.name == "lucy") {
   };
 
   services.postfix.enable = true;
+
+  services.scanToOneDrive = {
+    enable = true;
+    ftpPasvPortRange = {
+      from = 56615;
+      to = 56624;
+    };
+    scannerUser = "ida";
+    scannerHashedPasswordFile = ../../../secrets/ida;
+  };
 }
