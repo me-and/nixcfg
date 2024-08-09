@@ -50,6 +50,7 @@ lib.mkIf (config.system.name == "lucy") {
       name = "adam";
       passwordFile = "/etc/nixos/secrets/jellyfin/adam";
     };
+    apiDebugScript = true;
     forceReconfigure = false;
   };
   services.snapper.configs.av = {

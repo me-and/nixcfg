@@ -20,6 +20,8 @@ in {
     inherit (lib) mkEnableOption mkOption;
     inherit (lib.types) attrsOf bool enum ints listOf oneOf path str submodule;
   in {
+    apiDebugScript = lib.mkEnableOption "a script for making requests to the API";
+
     virtualHost = {
       enable =
         mkEnableOption "an Nginx virtual host for access to the server";
@@ -679,6 +681,89 @@ in {
         ];
     };
 
+    apiDebugConfig = let
+      debugScript = pkgs.writeCheckedShellApplication {
+        name = "jellyfin-api";
+        purePath = true;
+        runtimeInputs = [
+          pkgs.libxml2
+          pkgs.jq
+          pkgs.coreutils
+          pkgs.curl
+        ];
+        text = ''
+          NETWORK_CONFIG_FILE=${escapeShellArg cfg.configDir}/network.xml
+          DEVICE_ID="$(</etc/machine-id)"
+
+          access_token=
+
+          tmpdir="$(mktemp -dt "jellyfin-api.''$$.XXXXX")"
+          trap 'rm -rf -- "$tmpdir"' EXIT
+
+          # Pre-parse and store login details.  In particular, we're reading
+          # the password from a file, so it might have a trailing newline that
+          # needs trimming.
+          jq \
+              --null-input \
+              --arg initUser ${escapeShellArg cfg.users.initialUser.name} \
+              --rawfile initPass \
+                  ${escapeShellArg cfg.users.initialUser.passwordFile} \
+              '{Username: $initUser, Pw: $initPass | rtrimstr("\n")}' \
+              > "$tmpdir/login.json"
+
+          printf -v plain_auth_header \
+              'Authorization: MediaBrowser Client="jellyfin-api-script", Device="jellyfin-api-script", Version="0", DeviceId="%s"' \
+              "$DEVICE_ID"
+
+          if [[ -e "$NETWORK_CONFIG_FILE" ]]; then
+              current_port="$(
+                  xmllint \
+                      --xpath \
+                          'string(NetworkConfiguration/InternalHttpPort)' \
+                      "$NETWORK_CONFIG_FILE"
+                  )"
+          else
+              current_port=8096
+          fi
+
+          curljfapi () {
+              local auth_header
+
+              local endpoint="$1"
+              shift
+
+              if [[ "$access_token" ]]; then
+                  printf -v auth_header \
+                      '%s, Token="%s"' \
+                      "$plain_auth_header" "$access_token"
+              else
+                  auth_header="$plain_auth_header"
+              fi
+
+              curl \
+                  --no-progress-meter \
+                  --location \
+                  --fail-with-body \
+                  --header "$auth_header" \
+                  "$@" \
+                  127.0.0.1:"$current_port"/"$endpoint"
+          }
+
+          curljfapi Users/AuthenticateByName \
+              --json @"$tmpdir"/login.json \
+              -o "$tmpdir"/auth.json
+          access_token="$(
+              jq -r '.AccessToken' "$tmpdir"/auth.json
+          )"
+
+          curljfapi "$@"
+        '';
+      };
+    in
+      lib.mkIf cfg.apiDebugScript {
+        environment.systemPackages = [debugScript];
+      };
+
     commonConfig = {
       # TODO Remove this test code
       services.jellyfin.libraries.Music = {
@@ -747,6 +832,7 @@ in {
         virtualHostSecureConfig
         reconfigureConfig
         commonConfig
+        apiDebugConfig
       ]
     );
 }
