@@ -153,8 +153,8 @@ in {
       # TODO Check how to hide this, and how to set it as an appropriate
       # derivation
     };
-    libraries = let
-      libraryModule = {
+    musicLibraries = let
+      musicLibraryModule = {
         config,
         name,
         ...
@@ -164,19 +164,6 @@ in {
             type = listOf path;
             description = "Paths to add to this library.";
             example = ["/home/user/music"];
-          };
-          type = mkOption {
-            type = enum [
-              "movies"
-              "tvshows"
-              "music"
-              "musicvideos"
-              "homevideos"
-              "boxsets"
-              "books"
-              "mixed"
-            ];
-            description = "Centents of this library.";
           };
           metadataCountryCode = mkOption {
             description = "Metadata country code.";
@@ -205,7 +192,7 @@ in {
           fullConfig = mkOption {
             description = ''
               All configuration to be provided over the Library/VirtualFolder
-              API endpoint to set up the library.
+              API endpoint to set up the music library.
             '';
             #type = let
             #  # TODO Is there a better way to set this recursive definition?
@@ -218,7 +205,7 @@ in {
             # that.
             default = {
               inherit name;
-              collectionType = config.type;
+              collectionType = "music";
               refreshLibrary = true;
               LibraryOptions = {
                 Enabled = true;
@@ -253,10 +240,11 @@ in {
                     Type = "MusicArtist";
                     MetadataFetchers = [
                       "MusicBrainz"
+                      "TheAudioDB"
                     ];
                     MetadataFetcherOrder = [
-                      "TheAudioDB"
                       "MusicBrainz"
+                      "TheAudioDB"
                     ];
                     ImageFetchers = [
                       "TheAudioDB"
@@ -269,6 +257,7 @@ in {
                     Type = "MusicAlbum";
                     MetadataFetchers = [
                       "MusicBrainz"
+                      "TheAudioDB"
                     ];
                     MetadataFetcherOrder = [
                       "MusicBrainz"
@@ -327,16 +316,153 @@ in {
       };
     in
       mkOption {
-        type = attrsOf (submodule libraryModule);
-        description = "Libraries to configure.";
+        type = attrsOf (submodule musicLibraryModule);
+        description = "Music libraries to configure.";
+        default = {};
         example = {
           Music = {
-            type = "music";
             paths = ["/home/user/music"];
           };
-          Films = {
-            type = "movies";
-            paths = ["/usr/share/films"];
+        };
+      };
+    movieLibraries = let
+      movieLibraryModule = {
+        config,
+        name,
+        ...
+      }: {
+        options = {
+          locations = mkOption {
+            type = listOf path;
+            description = "Paths to add to this library.";
+            example = ["/home/user/films"];
+          };
+          metadataCountryCode = mkOption {
+            description = "Metadata country code.";
+            example = "US";
+            default = cfg.localisation.metadataCountryCode;
+            type = str;
+          };
+          preferredMetadataLanguage = mkOption {
+            description = "Metadata language code.";
+            example = "fr";
+            default = cfg.localisation.preferredMetadataLanguage;
+            type = str;
+          };
+          metadataSavers = mkOption {
+            description = "Methods for saving the metadata.";
+            example = [];
+            default = ["Nfo"];
+            type = listOf str;
+          };
+          seasonZeroDisplayName = mkOption {
+            description = "Display name for season 0.";
+            example = "Extras";
+            default = "Specials";
+            type = str;
+          };
+          fullConfig = mkOption {
+            description = ''
+              All configuration to be provided over the Library/VirtualFolder
+              API endpoint to set up the movie library.
+            '';
+            #type = let
+            #  # TODO Is there a better way to set this recursive definition?
+            #  innerType = oneOf [bool str (attrsOf innerType) (listOf innerType)];
+            #in
+            #  attrsOf innerType;
+            # TODO This all taken from one capture of adding a movie library,
+            # with a small number of modifications.  It's almost certainly not
+            # appropriate for any other sort of library, and I need to fix
+            # that.
+            default = {
+              inherit name;
+              collectionType = "movie";
+              refreshLibrary = true;
+              LibraryOptions = {
+                Enabled = true;
+                EnableArchiveMediaFiles = false;
+                EnablePhotos = true;
+                EnableRealtimeMonitor = true;
+                EnableLUFSScan = true;
+                ExtractTrickplayImagesDuringLibraryScan = false;
+                EnableTrickplayImageExtraction = false;
+                ExtractChapterImagesDuringLibraryScan = false;
+                EnableChapterImageExtraction = false;
+                EnableInternetProviders = true;
+                SaveLocalMetadata = true;
+                EnableAutomaticSeriesGrouping = false;
+                PreferredMetadataLanguage = config.preferredMetadataLanguage;
+                MetadataCountryCode = config.metadataCountryCode;
+                SeasonZeroDisplayName = config.seasonZeroDisplayName;
+                AutomaticRefreshIntervalDays = 0;
+                EnableEmbeddedTitles = false;
+                EnableEmbeddedExtrasTitles = false;
+                EnableEmbeddedEpisodeInfos = false;
+                AllowEmbeddedSubtitles = "AllowAll";
+                SkipSubtitlesIfEmbeddedSubtitlesPresent = false;
+                SkipSubtitlesIfAudioTrackMatches = false;
+                SaveSubtitlesWithMedia = true;
+                SaveLyricsWithMedia = true;
+                RequirePerfectSubtitleMatch = true;
+                AutomaticallyAddToCollection = false;
+                MetadataSavers = config.metadataSavers;
+                TypeOptions = [
+                  {
+                    Type = "Movie";
+                    MetadataFetchers = [
+                      "TheMovieDb"
+                      "The Open Movie Database"
+                    ];
+                    MetadataFetcherOrder = [
+                      "TheMovieDb"
+                      "The Open Movie Database"
+                    ];
+                    ImageFetchers = [
+                      "TheMovieDb"
+                      "The Open Movie Database"
+                      "Embedded Image Extractor"
+                      "Screen Grabber"
+                    ];
+                    ImageFetcherOrder = [
+                      "TheMovieDb"
+                      "The Open Movie Database"
+                      "Embedded Image Extractor"
+                      "Screen Grabber"
+                    ];
+                  }
+                ];
+                LocalMetadataReaderOrder = config.metadataSavers;
+                SubtitleDownloadLanguages = [];
+                DisabledSubtitleFetchers = [];
+                SubtitleFetcherOrder = [];
+                PathInfos = map (p: {Path = p;}) config.locations;
+              };
+            };
+          };
+          jsonFile = mkOption {
+            # TODO Check how to hide this, and how to set it as an appropriate
+            # derivation.
+          };
+        };
+
+        config.jsonFile = writeJsonFile name {
+          url = {
+            name = config.fullConfig.name;
+            collectionType = config.fullConfig.collectionType;
+            refreshLibrary = config.fullConfig.refreshLibrary;
+          };
+          body = builtins.removeAttrs config.fullConfig ["name" "collectionType" "refreshLibrary"];
+        };
+      };
+    in
+      mkOption {
+        type = attrsOf (submodule movieLibraryModule);
+        description = "Movie libraries to configure.";
+        default = {};
+        example = {
+          Music = {
+            paths = ["/home/user/films"];
           };
         };
       };
@@ -387,6 +513,10 @@ in {
             then cfg.virtualHost.fqdn
             else config.networking.fqdn;
           version = "0";
+          libraryNames = lib.lists.concatMap builtins.attrNames [
+            cfg.musicLibraries
+            cfg.movieLibraries
+          ];
         in
           ''
             set -x
@@ -575,7 +705,7 @@ in {
 
           ''
           + lib.optionalString (!cfg.overrideLibraries) ''
-            target_library_names=(${escapeShellArgs (builtins.attrNames cfg.libraries)})
+            target_library_names=(${escapeShellArgs libraryNames})
             for name in "''${target_library_names[@]}"; do
                 if ! string_in_array "$name" current_library_names; then
                     endpoint="Library/VirtualFolders?$(
@@ -765,12 +895,6 @@ in {
       };
 
     commonConfig = {
-      # TODO Remove this test code
-      services.jellyfin.libraries.Music = {
-        locations = ["/usr/local/share/av/music"];
-        type = "music";
-      };
-
       assertions = [
         # TODO Remove this limitation and this assertion.
         {
@@ -780,9 +904,12 @@ in {
       ];
 
       services.jellyfin.libraryJsonFiles = pkgs.linkFarm "library-data" (
-        lib.attrsets.mapAttrs
-        (name: value: value.jsonFile)
-        cfg.libraries
+        lib.attrsets.mapAttrs (name: value: value.jsonFile) (
+          lib.attrsets.mergeAttrsList [
+            cfg.musicLibraries
+            cfg.movieLibraries
+          ]
+        )
       );
 
       # Run the configure script with root permissions so it can access
