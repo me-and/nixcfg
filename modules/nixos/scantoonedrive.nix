@@ -36,18 +36,10 @@ in {
       type = lib.types.path;
       default = "/var/tmp/${cfg.scannerUser}";
     };
-    scannerDestSubdir = lib.mkOption {
-      description = ''
-        Subdirectory of the scanner home directory that will actually be used
-        for uploads.
-      '';
-      type = lib.types.str;
-      default = "comms";
-    };
     scannerDestDir = lib.mkOption {
       description = "Directory that will actually be used for uploads.";
       type = lib.types.path;
-      default = "${cfg.scannerHomeDir}/${cfg.scannerDestSubdir}";
+      default = cfg.scannerHomeDir;
     };
 
     scannerHashedPasswordFile = lib.mkOption {
