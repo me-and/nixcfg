@@ -51,6 +51,7 @@ lib.mkIf (config.system.name == "lucy") {
       passwordFile = "/etc/nixos/secrets/jellyfin/adam";
     };
     musicLibraries.Music.locations = ["/usr/local/share/av/music"];
+    movieLibraries.Films.locations = ["/usr/local/share/av/films"];
     apiDebugScript = true;
     forceReconfigure = false;
   };
