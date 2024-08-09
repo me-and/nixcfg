@@ -37,11 +37,8 @@ lib.mkIf (config.system.name == "lucy") {
       options = "subvol=@av";
     }
   ];
-  systemd.services.jellyfin = {
-    bindsTo = ["usr-local-share-av.mount"];
-    after = ["usr-local-share-av.mount"];
-  };
   services.jellyfin = {
+    requiredSystemdUnits = ["usr-local-share-av.mount"];
     enable = true;
     virtualHost = {
       enable = true;

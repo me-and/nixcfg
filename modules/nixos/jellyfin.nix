@@ -3,6 +3,7 @@
   lib,
   options,
   pkgs,
+  utils,
   ...
 }: let
   cfg = config.services.jellyfin;
@@ -10,6 +11,7 @@
 
   inherit (builtins) toString;
   inherit (lib.strings) escapeShellArg escapeShellArgs;
+  inherit (utils.systemdUtils.lib) unitNameType;
 
   writeJsonFile = filename: json:
     pkgs.writeText filename (builtins.toJSON json);
@@ -55,6 +57,17 @@ in {
         # https://en.wikipedia.org/w/index.php?title=List_of_TCP_and_UDP_port_numbers&oldid=1237031823
         default = 16896;
       };
+    };
+
+    requiredSystemdUnits = mkOption {
+      description = ''
+        Systemd units that are required for Jellyfin to work.  This will
+        typically be mount point units.  The Jellyfin systemd service will
+        have "BindsTo" and "After" dependencies on units given here.
+      '';
+      type = listOf unitNameType;
+      default = [];
+      example = ["usr-local-share-music.mount"];
     };
 
     # TODO Configure these if they change after the initial configuration, as
@@ -718,6 +731,11 @@ in {
         requiredBy = ["jellyfin.service"];
         bindsTo = ["jellyfin.service"];
         after = ["jellyfin.service"];
+      };
+
+      systemd.services.jellyfin = {
+        bindsTo = cfg.requiredSystemdUnits;
+        after = cfg.requiredSystemdUnits;
       };
 
       users.users."${config.users.me}".extraGroups = ["jellyfin"];
