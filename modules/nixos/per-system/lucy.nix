@@ -81,5 +81,33 @@ lib.mkIf (config.system.name == "lucy") {
   # is still happening!
   networking.dhcpcd.IPv6rs = false;
 
+  services.nixBinaryCache = {
+    enable = true;
+    serverAliases = let
+      loopbackAddresses = [
+        "127.0.0.1"
+        "::1"
+      ];
+      localIpAddressFile = ../../../local-config/local-ip-addresses;
+      localIpAddresses =
+        lib.optionals (builtins.pathExists localIpAddressFile)
+        (lib.strings.split "\n" (lib.fileContents localIpAddressFile));
+    in
+      loopbackAddresses ++ localIpAddresses;
+    accessLogPath = "/var/log/nginx/access.log";
+    # TODO add resolver config to use the AAISP resolvers, assuming I don't
+    # manage to get this working with the default system resolver?
+  };
+
   services.postfix.enable = true;
+
+  services.scanToOneDrive = {
+    enable = true;
+    ftpPasvPortRange = {
+      from = 56615;
+      to = 56624;
+    };
+    scannerUser = "ida";
+    scannerHashedPasswordFile = ../../../secrets/ida;
+  };
 }
