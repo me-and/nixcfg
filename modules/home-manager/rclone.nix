@@ -138,7 +138,6 @@ in {
             Before = ["time-sync.target"];
             Wants = ["time-sync.target"];
             Conflicts = ["shutdown.target"];
-            WantedBy = ["basic.target"];
           };
           Service = {
             Type = "oneshot";
@@ -146,6 +145,7 @@ in {
             TimeoutStartSec = "infinity";
             RemainAfterExit = true;
           };
+          Install.WantedBy = ["basic.target"];
         };
       };
     }
