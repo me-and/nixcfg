@@ -940,7 +940,7 @@ in {
           # this unit if it changes.
           RemainAfterExit = true;
         };
-        requiredBy = ["jellyfin.service"];
+        wantedBy = ["jellyfin.service"];
         bindsTo = ["jellyfin.service"];
         after = ["jellyfin.service"];
       };
