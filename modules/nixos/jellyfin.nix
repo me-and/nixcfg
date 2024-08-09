@@ -377,7 +377,7 @@ in {
             # that.
             default = {
               inherit name;
-              collectionType = "movie";
+              collectionType = "movies";
               refreshLibrary = true;
               LibraryOptions = {
                 Enabled = true;
