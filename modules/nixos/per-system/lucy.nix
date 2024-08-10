@@ -63,6 +63,11 @@ lib.mkIf (config.system.name == "lucy") {
         type = "tvshows";
         paths = ["/usr/local/share/av/tv"];
       };
+      "Fitness stuff" = {
+        type = "homevideos";
+        paths = ["/usr/local/share/av/fitness"];
+        includePhotos = false;
+      };
     };
     apiDebugScript = true;
     forceReconfigure = false;

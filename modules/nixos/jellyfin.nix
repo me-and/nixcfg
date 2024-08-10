@@ -71,6 +71,7 @@ in {
           example = "music";
           # TODO populate this list
           type = enum [
+            "homevideos"
             "music"
             "movies"
             "tvshows"
@@ -117,6 +118,14 @@ in {
           description = "Languages to try to download subtitles in.";
           type = listOf str;
           default = [config.preferredMetadataLanguage];
+        };
+        includePhotos = mkOption {
+          description = ''
+            For home media libraries, whether to include photos alongside
+            videos.
+          '';
+          type = bool;
+          default = true;
         };
         realtimeMonitor = mkOption {
           description = ''
@@ -287,6 +296,16 @@ in {
                   ];
                 };
               }
+              else if config.type == "homevideos"
+              then {
+                Video = {
+                  metadata = [];
+                  images = [
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
               else {};
           };
         extraConfig = mkOption {
@@ -348,6 +367,7 @@ in {
             EnableEmbeddedTitles = config.useEmbeddedTitles;
             AutomaticallyAddToCollection = config.automaticCollections;
             EnableEmbeddedEpisodeInfos = config.useEmbeddedEpisodeInfo;
+            EnablePhotos = config.includePhotos;
           }
           // config.extraConfig
         );
