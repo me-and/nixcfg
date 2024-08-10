@@ -38,8 +38,10 @@ lib.mkIf (config.system.name == "lucy") {
     }
   ];
   services.jellyfin = {
-    requiredSystemdUnits = ["usr-local-share-av.mount"];
     enable = true;
+    # This server can be very slow to start up...
+    configTimeout = 120;
+    requiredSystemdUnits = ["usr-local-share-av.mount"];
     virtualHost = {
       enable = true;
       fqdn = "jelly.dinwoodie.org";
