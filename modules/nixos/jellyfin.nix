@@ -93,7 +93,7 @@ in {
           type = str;
         };
         metadataSavers = mkOption {
-          description = "Methods for saving the metadata.";
+          description = "Methods for saving the metadata, in order.";
           example = [];
           default = ["Nfo"];
           type = listOf str;
@@ -104,6 +104,19 @@ in {
           default = "Specials";
           type = str;
         };
+        skipSubtitlesIfAudioTrackMatches = mkOption {
+          # I'd put a description here, but I've no idea what it does, only
+          # that the default when omitted from the API doesn't match the
+          # default when configured through the web GUI, and I want the config
+          # to match what you'd get from the web GUI.
+          type = bool;
+          default = false;
+        };
+        subtitleDownloadLanguages = mkOption {
+          description = "Languages to try to download subtitles in.";
+          type = listOf str;
+          default = [config.preferredMetadataLanguage];
+        };
         realtimeMonitor = mkOption {
           description = ''
             Whether to enable realtime monitoring of the library filesystem for changes.
@@ -111,6 +124,110 @@ in {
           type = bool;
           default = true;
         };
+        lufsScan = mkOption {
+          description = ''
+            Whether to enable LUFS scanning for this library, which performs
+            volume normalisation.
+          '';
+          type = bool;
+          default = config.type == "music";
+        };
+        saveLocalMetadata = mkOption {
+          description = ''
+            Whether to save metadata in the same directory as the media files.
+          '';
+          type = bool;
+          default = true;
+        };
+        saveLyricsWithMedia = mkOption {
+          description = ''
+            Whether to save lyrics in the same directory as the media files.
+          '';
+          type = bool;
+          default = true;
+        };
+        automaticSeriesGrouping = mkOption {
+          description = ''
+            Whether to automatically group series together.
+          '';
+          type = bool;
+          default = false;
+        };
+        fetchers = let
+          fetcherModule = {
+            config,
+            name,
+            ...
+          }: {
+            options = {
+              type = mkOption {
+                description = "Type of metadata.";
+                default = name;
+                type = str;
+              };
+              metadata = mkOption {
+                description = "Fetchers to use to fetch metadata, in order.";
+                type = listOf str;
+              };
+              images = mkOption {
+                description = "Fetchers to use to fetch images, in order.";
+                type = listOf str;
+              };
+              config = mkOption {
+                description = ''
+                  Full configuration that will be formatted as JSON to
+                  configure this type.
+                '';
+                # TODO is there a better type for JSONable things?
+                type = attrsOf anything;
+              };
+            };
+
+            config = {
+              config = {
+                Type = config.type;
+                MetadataFetchers = config.metadata;
+                MetadataFetcherOrder = config.metadata;
+                ImageFetchers = config.images;
+                ImageFetcherOrder = config.images;
+              };
+            };
+          };
+        in
+          mkOption {
+            description = "Types of metadata to fetch, and how to fetch it.";
+            type = attrsOf (submodule fetcherModule);
+            default =
+              if config.type == "music"
+              then {
+                MusicArtist = {
+                  metadata = [
+                    "MusicBrainz"
+                    "TheAudioDB"
+                  ];
+                  images = ["TheAudioDB"];
+                };
+                MusicAlbum = {
+                  metadata = [
+                    "MusicBrainz"
+                    "TheAudioDB"
+                  ];
+                  images = ["TheAudioDB"];
+                };
+                Audio = {
+                  metadata = [];
+                  images = ["Image Extractor"];
+                };
+                MusicVideo = {
+                  metadata = [];
+                  images = [
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
+              else {};
+          };
         extraConfig = mkOption {
           description = ''
             Extra configuration to send on the Jellyfin Library/VirtualFolder
@@ -157,8 +274,16 @@ in {
             MetadataCountryCode = config.metadataCountryCode;
             PreferredMetadataLanguage = config.preferredMetadataLanguage;
             MetadataSavers = config.metadataSavers;
+            LocalMetadataReaderOrder = config.metadataSavers;
             SeasonZeroDisplayName = config.seasonZeroDisplayName;
             EnableRealtimeMonitor = config.realtimeMonitor;
+            EnableLUFSScan = config.lufsScan;
+            SaveLocalMetadata = config.saveLocalMetadata;
+            EnableAutomaticSeriesGrouping = config.automaticSeriesGrouping;
+            SkipSubtitlesIfAudioTrackMatches = config.skipSubtitlesIfAudioTrackMatches;
+            SubtitleDownloadLanguages = config.subtitleDownloadLanguages;
+            SaveLyricsWithMedia = config.saveLyricsWithMedia;
+            TypeOptions = map (x: x.config) (attrValues config.fetchers);
           }
           // config.extraConfig
         );
