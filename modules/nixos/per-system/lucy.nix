@@ -50,8 +50,16 @@ lib.mkIf (config.system.name == "lucy") {
       name = "adam";
       passwordFile = "/etc/nixos/secrets/jellyfin/adam";
     };
-    musicLibraries.Music.locations = ["/usr/local/share/av/music"];
-    movieLibraries.Films.locations = ["/usr/local/share/av/films"];
+    libraries = {
+      Music = {
+        type = "music";
+        paths = ["/usr/local/share/av/music"];
+      };
+      Films = {
+        type = "movies";
+        paths = ["/usr/local/share/av/films"];
+      };
+    };
     apiDebugScript = true;
     forceReconfigure = false;
   };
