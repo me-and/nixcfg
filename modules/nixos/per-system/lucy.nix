@@ -59,6 +59,10 @@ lib.mkIf (config.system.name == "lucy") {
         type = "movies";
         paths = ["/usr/local/share/av/films"];
       };
+      TV = {
+        type = "tvshows";
+        paths = ["/usr/local/share/av/tv"];
+      };
     };
     apiDebugScript = true;
     forceReconfigure = false;

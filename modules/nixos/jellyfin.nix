@@ -73,6 +73,7 @@ in {
           type = enum [
             "music"
             "movies"
+            "tvshows"
           ];
         };
         paths = mkOption {
@@ -150,6 +151,14 @@ in {
           description = ''
             If metadata can't be found online, whether to prefer titles
             embedded in media files over titles based on the media file names.
+          '';
+          type = bool;
+          default = true;
+        };
+        useEmbeddedEpisodeInfo = mkOption {
+          description = ''
+            Whether to prefer the episode information embedded in media files
+            over information extracted from the media file names.
           '';
           type = bool;
           default = true;
@@ -252,6 +261,32 @@ in {
                   ];
                 };
               }
+              else if config.type == "tvshows"
+              then {
+                Series = {
+                  metadata = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                  ];
+                  images = ["TheMovieDb"];
+                };
+                Season = {
+                  metadata = ["TheMovieDb"];
+                  images = ["TheMovieDb"];
+                };
+                Episode = {
+                  metadata = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                  ];
+                  images = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
               else {};
           };
         extraConfig = mkOption {
@@ -312,6 +347,7 @@ in {
             TypeOptions = map (x: x.config) (attrValues config.fetchers);
             EnableEmbeddedTitles = config.useEmbeddedTitles;
             AutomaticallyAddToCollection = config.automaticCollections;
+            EnableEmbeddedEpisodeInfos = config.useEmbeddedEpisodeInfo;
           }
           // config.extraConfig
         );
