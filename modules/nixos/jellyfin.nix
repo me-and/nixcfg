@@ -130,7 +130,7 @@ in {
             volume normalisation.
           '';
           type = bool;
-          default = config.type == "music";
+          default = true;
         };
         saveLocalMetadata = mkOption {
           description = ''
@@ -146,12 +146,23 @@ in {
           type = bool;
           default = true;
         };
-        automaticSeriesGrouping = mkOption {
+        useEmbeddedTitles = mkOption {
           description = ''
-            Whether to automatically group series together.
+            If metadata can't be found online, whether to prefer titles
+            embedded in media files over titles based on the media file names.
           '';
           type = bool;
+          default = true;
+        };
+        automaticSeriesGrouping = mkOption {
+          description = "Whether to automatically group series together.";
+          type = bool;
           default = false;
+        };
+        automaticCollections = mkOption {
+          description = "Whether to automatically group collections together.";
+          type = bool;
+          default = config.type == "movies";
         };
         fetchers = let
           fetcherModule = {
@@ -226,6 +237,21 @@ in {
                   ];
                 };
               }
+              else if config.type == "movies"
+              then {
+                Movie = {
+                  metadata = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                  ];
+                  images = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
               else {};
           };
         extraConfig = mkOption {
@@ -284,6 +310,8 @@ in {
             SubtitleDownloadLanguages = config.subtitleDownloadLanguages;
             SaveLyricsWithMedia = config.saveLyricsWithMedia;
             TypeOptions = map (x: x.config) (attrValues config.fetchers);
+            EnableEmbeddedTitles = config.useEmbeddedTitles;
+            AutomaticallyAddToCollection = config.automaticCollections;
           }
           // config.extraConfig
         );
