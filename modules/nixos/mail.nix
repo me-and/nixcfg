@@ -4,9 +4,8 @@
   pkgs,
   ...
 }: let
-  tryFqdn = builtins.tryEval config.networking.fqdn;
-  fqdn = tryFqdn.value;
-  hasFqdn = tryFqdn.success;
+  fqdn = config.networking.fqdn;
+  hasFqdn = (builtins.tryEval fqdn).success;
 
   # Enable postfix to set up sending emails externally.  Probably want to
   # configure a .forward file in your home directory to get emails sent locally
@@ -79,7 +78,9 @@
             in ''
               umask 0027
               mkdir -p /etc/postfix
-              cp ${lib.strings.escapeShellArg secretsPath}/sasl_passwd /etc/postfix/sasl_passwd
+              cp \
+                  ${lib.strings.escapeShellArg secretsPath}/sasl_passwd \
+                  /etc/postfix/sasl_passwd
               ${pkgs.postfix}/bin/postmap /etc/postfix/sasl_passwd
             '';
           };
