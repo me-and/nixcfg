@@ -3,21 +3,383 @@
   lib,
   options,
   pkgs,
+  utils,
   ...
 }: let
   cfg = config.services.jellyfin;
   opt = options.services.jellyfin;
 
-  inherit (builtins) toString;
-  inherit (lib.strings) escapeShellArg escapeShellArgs;
+  inherit (builtins) attrValues toJSON toString;
+  inherit (lib) mkIf mkMerge;
+  inherit
+    (lib.strings)
+    concatLines
+    concatStringsSep
+    escapeShellArg
+    escapeShellArgs
+    optionalString
+    ;
+  inherit (lib.attrsets) mapAttrsToList;
+  inherit (utils.systemdUtils.lib) unitNameType;
 
   writeJsonFile = filename: json:
-    pkgs.writeText filename (builtins.toJSON json);
+    pkgs.writeText filename (toJSON json);
+
+  escapeURL = v:
+    if v == true
+    then "true"
+    else if v == false
+    then "false"
+    else lib.strings.escapeURL v;
+  formatUrlParams = attrs:
+    concatStringsSep "&"
+    (
+      mapAttrsToList
+      (name: value: "${escapeURL name}=${escapeURL value}")
+      attrs
+    );
 in {
   options.services.jellyfin = let
     inherit (lib) mkEnableOption mkOption;
-    inherit (lib.types) attrsOf bool enum ints listOf oneOf path str submodule;
+    inherit
+      (lib.types)
+      anything
+      attrsOf
+      bool
+      either
+      enum
+      ints
+      listOf
+      path
+      str
+      submodule
+      ;
+
+    libraryModule = {
+      config,
+      name,
+      ...
+    }: {
+      options = {
+        name = mkOption {
+          description = "The name of the library.";
+          type = str;
+          default = name;
+        };
+        type = mkOption {
+          description = "The type of the library.";
+          example = "music";
+          # TODO populate this list
+          type = enum [
+            "homevideos"
+            "music"
+            "movies"
+            "tvshows"
+          ];
+        };
+        paths = mkOption {
+          type = listOf path;
+          description = "Paths to add to this library.";
+          example = ["/home/user/music"];
+        };
+        metadataCountryCode = mkOption {
+          description = "Metadata country code.";
+          example = "US";
+          default = cfg.localisation.metadataCountryCode;
+          type = str;
+        };
+        preferredMetadataLanguage = mkOption {
+          description = "Metadata language code.";
+          example = "fr";
+          default = cfg.localisation.preferredMetadataLanguage;
+          type = str;
+        };
+        metadataSavers = mkOption {
+          description = "Methods for saving the metadata, in order.";
+          example = [];
+          default = ["Nfo"];
+          type = listOf str;
+        };
+        seasonZeroDisplayName = mkOption {
+          description = "Display name for season 0.";
+          example = "Extras";
+          default = "Specials";
+          type = str;
+        };
+        skipSubtitlesIfAudioTrackMatches = mkOption {
+          # I'd put a description here, but I've no idea what it does, only
+          # that the default when omitted from the API doesn't match the
+          # default when configured through the web GUI, and I want the config
+          # to match what you'd get from the web GUI.
+          type = bool;
+          default = false;
+        };
+        subtitleDownloadLanguages = mkOption {
+          description = "Languages to try to download subtitles in.";
+          type = listOf str;
+          default = [config.preferredMetadataLanguage];
+        };
+        includePhotos = mkOption {
+          description = ''
+            For home media libraries, whether to include photos alongside
+            videos.
+          '';
+          type = bool;
+          default = true;
+        };
+        realtimeMonitor = mkOption {
+          description = ''
+            Whether to enable realtime monitoring of the library filesystem for changes.
+          '';
+          type = bool;
+          default = true;
+        };
+        lufsScan = mkOption {
+          description = ''
+            Whether to enable LUFS scanning for this library, which performs
+            volume normalisation.
+          '';
+          type = bool;
+          default = true;
+        };
+        saveLocalMetadata = mkOption {
+          description = ''
+            Whether to save metadata in the same directory as the media files.
+          '';
+          type = bool;
+          default = true;
+        };
+        saveLyricsWithMedia = mkOption {
+          description = ''
+            Whether to save lyrics in the same directory as the media files.
+          '';
+          type = bool;
+          default = true;
+        };
+        useEmbeddedTitles = mkOption {
+          description = ''
+            If metadata can't be found online, whether to prefer titles
+            embedded in media files over titles based on the media file names.
+          '';
+          type = bool;
+          default = true;
+        };
+        useEmbeddedEpisodeInfo = mkOption {
+          description = ''
+            Whether to prefer the episode information embedded in media files
+            over information extracted from the media file names.
+          '';
+          type = bool;
+          default = true;
+        };
+        automaticSeriesGrouping = mkOption {
+          description = "Whether to automatically group series together.";
+          type = bool;
+          default = false;
+        };
+        automaticCollections = mkOption {
+          description = "Whether to automatically group collections together.";
+          type = bool;
+          default = config.type == "movies";
+        };
+        fetchers = let
+          fetcherModule = {
+            config,
+            name,
+            ...
+          }: {
+            options = {
+              type = mkOption {
+                description = "Type of metadata.";
+                default = name;
+                type = str;
+              };
+              metadata = mkOption {
+                description = "Fetchers to use to fetch metadata, in order.";
+                type = listOf str;
+              };
+              images = mkOption {
+                description = "Fetchers to use to fetch images, in order.";
+                type = listOf str;
+              };
+              config = mkOption {
+                description = ''
+                  Full configuration that will be formatted as JSON to
+                  configure this type.
+                '';
+                # TODO is there a better type for JSONable things?
+                type = attrsOf anything;
+              };
+            };
+
+            config = {
+              config = {
+                Type = config.type;
+                MetadataFetchers = config.metadata;
+                MetadataFetcherOrder = config.metadata;
+                ImageFetchers = config.images;
+                ImageFetcherOrder = config.images;
+              };
+            };
+          };
+        in
+          mkOption {
+            description = "Types of metadata to fetch, and how to fetch it.";
+            type = attrsOf (submodule fetcherModule);
+            default =
+              if config.type == "music"
+              then {
+                MusicArtist = {
+                  metadata = [
+                    "MusicBrainz"
+                    "TheAudioDB"
+                  ];
+                  images = ["TheAudioDB"];
+                };
+                MusicAlbum = {
+                  metadata = [
+                    "MusicBrainz"
+                    "TheAudioDB"
+                  ];
+                  images = ["TheAudioDB"];
+                };
+                Audio = {
+                  metadata = [];
+                  images = ["Image Extractor"];
+                };
+                MusicVideo = {
+                  metadata = [];
+                  images = [
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
+              else if config.type == "movies"
+              then {
+                Movie = {
+                  metadata = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                  ];
+                  images = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
+              else if config.type == "tvshows"
+              then {
+                Series = {
+                  metadata = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                  ];
+                  images = ["TheMovieDb"];
+                };
+                Season = {
+                  metadata = ["TheMovieDb"];
+                  images = ["TheMovieDb"];
+                };
+                Episode = {
+                  metadata = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                  ];
+                  images = [
+                    "TheMovieDb"
+                    "The Open Movie Database"
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
+              else if config.type == "homevideos"
+              then {
+                Video = {
+                  metadata = [];
+                  images = [
+                    "Embedded Image Extractor"
+                    "Screen Grabber"
+                  ];
+                };
+              }
+              else {};
+          };
+        extraConfig = mkOption {
+          description = ''
+            Extra configuration to send on the Jellyfin Library/VirtualFolder
+            REST API interface.
+          '';
+          # TODO is there a better type for JSONable things?
+          type = attrsOf anything;
+          default = {};
+        };
+
+        # TODO Hide these
+        urlParameters = mkOption {
+          description = ''
+            URL parameters to pass on the request to create the library.
+          '';
+          type = attrsOf (either str bool);
+        };
+        config = mkOption {
+          description = ''
+            Full configuration that will be passed as the body of the request
+            to create the library.
+          '';
+          # TODO is there a better type for JSONable things?
+          type = attrsOf anything;
+        };
+        jsonConfigFile = mkOption {
+          description = ''
+            File containing the JSON-formatted data that will be passed as the request to create the library.
+          '';
+          # TODO What's an appropriate type?
+        };
+      };
+
+      config = {
+        urlParameters = {
+          name = config.name;
+          collectionType = config.type;
+          refreshLibrary = true;
+        };
+
+        config = (
+          {
+            PathInfos = map (p: {Path = p;}) config.paths;
+            MetadataCountryCode = config.metadataCountryCode;
+            PreferredMetadataLanguage = config.preferredMetadataLanguage;
+            MetadataSavers = config.metadataSavers;
+            LocalMetadataReaderOrder = config.metadataSavers;
+            SeasonZeroDisplayName = config.seasonZeroDisplayName;
+            EnableRealtimeMonitor = config.realtimeMonitor;
+            EnableLUFSScan = config.lufsScan;
+            SaveLocalMetadata = config.saveLocalMetadata;
+            EnableAutomaticSeriesGrouping = config.automaticSeriesGrouping;
+            SkipSubtitlesIfAudioTrackMatches = config.skipSubtitlesIfAudioTrackMatches;
+            SubtitleDownloadLanguages = config.subtitleDownloadLanguages;
+            SaveLyricsWithMedia = config.saveLyricsWithMedia;
+            TypeOptions = map (x: x.config) (attrValues config.fetchers);
+            EnableEmbeddedTitles = config.useEmbeddedTitles;
+            AutomaticallyAddToCollection = config.automaticCollections;
+            EnableEmbeddedEpisodeInfos = config.useEmbeddedEpisodeInfo;
+            EnablePhotos = config.includePhotos;
+          }
+          // config.extraConfig
+        );
+
+        jsonConfigFile = writeJsonFile name {
+          LibraryOptions = config.config;
+        };
+      };
+    };
   in {
+    apiDebugScript = mkEnableOption "a script for making requests to the API";
+
     virtualHost = {
       enable =
         mkEnableOption "an Nginx virtual host for access to the server";
@@ -55,6 +417,17 @@ in {
         # https://en.wikipedia.org/w/index.php?title=List_of_TCP_and_UDP_port_numbers&oldid=1237031823
         default = 16896;
       };
+    };
+
+    requiredSystemdUnits = mkOption {
+      description = ''
+        Systemd units that are required for Jellyfin to work.  This will
+        typically be mount point units.  The Jellyfin systemd service will
+        have "BindsTo" and "After" dependencies on units given here.
+      '';
+      type = listOf unitNameType;
+      default = [];
+      example = ["usr-local-share-music.mount"];
     };
 
     # TODO Configure these if they change after the initial configuration, as
@@ -134,197 +507,20 @@ in {
       '';
       default = false;
     };
-    libraryJsonFiles = mkOption {
-      # TODO Check how to hide this, and how to set it as an appropriate
-      # derivation
-    };
-    libraries = let
-      libraryModule = {
-        config,
-        name,
-        ...
-      }: {
-        options = {
-          locations = mkOption {
-            type = listOf path;
-            description = "Paths to add to this library.";
-            example = ["/home/user/music"];
-          };
-          type = mkOption {
-            type = enum [
-              "movies"
-              "tvshows"
-              "music"
-              "musicvideos"
-              "homevideos"
-              "boxsets"
-              "books"
-              "mixed"
-            ];
-            description = "Centents of this library.";
-          };
-          metadataCountryCode = mkOption {
-            description = "Metadata country code.";
-            example = "US";
-            default = cfg.localisation.metadataCountryCode;
-            type = str;
-          };
-          preferredMetadataLanguage = mkOption {
-            description = "Metadata language code.";
-            example = "fr";
-            default = cfg.localisation.preferredMetadataLanguage;
-            type = str;
-          };
-          metadataSavers = mkOption {
-            description = "Methods for saving the metadata.";
-            example = [];
-            default = ["Nfo"];
-            type = listOf str;
-          };
-          seasonZeroDisplayName = mkOption {
-            description = "Display name for season 0.";
-            example = "Extras";
-            default = "Specials";
-            type = str;
-          };
-          fullConfig = mkOption {
-            description = ''
-              All configuration to be provided over the Library/VirtualFolder
-              API endpoint to set up the library.
-            '';
-            #type = let
-            #  # TODO Is there a better way to set this recursive definition?
-            #  innerType = oneOf [bool str (attrsOf innerType) (listOf innerType)];
-            #in
-            #  attrsOf innerType;
-            # TODO This all taken from one capture of adding a music library,
-            # with a small number of modifications.  It's almost certainly not
-            # appropriate for any other sort of library, and I need to fix
-            # that.
-            default = {
-              inherit name;
-              collectionType = config.type;
-              refreshLibrary = true;
-              LibraryOptions = {
-                Enabled = true;
-                EnableArchiveMediaFiles = false;
-                EnablePhotos = true;
-                EnableRealtimeMonitor = true;
-                EnableLUFSScan = true;
-                ExtractTrickplayImagesDuringLibraryScan = false;
-                EnableTrickplayImageExtraction = false;
-                ExtractChapterImagesDuringLibraryScan = false;
-                EnableChapterImageExtraction = false;
-                EnableInternetProviders = true;
-                SaveLocalMetadata = true;
-                EnableAutomaticSeriesGrouping = false;
-                PreferredMetadataLanguage = config.preferredMetadataLanguage;
-                MetadataCountryCode = config.metadataCountryCode;
-                SeasonZeroDisplayName = config.seasonZeroDisplayName;
-                AutomaticRefreshIntervalDays = 0;
-                EnableEmbeddedTitles = false;
-                EnableEmbeddedExtrasTitles = false;
-                EnableEmbeddedEpisodeInfos = false;
-                AllowEmbeddedSubtitles = "AllowAll";
-                SkipSubtitlesIfEmbeddedSubtitlesPresent = false;
-                SkipSubtitlesIfAudioTrackMatches = false;
-                SaveSubtitlesWithMedia = true;
-                SaveLyricsWithMedia = true;
-                RequirePerfectSubtitleMatch = true;
-                AutomaticallyAddToCollection = false;
-                MetadataSavers = config.metadataSavers;
-                TypeOptions = [
-                  {
-                    Type = "MusicArtist";
-                    MetadataFetchers = [
-                      "MusicBrainz"
-                    ];
-                    MetadataFetcherOrder = [
-                      "TheAudioDB"
-                      "MusicBrainz"
-                    ];
-                    ImageFetchers = [
-                      "TheAudioDB"
-                    ];
-                    ImageFetcherOrder = [
-                      "TheAudioDB"
-                    ];
-                  }
-                  {
-                    Type = "MusicAlbum";
-                    MetadataFetchers = [
-                      "MusicBrainz"
-                    ];
-                    MetadataFetcherOrder = [
-                      "MusicBrainz"
-                      "TheAudioDB"
-                    ];
-                    ImageFetchers = [
-                      "TheAudioDB"
-                    ];
-                    ImageFetcherOrder = [
-                      "TheAudioDB"
-                    ];
-                  }
-                  {
-                    Type = "Audio";
-                    ImageFetchers = [
-                      "Image Extractor"
-                    ];
-                    ImageFetcherOrder = [
-                      "Image Extractor"
-                    ];
-                  }
-                  {
-                    Type = "MusicVideo";
-                    ImageFetchers = [
-                      "Embedded Image Extractor"
-                      "Screen Grabber"
-                    ];
-                    ImageFetcherOrder = [
-                      "Embedded Image Extractor"
-                      "Screen Grabber"
-                    ];
-                  }
-                ];
-                LocalMetadataReaderOrder = config.metadataSavers;
-                SubtitleDownloadLanguages = [];
-                DisabledSubtitleFetchers = [];
-                SubtitleFetcherOrder = [];
-                PathInfos = map (p: {Path = p;}) config.locations;
-              };
-            };
-          };
-          jsonFile = mkOption {
-            # TODO Check how to hide this, and how to set it as an appropriate
-            # derivation.
-          };
-        };
 
-        config.jsonFile = writeJsonFile name {
-          url = {
-            name = config.fullConfig.name;
-            collectionType = config.fullConfig.collectionType;
-            refreshLibrary = config.fullConfig.refreshLibrary;
-          };
-          body = builtins.removeAttrs config.fullConfig ["name" "collectionType" "refreshLibrary"];
+    libraries = mkOption {
+      description = ''
+        The libraries to configure on the Jellyfin server.
+      '';
+      type = attrsOf (submodule libraryModule);
+      default = {};
+      example = {
+        Music = {
+          type = "music";
+          paths = ["/home/user/music"];
         };
       };
-    in
-      mkOption {
-        type = attrsOf (submodule libraryModule);
-        description = "Libraries to configure.";
-        example = {
-          Music = {
-            type = "music";
-            paths = ["/home/user/music"];
-          };
-          Films = {
-            type = "movies";
-            paths = ["/usr/share/films"];
-          };
-        };
-      };
+    };
 
     configTimeout = mkOption {
       description = ''
@@ -374,12 +570,18 @@ in {
           version = "0";
         in
           ''
-            set -x
-
-            INTERNAL_PORT=${
-              escapeShellArg (toString cfg.virtualHost.internalPort)
+            sleep () { ${pkgs.coreutils}/bin/sleep "$@"; }
+            xmllint () { ${pkgs.libxml2}/bin/xmllint "$@"; }
+            jq () {
+                # Always want compact output.
+                ${pkgs.jq}/bin/jq \
+                    --compact-output \
+                    "$@"
             }
-            CONFIG_TIMEOUT=${escapeShellArg (toString cfg.configTimeout)}
+            curl () { ${pkgs.curl}/bin/curl "$@"; }
+
+            INTERNAL_PORT=${toString cfg.virtualHost.internalPort}
+            CONFIG_TIMEOUT=${toString cfg.configTimeout}
             NETWORK_CONFIG_FILE=${escapeShellArg cfg.configDir}/network.xml
             DEVICE_ID="$(</etc/machine-id)"
 
@@ -395,16 +597,6 @@ in {
                     fi
                 done
                 return 1
-            }
-
-            sleep () { ${pkgs.coreutils}/bin/sleep "$@"; }
-            xmllint () { ${pkgs.libxml2}/bin/xmllint "$@"; }
-
-            jq () {
-                # Always want compact output.
-                ${pkgs.jq}/bin/jq \
-                    --compact-output \
-                    "$@"
             }
 
             # Pre-parse and store login details.  In particular, we're reading
@@ -451,7 +643,7 @@ in {
                     auth_header="$plain_auth_header"
                 fi
 
-                ${pkgs.curl}/bin/curl \
+                curl \
                     --silent \
                     --location \
                     --fail \
@@ -559,29 +751,22 @@ in {
             eval "$library_name_command"
 
           ''
-          + lib.optionalString (!cfg.overrideLibraries) ''
-            target_library_names=(${escapeShellArgs (builtins.attrNames cfg.libraries)})
-            for name in "''${target_library_names[@]}"; do
-                if ! string_in_array "$name" current_library_names; then
-                    endpoint="Library/VirtualFolders?$(
-                        jq -r '
-                            .url
-                            | to_entries
-                            | map(
-                                map_values(@uri)
-                                | "\(.key)=\(.value)"
-                              )
-                            | join("&")
-                        ' \
-                        ${cfg.libraryJsonFiles}/"$name"
-                    )"
-                    jq '.body' ${cfg.libraryJsonFiles}/"$name" \
-                        | curljfapi "$endpoint" --json @-
+          + optionalString (!cfg.overrideLibraries) (concatLines (
+            map (
+              library: ''
+                if ! string_in_array \
+                    ${escapeShellArg library.name} \
+                    current_library_names
+                then
+                    curljfapi \
+                        ${escapeShellArg ("Library/VirtualFolders?" + (formatUrlParams library.urlParameters))} \
+                        --json @${library.jsonConfigFile}
                 fi
-            done
-
-          ''
-          + lib.optionalString cfg.virtualHost.enable ''
+              ''
+            )
+            (attrValues cfg.libraries)
+          ))
+          + optionalString cfg.virtualHost.enable ''
 
             if [[ "$current_port" != "$INTERNAL_PORT" ]]; then
                 # This relies on an undocumented API endpoint :(
@@ -597,7 +782,7 @@ in {
           '';
       };
 
-    virtualHostConfig = lib.mkIf cfg.virtualHost.enable {
+    virtualHostConfig = mkIf cfg.virtualHost.enable {
       assertions = [
         {
           assertion = cfg.virtualHost.internalPort != 8096;
@@ -625,7 +810,7 @@ in {
     # Only add TLS settings if the user has configured at least one of the
     # options that indicates they want secure connections.
     virtualHostSecureConfig =
-      lib.mkIf
+      mkIf
       (
         (cfg.virtualHost.enableACME || cfg.virtualHost.forceSecureConnections)
         && cfg.virtualHost.enable
@@ -647,32 +832,106 @@ in {
     reconfigureConfig = {
       systemd.services.jellyfin-reconfigure = {
         description = "removing existing Jellyfin configuration";
-        requiredBy = lib.mkIf cfg.forceReconfigure ["jellyfin.service"];
+        requiredBy = mkIf cfg.forceReconfigure ["jellyfin.service"];
         before = ["jellyfin.service"];
         serviceConfig.Type = "oneshot";
         script = ''
-          rm -rf ${
-            lib.strings.escapeShellArgs
-            [cfg.cacheDir cfg.dataDir cfg.configDir]
-          }
+          rm -rf ${escapeShellArgs [cfg.cacheDir cfg.dataDir cfg.configDir]}
           systemctl restart systemd-tmpfiles-resetup.service
         '';
       };
       systemd.services.jellyfin.restartTriggers =
-        lib.mkIf cfg.forceReconfigure
+        mkIf cfg.forceReconfigure
         [
           config.systemd.units."jellyfin-configure.service".unit
           config.systemd.units."jellyfin-reconfigure.service".unit
         ];
     };
 
-    commonConfig = {
-      # TODO Remove this test code
-      services.jellyfin.libraries.Music = {
-        locations = ["/usr/local/share/av/music"];
-        type = "music";
+    apiDebugConfig = let
+      debugScript = pkgs.writeCheckedShellApplication {
+        name = "jellyfin-api";
+        purePath = true;
+        runtimeInputs = [
+          pkgs.libxml2
+          pkgs.jq
+          pkgs.coreutils
+          pkgs.curl
+        ];
+        text = ''
+          NETWORK_CONFIG_FILE=${escapeShellArg cfg.configDir}/network.xml
+          DEVICE_ID="$(</etc/machine-id)"
+
+          access_token=
+
+          tmpdir="$(mktemp -dt "jellyfin-api.''$$.XXXXX")"
+          trap 'rm -rf -- "$tmpdir"' EXIT
+
+          # Pre-parse and store login details.  In particular, we're reading
+          # the password from a file, so it might have a trailing newline that
+          # needs trimming.
+          jq \
+              --null-input \
+              --arg initUser ${escapeShellArg cfg.users.initialUser.name} \
+              --rawfile initPass \
+                  ${escapeShellArg cfg.users.initialUser.passwordFile} \
+              '{Username: $initUser, Pw: $initPass | rtrimstr("\n")}' \
+              > "$tmpdir/login.json"
+
+          printf -v plain_auth_header \
+              'Authorization: MediaBrowser Client="jellyfin-api-script", Device="jellyfin-api-script", Version="0", DeviceId="%s"' \
+              "$DEVICE_ID"
+
+          if [[ -e "$NETWORK_CONFIG_FILE" ]]; then
+              current_port="$(
+                  xmllint \
+                      --xpath \
+                          'string(NetworkConfiguration/InternalHttpPort)' \
+                      "$NETWORK_CONFIG_FILE"
+                  )"
+          else
+              current_port=8096
+          fi
+
+          curljfapi () {
+              local auth_header
+
+              local endpoint="$1"
+              shift
+
+              if [[ "$access_token" ]]; then
+                  printf -v auth_header \
+                      '%s, Token="%s"' \
+                      "$plain_auth_header" "$access_token"
+              else
+                  auth_header="$plain_auth_header"
+              fi
+
+              curl \
+                  --no-progress-meter \
+                  --location \
+                  --fail-with-body \
+                  --header "$auth_header" \
+                  "$@" \
+                  127.0.0.1:"$current_port"/"$endpoint"
+          }
+
+          curljfapi Users/AuthenticateByName \
+              --json @"$tmpdir"/login.json \
+              -o "$tmpdir"/auth.json
+          access_token="$(
+              jq -r '.AccessToken' "$tmpdir"/auth.json
+          )"
+
+          curljfapi "$@"
+        '';
+      };
+    in
+      mkIf cfg.apiDebugScript {
+        environment.systemPackages = [debugScript];
       };
 
+    commonConfig = {
       assertions = [
         # TODO Remove this limitation and this assertion.
         {
@@ -680,12 +939,6 @@ in {
           message = "services.jellyfin.overrideLibraries has not been implemented yet!";
         }
       ];
-
-      services.jellyfin.libraryJsonFiles = pkgs.linkFarm "library-data" (
-        lib.attrsets.mapAttrs
-        (name: value: value.jsonFile)
-        cfg.libraries
-      );
 
       # Run the configure script with root permissions so it can access
       # password files.
@@ -715,20 +968,26 @@ in {
           # this unit if it changes.
           RemainAfterExit = true;
         };
-        requiredBy = ["jellyfin.service"];
+        wantedBy = ["jellyfin.service"];
         bindsTo = ["jellyfin.service"];
         after = ["jellyfin.service"];
+      };
+
+      systemd.services.jellyfin = {
+        bindsTo = cfg.requiredSystemdUnits;
+        after = cfg.requiredSystemdUnits;
       };
 
       users.users."${config.users.me}".extraGroups = ["jellyfin"];
     };
   in
-    lib.mkIf cfg.enable (
-      lib.mkMerge [
+    mkIf cfg.enable (
+      mkMerge [
         virtualHostConfig
         virtualHostSecureConfig
         reconfigureConfig
         commonConfig
+        apiDebugConfig
       ]
     );
 }

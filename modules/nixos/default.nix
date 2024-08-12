@@ -5,11 +5,13 @@
     ./jellyfin.nix
     ./mail.nix
     ./mosh.nix
+    ./nginx.nix
     ./nix-cache.nix
     ./pd
     ./per-system
     ./phone-backup.nix
     ./pi.nix
+    ./scantoonedrive.nix
     ./syncthing.nix
     ./taskserver
     ./time-sync.nix

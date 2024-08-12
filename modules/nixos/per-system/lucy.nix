@@ -16,15 +16,6 @@ lib.mkIf (config.system.name == "lucy") {
     };
   };
 
-  security.acme = {
-    acceptTerms = true;
-    defaults = {
-      email = lib.fileContents ../../../local-config/certbot-email-address;
-      dnsProvider = "mythicbeasts";
-      environmentFile = builtins.toString ../../../secrets/mythic-beasts;
-    };
-  };
-
   services.taskserver = {
     enable = true;
     fqdn = "taskwarrior.dinwoodie.org";
@@ -46,12 +37,11 @@ lib.mkIf (config.system.name == "lucy") {
       options = "subvol=@av";
     }
   ];
-  systemd.services.jellyfin = {
-    bindsTo = ["usr-local-share-av.mount"];
-    after = ["usr-local-share-av.mount"];
-  };
   services.jellyfin = {
     enable = true;
+    # This server can be very slow to start up...
+    configTimeout = 120;
+    requiredSystemdUnits = ["usr-local-share-av.mount"];
     virtualHost = {
       enable = true;
       fqdn = "jelly.dinwoodie.org";
@@ -62,6 +52,26 @@ lib.mkIf (config.system.name == "lucy") {
       name = "adam";
       passwordFile = "/etc/nixos/secrets/jellyfin/adam";
     };
+    libraries = {
+      Music = {
+        type = "music";
+        paths = ["/usr/local/share/av/music"];
+      };
+      Films = {
+        type = "movies";
+        paths = ["/usr/local/share/av/films"];
+      };
+      TV = {
+        type = "tvshows";
+        paths = ["/usr/local/share/av/tv"];
+      };
+      "Fitness stuff" = {
+        type = "homevideos";
+        paths = ["/usr/local/share/av/fitness"];
+        includePhotos = false;
+      };
+    };
+    apiDebugScript = true;
     forceReconfigure = false;
   };
   services.snapper.configs.av = {
@@ -90,5 +100,33 @@ lib.mkIf (config.system.name == "lucy") {
   # is still happening!
   networking.dhcpcd.IPv6rs = false;
 
+  services.nixBinaryCache = {
+    enable = true;
+    serverAliases = let
+      loopbackAddresses = [
+        "127.0.0.1"
+        "::1"
+      ];
+      localIpAddressFile = ../../../local-config/local-ip-addresses;
+      localIpAddresses =
+        lib.optionals (builtins.pathExists localIpAddressFile)
+        (lib.strings.split "\n" (lib.fileContents localIpAddressFile));
+    in
+      loopbackAddresses ++ localIpAddresses;
+    accessLogPath = "/var/log/nginx/access.log";
+    # TODO add resolver config to use the AAISP resolvers, assuming I don't
+    # manage to get this working with the default system resolver?
+  };
+
   services.postfix.enable = true;
+
+  services.scanToOneDrive = {
+    enable = true;
+    ftpPasvPortRange = {
+      from = 56615;
+      to = 56624;
+    };
+    scannerUser = "ida";
+    scannerHashedPasswordFile = ../../../secrets/ida;
+  };
 }

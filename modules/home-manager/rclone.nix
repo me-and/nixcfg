@@ -130,7 +130,7 @@ in {
         };
         services.systemd-time-wait-sync = {
           Unit = {
-            Decsription = "Wait Until Kernel Time Synchronized";
+            Description = "Wait Until Kernel Time Synchronized";
             Documentation = "man:systemd-time-wait-sync.service(8)";
             ConditionCapability = "CAP_SYS_TIME";
             ConditionVirtualization = "!container";
@@ -138,7 +138,6 @@ in {
             Before = ["time-sync.target"];
             Wants = ["time-sync.target"];
             Conflicts = ["shutdown.target"];
-            WantedBy = ["basic.target"];
           };
           Service = {
             Type = "oneshot";
@@ -146,6 +145,7 @@ in {
             TimeoutStartSec = "infinity";
             RemainAfterExit = true;
           };
+          Install.WantedBy = ["basic.target"];
         };
       };
     }
