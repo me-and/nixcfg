@@ -93,6 +93,11 @@ lib.mkIf (config.system.name == "lucy") {
     EMPTY_PRE_POST_CLEANUP = true;
   };
 
+  services.beesd.filesystems.mail = {
+    hashTableSizeMB = 512;
+    spec = "UUID=3c029ca6-21be-43a2-b147-25368bc98336";
+  };
+
   # Without this, journalctl shows messages about IPv6 DHCP solicitation every
   # 10s.  AFAICS that *shouldn't* happen because the local version of dhcpcd
   # should have the fix from
