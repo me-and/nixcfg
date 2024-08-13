@@ -128,102 +128,123 @@ in {
           };
           purePath = true;
           text = ''
-            for file in *.pdf; do
-                # Wait for the file to be closed; lsof will loop until it is.
-                rc=0
-                lsof -f +r -Fpn -w -- "$file" || rc="$?"
-                if (( rc != 0 && rc != 1 )); then
-                    # Unexpected return code, e.g. because Bash couldn't find
-                    # lsof.
-                    exit "$rc"
-                fi
-
-                basename="''${file%.pdf}"
-
-                # The final part of the filename has the timestamp and job
-                # number from the scanner.
-                Y="''${basename: -14:4}"
-                M="''${basename: -10:2}"
-                D="''${basename: -8:2}"
-                hms="''${basename: -6}"
-                scan_timestamp="''${Y}-''${M}-''${D}T''${hms}"
-                job="''${basename: -20:6}"
-                origname="''${basename::-20}"
-
-                # The original name is made up of multiple parts separated by
-                # "==".
-                declare -a nameparts=()
-                while [[ "$origname" = *==* ]]; do
-                    nameparts+=("''${origname%%==*}")
-                    origname="''${origname#*==}"
-                done
-                nameparts+=("$origname")
-
-                if (( "''${#nameparts[*]}" == 1 )); then
-                    # Only one part to the name, so it defines the directory
-                    # the file is copied to.
-                    destdir="''${nameparts[0]}"
-                    destname="''${scan_timestamp} scan ''${job}.pdf"
-                elif (( "''${#nameparts[*]}" == 2 )); then
-                    # There are two parts to the name.  The first is the
-                    # destination directory, the second will contain either or
-                    # both of a descriptive file name or a date or datetime to
-                    # use for filing.
-                    destdir="''${nameparts[0]}"
-                    if [[ "''${nameparts[1]}" =~ ^[12][0-9][0-9][0-9]-[012][0-9]-[0-3][0-9]
-                        || "''${nameparts[1]}" =~ ^[12][0-9][0-9][0-9]-[012][0-9]-[0-3][0-9]T[0-2][0-9][0-5][0-9]
-                        || "''${nameparts[1]}" =~ ^[12][0-9][0-9][0-9]-[012][0-9]-[0-3][0-9]T[0-2][0-9][0-5][0-9][0-6][0-9]
-                        ]]; then
-                        # This part is either just a timestamp or a timestamp and
-                        # description.  In either case, we want the filename to
-                        # start with that.
-                        destname="''${nameparts[1]} scan ''${job} on ''${scan_timestamp}.pdf"
-                    else
-                        # This part is just a description, so use the timestamp
-                        # from the scan.
-                        destname="''${scan_timestamp} ''${nameparts[1]} scan ''${job}.pdf"
+            shopt -s nullglob
+            for ext in pdf jpg; do
+                for file in *."$ext"; do
+                    # Wait for the file to be closed; lsof will loop until it is.
+                    rc=0
+                    lsof -f +r -Fpn -w -- "$file" || rc="$?"
+                    if (( rc != 0 && rc != 1 )); then
+                        # Unexpected return code, e.g. because Bash couldn't find
+                        # lsof.
+                        exit "$rc"
                     fi
-                else
-                    echo "Unrecognised filename format ''${nameparts[*]}" >&2
-                    exit 1
-                fi
 
-                # In all cases, the destination directory may have single "="
-                # as directory seperators.
-                destdir="''${destdir//=/\/}"
+                    basename="''${file%."$ext"}"
 
-                # If the destination starts with Desktop, put it there,
-                # otherwise put it in the Communications directory.
-                if [[ "$destdir" = Desktop || "$destdir" = Desktop/* ]]; then
-                    fulldest=onedrive:"$destdir"/"$destname"
-                else
-                    fulldest=onedrive:Documents/Communications/"$destdir"/"$destname"
-                fi
+                    if [[ "$ext" = jpg ]]; then
+                        # The final part of the basename has the page number.
+                        # Extract that and normalise the basename to one
+                        # without the page number.
+                        page="''${basename: -3}"
+                        basename="''${basename::-4}"
+                    else
+                        page=""
+                    fi
 
-                # Check there's nothing untoward in the environment before we
-                # start running commands.
-                if [[ ! "$MAIL_USER" =~ ^[A-Za-z0-9]+$
-                    || ! "$file" =~ ^[A-Za-z0-9-][A-Za-z0-9' &'.,=-]*\.pdf$
-                    || ! "$fulldest" =~ ^onedrive:([A-Za-z0-9-]([A-Za-z0-9' &'.,=-]*[A-Za-z0-9-])?/)*[A-Za-z0-9-][A-Za-z0-9' &'.,=-]*.pdf$
-                    ]]; then
-                    echo 'Unexpected value in one of the below' >&2
-                    declare -p MAIL_USER file fulldest >&2
-                    exit 1
-                fi
+                    # The final part of the filename has the timestamp and job
+                    # number from the scanner.
+                    Y="''${basename: -14:4}"
+                    M="''${basename: -10:2}"
+                    D="''${basename: -8:2}"
+                    hms="''${basename: -6}"
+                    scan_timestamp="''${Y}-''${M}-''${D}T''${hms}"
+                    job="''${basename: -20:6}"
+                    origname="''${basename::-20}"
 
-                # Upload the file
-                rclone \
-                    --config="''${CONFIGURATION_DIRECTORY}/rclone.conf" \
-                    --cache-dir="''${CACHE_DIRECTORY}" \
-                    moveto "$file" "$fulldest"
+                    # The original name is made up of multiple parts separated by
+                    # "==".
+                    declare -a nameparts=()
+                    while [[ "$origname" = *==* ]]; do
+                        nameparts+=("''${origname%%==*}")
+                        origname="''${origname#*==}"
+                    done
+                    nameparts+=("$origname")
 
-                # Send a notification that the file has been uploaded
-                sendmail -odi -i -t <<EOF
+                    if (( "''${#nameparts[*]}" == 1 )); then
+                        # Only one part to the name, so it defines the directory
+                        # the file is copied to.
+                        destdir="''${nameparts[0]}"
+                        destbasename="''${scan_timestamp} scan ''${job}"
+                    elif (( "''${#nameparts[*]}" == 2 )); then
+                        # There are two parts to the name.  The first is the
+                        # destination directory, the second will contain either or
+                        # both of a descriptive file name or a date or datetime to
+                        # use for filing.
+                        destdir="''${nameparts[0]}"
+                        if [[ "''${nameparts[1]}" =~ ^[12][0-9][0-9][0-9]-[012][0-9]-[0-3][0-9]
+                            || "''${nameparts[1]}" =~ ^[12][0-9][0-9][0-9]-[012][0-9]-[0-3][0-9]T[0-2][0-9][0-5][0-9]
+                            || "''${nameparts[1]}" =~ ^[12][0-9][0-9][0-9]-[012][0-9]-[0-3][0-9]T[0-2][0-9][0-5][0-9][0-6][0-9]
+                            ]]; then
+                            # This part is either just a timestamp or a timestamp and
+                            # description.  In either case, we want the filename to
+                            # start with that.
+                            destbasename="''${nameparts[1]} scan ''${job} on ''${scan_timestamp}"
+                        else
+                            # This part is just a description, so use the timestamp
+                            # from the scan.
+                            destbasename="''${scan_timestamp} ''${nameparts[1]} scan ''${job}"
+                        fi
+                    else
+                        echo "Unrecognised filename format ''${nameparts[*]}" >&2
+                        exit 1
+                    fi
+
+                    # In all cases, the destination directory may have single "="
+                    # as directory seperators.
+                    destdir="''${destdir//=/\/}"
+
+                    # If the destination starts with Desktop, put it there,
+                    # otherwise put it in the Communications directory.
+                    if [[ "$destdir" = Desktop || "$destdir" = Desktop/* ]]; then
+                        fulldest=onedrive:"$destdir"/"$destbasename"
+                    else
+                        fulldest=onedrive:Documents/Communications/"$destdir"/"$destbasename"
+                    fi
+
+                    # If there's a page number, add that to the filename.
+                    if [[ "$page" ]]; then
+                        fulldest+=" p''${page##+(0)}"
+                    fi
+
+                    # Add the file extension.
+                    fulldest+=".$ext"
+
+                    # Check there's nothing untoward in the environment before we
+                    # start running commands.
+                    if [[ ! "$MAIL_USER" =~ ^[A-Za-z0-9]+$
+                        || ! "$file" =~ ^[A-Za-z0-9_-][A-Za-z0-9' &'.,=_-]*\."$ext"$
+                        || ! "$fulldest" =~ ^onedrive:([A-Za-z0-9_-]([A-Za-z0-9' &'.,=_-]*[A-Za-z0-9_-])?/)*[A-Za-z0-9_-][A-Za-z0-9' &'.,=_-]*."$ext"$
+                        ]]; then
+                        echo 'Unexpected value in one of the below' >&2
+                        declare -p MAIL_USER file fulldest >&2
+                        exit 1
+                    fi
+
+                    # Upload the file
+                    rclone \
+                        --config="''${CONFIGURATION_DIRECTORY}/rclone.conf" \
+                        --cache-dir="''${CACHE_DIRECTORY}" \
+                        moveto "$file" "$fulldest"
+
+                    # Send a notification that the file has been uploaded
+                    sendmail -odi -i -t <<EOF
             To: $MAIL_USER
             Subject: Copied $file from ftp directory to OneDrive
 
             Destination $fulldest
             EOF
+                done
             done
           '';
         };
@@ -239,7 +260,10 @@ in {
       description = "monitoring for scanned documents to upload to OneDrive";
       wantedBy = ["paths.target"];
       unitConfig.RequiresMountsFor = cfg.scannerDestDir;
-      pathConfig.PathExistsGlob = "${cfg.scannerDestDir}/*.pdf";
+      pathConfig.PathExistsGlob = [
+        "${cfg.scannerDestDir}/*.pdf"
+        "${cfg.scannerDestDir}/*.jpg"
+      ];
     };
   };
 }
