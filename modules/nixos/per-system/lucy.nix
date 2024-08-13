@@ -36,7 +36,14 @@ lib.mkIf (config.system.name == "lucy") {
       where = "/usr/local/share/av";
       options = "subvol=@av";
     }
+    {
+      what = "/dev/disk/by-uuid/213a8de3-da05-40ca-995d-40c1b76eb3ca";
+      type = "ext4";
+      where = "/var/cache/nginx";
+      options = "noexec";
+    }
   ];
+
   services.jellyfin = {
     enable = true;
     # This server can be very slow to start up...
