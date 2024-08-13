@@ -58,10 +58,20 @@ in {
 
     cache.sizeLimit = lib.mkOption {
       description = ''
-        Amount of disk space the cache is allowed to use.
+        Amount of disk space the cache is allowed to use before Nginx evicts
+        old values.  Set to `null` to remove the maximum size limit.
       '';
-      type = lib.types.str;
+      type = lib.types.nullOr lib.types.str;
       default = "20g";
+    };
+    cache.minFree = lib.mkOption {
+      description = ''
+        Minimum amount of disk space to leave on the disk storing the cache
+        before Nginx evicts old values.  Set to `null` to remove the minimum
+        free limit.
+      '';
+      type = lib.types.nullOr lib.types.str;
+      default = "5g";
     };
     cache.ageLimit = lib.mkOption {
       description = "How long to cache files for.";
@@ -126,8 +136,25 @@ in {
         services.nginx = {
           enable = true;
 
-          appendHttpConfig = ''
-            proxy_cache_path ${cacheDirectory} levels=2 keys_zone=${cache.zone.name}:${cache.zone.size} max_size=${cache.sizeLimit} inactive=${cache.ageLimit} use_temp_path=off;
+          appendHttpConfig = let
+            proxyCachePathParams =
+              [
+                cacheDirectory
+                "levels=2"
+                "keys_zone=${cache.zone.name}:${cache.zone.size}"
+                "inactive=${cache.ageLimit}"
+                "use_temp_path=off"
+              ]
+              ++ (
+                lib.optional (cache.sizeLimit != null)
+                "max_size=${cache.sizeLimit}"
+              )
+              ++ (
+                lib.optional (cache.minFree != null)
+                "min_free=${cache.minFree}"
+              );
+          in ''
+            proxy_cache_path ${lib.strings.concatStringsSep " " proxyCachePathParams};
 
             # Cache only success status codes; in particular we don't want to cache 404s.
             # See https://serverfault.com/a/690258/128321

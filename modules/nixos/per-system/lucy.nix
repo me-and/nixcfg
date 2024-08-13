@@ -126,6 +126,12 @@ lib.mkIf (config.system.name == "lucy") {
     in
       loopbackAddresses ++ localIpAddresses;
     accessLogPath = "/var/log/nginx/access.log";
+
+    # Cache is on a separate partition, so no need to use an absolute size
+    # limit, and can use a small free space limit as there shouldn't be
+    # anything else that would use space on that partition.
+    cache.sizeLimit = null;
+    cache.minFree = "100m";
     # TODO add resolver config to use the AAISP resolvers, assuming I don't
     # manage to get this working with the default system resolver?
   };
