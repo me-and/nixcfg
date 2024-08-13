@@ -805,6 +805,8 @@ in {
           recommendedProxySettings = true;
         };
       };
+
+      systemd.services.jellyfin.wants = ["nginx.service"];
     };
 
     # Only add TLS settings if the user has configured at least one of the
