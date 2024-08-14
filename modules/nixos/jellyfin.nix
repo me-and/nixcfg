@@ -805,6 +805,8 @@ in {
           recommendedProxySettings = true;
         };
       };
+
+      systemd.services.jellyfin.wants = ["nginx.service"];
     };
 
     # Only add TLS settings if the user has configured at least one of the
@@ -976,6 +978,7 @@ in {
       systemd.services.jellyfin = {
         bindsTo = cfg.requiredSystemdUnits;
         after = cfg.requiredSystemdUnits;
+        serviceConfig.Nice = "-5";
       };
 
       users.users."${config.users.me}".extraGroups = ["jellyfin"];

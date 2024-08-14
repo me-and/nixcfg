@@ -36,7 +36,14 @@ lib.mkIf (config.system.name == "lucy") {
       where = "/usr/local/share/av";
       options = "subvol=@av";
     }
+    {
+      what = "/dev/disk/by-uuid/213a8de3-da05-40ca-995d-40c1b76eb3ca";
+      type = "ext4";
+      where = "/var/cache/nginx";
+      options = "noexec";
+    }
   ];
+
   services.jellyfin = {
     enable = true;
     # This server can be very slow to start up...
@@ -93,6 +100,11 @@ lib.mkIf (config.system.name == "lucy") {
     EMPTY_PRE_POST_CLEANUP = true;
   };
 
+  services.beesd.filesystems.mail = {
+    hashTableSizeMB = 512;
+    spec = "UUID=3c029ca6-21be-43a2-b147-25368bc98336";
+  };
+
   # Without this, journalctl shows messages about IPv6 DHCP solicitation every
   # 10s.  AFAICS that *shouldn't* happen because the local version of dhcpcd
   # should have the fix from
@@ -114,6 +126,12 @@ lib.mkIf (config.system.name == "lucy") {
     in
       loopbackAddresses ++ localIpAddresses;
     accessLogPath = "/var/log/nginx/access.log";
+
+    # Cache is on a separate partition, so no need to use an absolute size
+    # limit, and can use a small free space limit as there shouldn't be
+    # anything else that would use space on that partition.
+    cache.sizeLimit = null;
+    cache.minFree = "100m";
     # TODO add resolver config to use the AAISP resolvers, assuming I don't
     # manage to get this working with the default system resolver?
   };
