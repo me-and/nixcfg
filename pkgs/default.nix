@@ -1,14 +1,14 @@
 let
+  # This might be easier using functions from pkgs.lib, but there's a bootstrap
+  # problem there, so the function below works out the list of overlay file
+  # paths while only using Nix builtin functions.
   overlayDir = ../overlays;
-  overlayFiles = let
-    lib = import <nixpkgs/lib>;
-  in
-    lib.attrsets.mapAttrsToList
-    (name: value: lib.path.append overlayDir name)
-    (builtins.readDir overlayDir);
+  overlayFileNames = builtins.attrNames (builtins.readDir overlayDir);
+  overlayFiles = map (v: overlayDir + ("/" + v)) overlayFileNames;
 in
   {
-    pkgs ? import <nixpkgs> {overlays = map import overlayFiles;},
+    pkgsPath ? <nixpkgs>,
+    pkgs ? import pkgsPath {overlays = map import overlayFiles;},
     lib ? pkgs.lib,
     callPackage ? pkgs.callPackage,
   }: let
