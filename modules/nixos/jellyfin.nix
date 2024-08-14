@@ -978,6 +978,7 @@ in {
       systemd.services.jellyfin = {
         bindsTo = cfg.requiredSystemdUnits;
         after = cfg.requiredSystemdUnits;
+        serviceConfig.Nice = "-5";
       };
 
       users.users."${config.users.me}".extraGroups = ["jellyfin"];
