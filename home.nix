@@ -47,6 +47,8 @@ in {
       python
       silver-searcher
       taskwarrior
+      taskloop
+      tmux-taskloop
       toil
 
       # This is in place of setting programs.home-manager.enable, since that
