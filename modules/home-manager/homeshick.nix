@@ -50,8 +50,6 @@
     name = "homeshick-init.sh";
     runtimeInputs = with pkgs; [config.programs.git.package gh coreutils bash];
     text = ''
-      set -euo pipefail
-
       link_mode=
       if [[ "$1" = -l ]]; then
           link_mode='link'
@@ -69,7 +67,6 @@
           git clone "$url" ~/.homesick/repos/"$dest"
       fi
 
-      set -x
       if [[ "$link_mode" ]]; then
           homeshick () {
               ~/.homesick/repos/${cfg.homeshick.dest}/bin/homeshick "$@"
