@@ -57,7 +57,7 @@
         else {
           NIX_PATH = lib.strings.concatStringsSep ":" (cfg.extraNixPaths ++ cfg.nixPaths);
         };
-      };
+    };
   in
     lib.mkMerge [
       myConfig

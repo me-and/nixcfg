@@ -28,6 +28,7 @@ in rec {
     filenames =
       builtins.attrNames
       (lib.filterAttrs fileFilter (builtins.readDir overlayDir));
-  in map (n: lib.path.append overlayDir n) filenames;
+  in
+    map (n: lib.path.append overlayDir n) filenames;
   overlays = map import overlayFiles;
 }
