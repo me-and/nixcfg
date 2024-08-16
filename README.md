@@ -77,6 +77,12 @@ I'm using overlays in the following circumstances:
     build helper.  Packages in the `pkgs` directory should build using
     `pkgs.callPackage` without any additional arguments.
 
+### `lib`
+
+Files in this directory are ones that I want to call explicitly when I need
+them for some specific purpose; there is no requirement that they have a
+standard interface.
+
 ### `config`
 
 TODO
