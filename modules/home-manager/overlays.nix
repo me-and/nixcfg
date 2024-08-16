@@ -2,38 +2,65 @@
   config,
   lib,
   ...
-}: let
-  # TODO Remove duplication of the below in modules/shared/overlays.nix
-  thisRepoCleaned = lib.sources.cleanSourceWith {
-    src = ../../.;
-    # Filter out:
-    # - All hidden files, including but not limited to the .git directory
-    # - Any symlinks, as they're almost certainly symlinks to Nix build results
-    # - The secrets directory, as that should never make it into the Nix store
-    filter = path: type: let
-      baseName = builtins.baseNameOf path;
-    in
-      (type != "symlink")
-      && (baseName != "secrets")
-      && ((builtins.match "\\..*" baseName) == null);
-    name = "nixcfg";
-  };
-in {
-  # Copy the local directory to the Nix store, and add a reference to the
-  # overlays directory within to the NIX_PATH variable.  This means invocations
-  # of commands like `nix-build` will find the overlays from the environment
-  # per the most recent `home-manager switch` invocation.
-  #
-  # This based on
-  # https://github.com/nix-community/home-manager/commit/8d5e27b4807d25308dfe369d5a923d87e7dbfda3
-  options.nix.nixPath = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = [];
+}: {
+  options.nix = {
+    extraNixPaths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      description = ''
+        Extra path entries to add to the NIX_PATH variable when initialising
+        Home Manager session environment variables.  These paths will be added
+        before any paths that are set by the parent environment or using the
+        nix.nixPaths configuration.
+      '';
+      example = ["nixpkgs-overlays=\${config.home.homeDirectory}/my-overlays"];
+      default = [];
+    };
+    nixPaths = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      description = ''
+        Paths to set in the NIX_PATH variable when initialising Home Manager
+        session environment variables.  These paths will be added after any
+        paths configured using nix.extraNixPaths, and will overwrite any
+        environment variables set in the parent environment.
+
+        Set to to `null` to inherit the parent environment's NIX_PATH, or to
+        `[]` to set the path to the empty string.
+      '';
+      default = null;
+    };
   };
 
-  config.nix.nixPath = ["nixpkgs-overlays=${thisRepoCleaned}/overlays"];
+  config = let
+    # Copy the local directory to the Nix store, and add a reference to the
+    # overlays directory within to the NIX_PATH variable.  This means
+    # invocations of commands like `nix-build` will find the overlays from the
+    # environment per the most recent `home-manager switch` invocation.
+    #
+    # This based on
+    # https://github.com/nix-community/home-manager/commit/8d5e27b4807d25308dfe369d5a923d87e7dbfda3
+    myConfig = let
+      overlayInfo = import ../../lib/overlays.nix {inherit lib;};
+    in {
+      nix.nixPaths = ["nixpkgs-overlays=${overlayInfo.storeOverlayDir}"];
+    };
 
-  config.home.sessionVariables = lib.mkIf (config.nix.nixPath != []) {
-    NIX_PATH = "${lib.strings.concatStringsSep ":" config.nix.nixPath}\${NIX_PATH:+:$NIX_PATH}";
-  };
+    optionImplementation = let
+      cfg = config.nix;
+    in {
+      home.sessionVariables =
+        if cfg.nixPaths == null && cfg.extraNixPaths == []
+        then {}
+        else if cfg.nixPaths == null
+        then {
+          NIX_PATH = "${lib.strings.concatStringsSep ":" cfg.extraNixPaths}\${NIX_PATH:+:$NIX_PATH}";
+        }
+        else {
+          NIX_PATH = lib.strings.concatStringsSep ":" (cfg.extraNixPaths ++ cfg.nixPaths);
+        };
+      };
+  in
+    lib.mkMerge [
+      myConfig
+      optionImplementation
+    ];
 }
