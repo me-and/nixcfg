@@ -7,19 +7,25 @@
 }: let
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
-  fileIfExtant = file: lib.optional (builtins.pathExists file) file;
+  # Avoid using lib for this, so it can be safely used with imports.
+  fileIfExtant = file:
+    if builtins.pathExists file
+    then [file]
+    else [];
 
   currentDir = builtins.toString ./.;
 in {
   imports =
     [
       <home-manager/nixos>
-      ./local-config.nix
       ./modules/nixos
       ./modules/shared
     ]
     # hardware-configuration.nix is expected to be missing on WSL.
-    ++ fileIfExtant ./hardware-configuration.nix;
+    ++ fileIfExtant ./hardware-configuration.nix
+    # I want to avoid using local-config.nix if I can, but sometimes using it
+    # is the quickest and easiest option.
+    ++ fileIfExtant ./local-config.nix;
 
   config = {
     warnings = let

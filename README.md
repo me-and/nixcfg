@@ -93,7 +93,17 @@ TODO
 
 ### `local-config.nix`
 
-TODO
+This file will be imported by both `configuration.nix` and `home.nix` if it
+exists.  In most circumstances, I'd prefer it not to exist, but there are two
+scenarios where I'm using it:
+
+-   Configuration that used to use this model but hasn't yet been migrated to
+    have the configuration checked into the `config` directory with appropriate
+    "is this the right system" tests for whether to use it.
+-   Configuration that uses imports, such as importing hardware modules from
+    the NixOS/nixos-hardware repository, because "is this the right system"
+    tests only happen after the Nix module evaluation has finished importing
+    modules.
 
 ### `secrets` and `local-config`
 
