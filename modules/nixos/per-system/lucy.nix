@@ -114,17 +114,6 @@ lib.mkIf (config.system.name == "lucy") {
 
   services.nixBinaryCache = {
     enable = true;
-    serverAliases = let
-      loopbackAddresses = [
-        "127.0.0.1"
-        "::1"
-      ];
-      localIpAddressFile = ../../../local-config/local-ip-addresses;
-      localIpAddresses =
-        lib.optionals (builtins.pathExists localIpAddressFile)
-        (lib.strings.split "\n" (lib.fileContents localIpAddressFile));
-    in
-      loopbackAddresses ++ localIpAddresses;
     accessLogPath = "/var/log/nginx/access.log";
 
     # Cache is on a separate partition, so no need to use an absolute size

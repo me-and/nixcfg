@@ -152,6 +152,11 @@ in {
     nix.daemonIOSchedPriority = 7;
     nix.daemonCPUSchedPolicy = "batch";
 
+    services.nixBinaryCache.serverAliases = [
+      "127.0.0.1"
+      "::1"
+    ];
+
     # Set up basic ACME certificate configuration.
     security.acme = {
       acceptTerms = true;
