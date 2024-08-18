@@ -156,7 +156,6 @@ in {
     security.acme = {
       acceptTerms = true;
       defaults = {
-        email = lib.fileContents ./local-config/certbot-email-address;
         dnsProvider = "mythicbeasts";
         environmentFile = builtins.toString ./secrets/mythic-beasts;
       };
