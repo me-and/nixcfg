@@ -41,7 +41,7 @@
     myConfig = let
       overlayInfo = import ../../lib/overlays.nix {inherit lib;};
     in {
-      nix.nixPaths = ["nixpkgs-overlays=${overlayInfo.storeOverlayDir}"];
+      nix.extraNixPaths = ["nixpkgs-overlays=${overlayInfo.storeOverlayDir}"];
     };
 
     optionImplementation = let
