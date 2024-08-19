@@ -158,11 +158,15 @@ in {
     nix.daemonIOSchedPriority = 7;
     nix.daemonCPUSchedPolicy = "batch";
 
+    services.nixBinaryCache.serverAliases = [
+      "127.0.0.1"
+      "::1"
+    ];
+
     # Set up basic ACME certificate configuration.
     security.acme = {
       acceptTerms = true;
       defaults = {
-        email = lib.fileContents ./local-config/certbot-email-address;
         dnsProvider = "mythicbeasts";
         environmentFile = builtins.toString ./secrets/mythic-beasts;
       };
