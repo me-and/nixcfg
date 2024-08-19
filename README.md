@@ -62,6 +62,10 @@ defining sensible defaults that others might use.  Configuration that's likely
 to be specific to me should go in either `configuration.nix`, `home.nix` or
 under the `config` subdirectory.
 
+(At time of writing, the files in this directory include the specific-to-me
+configuration that, according to the above, belongs elsewhere.  Moving that
+over is a work in progress.)
+
 ### `overlays`
 
 Files in this directory should be automatically included when building a
@@ -89,25 +93,29 @@ standard interface.
 
 ### `config`
 
-TODO
+This directory contains the actual configuration.  I'm still working out the
+layout...
 
 ### `local-config.nix`
 
 This file will be imported by both `configuration.nix` and `home.nix` if it
-exists.  In most circumstances, I'd prefer it not to exist, but there are two
-scenarios where I'm using it:
+exists, but it isn't checked into the repository.  It records things in the
+following categories:
 
--   Configuration that used to use this model but hasn't yet been migrated to
-    have the configuration checked into the `config` directory with appropriate
-    "is this the right system" tests for whether to use it.
--   Configuration that uses imports, such as importing hardware modules from
-    the NixOS/nixos-hardware repository, because "is this the right system"
-    tests only happen after the Nix module evaluation has finished importing
-    modules.
+-   Configuration to identify the system in question, so that other appropriate
+    configuration can be applied.  This normally means `networking.hostName`.
+-   Imports of modules that can't be usefully hidden behind configuration
+    switches, such as hardware modules from the NixOS/nixos-hardware
+    repository.
+-   Private-but-not-secret configuration: things I'm happy to appear in the
+    local Nix store but that I don't want to check into this repository: things
+    like email addresses and IP addresses.
 
-### `secrets` and `local-config`
+### `secrets`
 
-TODO
+This directory should only be readable by root (for NixOS configuration) or the
+user (for Home Manager configuration), and is used to store local system
+secrets like user passwords and access keys.
 
 Format
 ------
