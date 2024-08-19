@@ -45,68 +45,6 @@
     url = "https://github.com/andsens/homeshick";
     link = false;
   };
-
-  homeshickInit = pkgs.writeCheckedShellScript {
-    name = "homeshick-init.sh";
-    runtimeInputs = with pkgs; [config.programs.git.package gh coreutils bash];
-    text = ''
-      link_mode=
-      if [[ "$1" = -l ]]; then
-          link_mode='link'
-          shift
-      elif [[ "$1" = -f ]]; then
-          link_mode='force'
-          shift
-      fi
-
-      declare -r link_mode
-      declare -r dest="$1"
-      declare -r url="$2"
-
-      if [[ ! -d "$HOME"/.homesick/repos/"$dest" ]]; then
-          git clone "$url" ~/.homesick/repos/"$dest"
-      fi
-
-      if [[ "$link_mode" ]]; then
-          homeshick () {
-              ~/.homesick/repos/${cfg.homeshick.dest}/bin/homeshick "$@"
-          }
-          if [[ "$link_mode" = link ]]; then
-              homeshick --skip link "$dest"
-          elif [[ "$link_mode" = force ]]; then
-              homeshick --force link "$dest"
-          else
-              echo "Unexpected link mode $link_mode" >&2
-              exit 1
-          fi
-      fi
-    '';
-  };
-
-  homeshickUnit = {
-    dest,
-    description,
-    url,
-    link,
-    forceLink,
-    after ? ["homeshick.service"],
-  }: let
-    shellArgs =
-      (
-        if !link
-        then []
-        else if forceLink
-        then ["-f"]
-        else ["-l"]
-      )
-      ++ [dest url];
-  in {
-    Unit.Description = description;
-    Unit.After = after;
-    Service.Type = "oneshot";
-    Service.ExecStart = "${homeshickInit} ${lib.strings.escapeShellArgs shellArgs}";
-    Install.WantedBy = ["default.target"];
-  };
 in {
   options.homeshick = {
     enable = lib.mkEnableOption "Homeshick";
@@ -125,25 +63,55 @@ in {
         {url = "https://github.com/me-and/castle";}
       ];
     };
+
+    extraPackages = lib.mkOption {
+      description = ''
+        Extra packages required to clone your Git Homeshick repositories, for
+        example to provide authentication for private repositories.
+      '';
+      type = lib.types.listOf (lib.types.package);
+      default = [];
+      example = [pkgs.gh];
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    systemd.user.services =
-      {
-        homeshick = homeshickUnit {
-          inherit (cfg.homeshick) dest url link forceLink;
-          description = "Homeshick installation";
-          after = [];
-        };
-      }
-      // (
-        lib.attrsets.mergeAttrsList (map (h: {
-            "homeshick@${h.dest}" = homeshickUnit {
-              inherit (h) dest url link forceLink;
-              description = "Homeshick %i installation";
-            };
-          })
-          cfg.repos)
+    home.activation.homeshick = let
+      runtimeInputs =
+        [
+          config.programs.git.package
+          pkgs.coreutils
+          pkgs.bash
+        ]
+        ++ cfg.extraPackages;
+      repoInit = castleCfg: let
+        linkArg =
+          if castleCfg.forceLink
+          then "--force"
+          else "--skip";
+      in
+        ''
+          dest=${lib.escapeShellArg castleCfg.dest}
+          if [[ -d "$HOME"/.homesick/repos/"$dest" ]]; then
+              noteEcho "Skipping extant repository $dest"
+          else
+              run git clone ${lib.escapeShellArg castleCfg.url} "$HOME"/.homesick/repos/"$dest"
+          fi
+        ''
+        + lib.optionalString castleCfg.link ''
+          run "$HOME"/.homesick/repos/${lib.escapeShellArg cfg.homeshick.dest}/bin/homeshick \
+              ${linkArg} link "$dest"
+        '';
+    in
+      lib.hm.dag.entryAfter ["writeBoundary"] (
+        ''
+          oldpath="$PATH"
+          PATH=${lib.makeBinPath runtimeInputs}"''${PATH:+:"$PATH"}"
+        ''
+        + lib.concatStrings (map repoInit ([cfg.homeshick] ++ cfg.repos))
+        + ''
+          PATH="$oldpath"
+        ''
       );
   };
 }
