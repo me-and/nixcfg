@@ -38,6 +38,7 @@ in {
       htop
       jq
       lesspipe
+      lsof
       man-pages
       moreutils
       mosh
