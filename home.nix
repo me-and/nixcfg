@@ -30,6 +30,7 @@ in {
     packages = with pkgs; [
       alejandra
       ascii
+      coldiff
       dig.dnsutils
       dos2unix
       fzf
