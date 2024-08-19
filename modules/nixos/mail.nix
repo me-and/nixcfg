@@ -10,14 +10,16 @@
   # Enable postfix to set up sending emails externally.  Probably want to
   # configure a .forward file in your home directory to get emails sent locally
   # to be forwarded externally, too.
-  postfixCommonConfig = lib.mkIf config.services.postfix.enable {
+  postfixCommonConfig = {
     services.postfix = {
+      enable = true;
+
       # Forward emails sent to root to me.
       rootAlias = config.users.me;
 
       # Set the domain on outgoing emails sent through postfix's sendmail to be
       # the FQDN of this system.  Slightly surprised this isn't the default.
-      hostname = fqdn;
+      hostname = lib.mkIf hasFqdn fqdn;
 
       # Send outgoing email from this system, don't accept mail from anywhere
       # else.  Slightly surprised there isn't a simpler toggle for this...
@@ -31,6 +33,7 @@
   postfixLocalSendConfig =
     lib.mkIf (
       config.services.postfix.enable
+      && hasFqdn
       && (config.services.postfix.relayHost == "")
     ) {
       # Create certificates for the server.

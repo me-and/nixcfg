@@ -7,19 +7,25 @@
 }: let
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
-  fileIfExtant = file: lib.optional (builtins.pathExists file) file;
+  # Avoid using lib for this, so it can be safely used with imports.
+  fileIfExtant = file:
+    if builtins.pathExists file
+    then [file]
+    else [];
 
   currentDir = builtins.toString ./.;
 in {
   imports =
     [
       <home-manager/nixos>
-      ./local-config.nix
       ./modules/nixos
       ./modules/shared
     ]
     # hardware-configuration.nix is expected to be missing on WSL.
-    ++ fileIfExtant ./hardware-configuration.nix;
+    ++ fileIfExtant ./hardware-configuration.nix
+    # I want to avoid using local-config.nix if I can, but sometimes using it
+    # is the quickest and easiest option.
+    ++ fileIfExtant ./local-config.nix;
 
   config = {
     warnings = let
@@ -166,10 +172,19 @@ in {
       };
     };
 
-    # Keep intermediate build stages around to speed up subsequent builds.
-    nix.extraOptions = ''
-      keep-outputs = true
-      keep-derivations = true
-    '';
+    nix.extraOptions =
+      # Keep intermediate build stages around to speed up subsequent builds.
+      ''
+        keep-outputs = true
+        keep-derivations = true
+      ''
+      # I'm using local binary caches in some places, but if they're
+      # inaccessible, I want the build to continue without them.
+      #
+      # See also https://github.com/NixOS/nix/issues/3514
+      + ''
+        connect-timeout = 3
+        fallback = true
+      '';
   };
 }

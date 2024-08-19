@@ -1,0 +1,274 @@
+umask 0077
+
+toil_pid=
+sleep_pid=
+bash_pid=
+read_pid=
+
+cleanup () {
+	local exit_code="$?"
+	local rc=0
+	[[ -v tmpdir ]] && rm -rf "$tmpdir"
+	local -a kill=()
+	[[ "$toil_pid" ]] && kill+=("$toil_pid")
+	[[ "$sleep_pid" ]] && kill+=("$sleep_pid")
+	[[ "$bash_pid" ]] && kill+=("$bash_pid")
+	[[ "$read_pid" ]] && kill+=("$read_pid")
+	if (( "${#kill[*]}" > 0 )); then
+		# kill is allowed to return non-zero because it's fairly likely
+		# some commands will have exited already.
+		kill "${kill[@]}" 2>/dev/null || :
+		wait "${kill[@]}" || rc="$?"
+	fi
+	if (( rc == 0 || rc == 143 )); then
+		# Everything is fine, or at least the exit code from wait was
+		# an expected SIGTERM, so use the original exit code.
+		return "$exit_code"
+	fi
+	return "$rc"
+}
+trap cleanup EXIT
+
+export PS4='+$EPOCHREALTIME \t $BASH_SOURCE:${FUNCNAME:-}:$LINENO: '
+
+# Add something for other scripts -- in particular bashrc scripts -- to make it
+# easy for them to detect running in a taskloop instance and therefore skip
+# steps that aren't wanted there.
+declare -x TASKLOOP=Yes
+
+if ! command -v toil >/dev/null; then
+	echo 'toil missing' >&2
+	echo 'Get it from https://github.com/me-and/toil' >&2
+	exit 69 # EX_UNAVAILABLE
+fi
+
+filter=()
+config=()
+have_reserved_lines=
+have_verbose=
+have_gc=
+have_limit=
+debug=
+no_prompt=
+report=
+for arg; do
+	case "$arg" in
+		-n)	no_prompt=Yes
+			;;
+		-d)	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
+			set -x
+			debug=Yes
+			;;
+		rc.reserved.lines[:=]*)
+			have_reserved_lines=Yes
+			config+=("${arg#rc.}")
+			;;
+		rc.verbose[:=]*)
+			have_verbose=Yes
+			config+=("${arg#rc.}")
+			;;
+		rc.gc[:=]*)
+			have_gc=Yes
+			config+=("${arg#rc.}")
+			;;
+		rc.*[:=]*)
+			config+=("${arg#rc.}")
+			;;
+		limit:*)
+			have_limit=Yes
+			filter+=("$arg")
+			;;
+		*)
+			if [[ "$report" ]]; then
+				filter+=("$arg")
+			else
+				report="$arg"
+			fi
+			;;
+	esac
+done
+[[ "$report" ]] || report=next
+tmpdir="$(mktemp -dt "taskloop.$report.$EPOCHSECONDS.$$.XXXXX")"
+[[ "$have_reserved_lines" ]] || config+=(reserved.lines=0)
+[[ "$have_verbose" ]] || config+=('verbose=blank,header,footnote,label,affected,context')
+[[ "$have_gc" ]] || config+=(gc=0)
+[[ "$have_limit" ]] || filter=(limit:page "${filter[@]}")
+
+task_config_file="$tmpdir"/config
+task_filter_file="$tmpdir"/filter
+#bash_in_use_flag_file="$tmpdir"/doingthings
+explicit_exit_flag_file="$tmpdir"/explicitexit
+sigterm_set_flag_file="$tmpdir"/sigtermset
+
+data_path="$(task _get rc.data.location)"
+data_path="${data_path%/}"
+
+if [[ -v TASKRC ]]; then
+	config_path="$TASKRC"
+elif [[ -r "$HOME"/.taskrc ]]; then
+	config_path="$HOME"/.taskrc
+elif [[ -v XDG_CONFIG_HOME && -r "$XDG_CONFIG_HOME"/task/taskrc ]]; then
+	config_path="$XDG_CONFIG_HOME"/task/taskrc
+elif [[ -r "$HOME"/.config/task/taskrc ]]; then
+	config_path="$HOME"/.config/task/taskrc
+else
+	echo 'Could not find a taskrc file' >&2
+	exit 66  # EX_NOINPUT
+fi
+
+immediate_update_files=("$task_config_file" "$task_filter_file" "$config_path")
+delay_update_files=("$data_path"/{completed,pending}.data)
+
+printf '%s\n' "${filter[@]}" >"$task_filter_file"
+printf '%s\n' "${config[@]}" >"$task_config_file"
+
+declare -i n=0
+while :; do
+	# If toil isn't already running, start it to monitor for changes to
+	# files that should trigger the task list to be redrawn if they change.
+	if [[ -z "$toil_pid" ]] || ! kill -0 "$toil_pid" 2>/dev/null; then
+		# Technically a window condition here: if files are edited
+		# between here and when toil finishes reading the state of the
+		# files as it starts up, those changes won't trigger a refresh.
+		toil "${immediate_update_files[@]}" \
+			"${delay_update_files[@]}" &
+		toil_pid="$!"
+	fi
+
+	# Kill any running timer and restart it, as we want to redraw the table
+	# intermittently regardless of whether there were any detected changes
+	# in order to update things like due date intervals.
+	if [[ "$sleep_pid" ]]; then
+		kill "$sleep_pid" 2>/dev/null || :
+	fi
+	sleep 15m &
+	sleep_pid="$!"
+
+	# Draw the task list.
+	mapfile -t config <"$task_config_file"
+	mapfile -t filter <"$task_filter_file"
+	task "${config[@]/#/rc.}" "${filter[@]}" "$report"
+
+	if [[ "$no_prompt" ]]; then
+		if [[ -z "$read_pid" ]]; then
+			read -r <&0 &
+			read_pid="$!"
+			bash_pid=
+			trap -- ':' SIGWINCH
+		fi
+		wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
+	else
+		# Start an interactive Bash shell so the user can enter task commands.
+		rm -f "$sigterm_set_flag_file"
+		bash_in_use_flag_file="$tmpdir"/doingthings."$n"
+		bash_in_use_flag_file="$bash_in_use_flag_file" \
+			explicit_exit_flag_file="$explicit_exit_flag_file" \
+			sigterm_set_flag_file="$sigterm_set_flag_file" \
+			debug="$debug" \
+			tmpdir="$tmpdir" \
+			n="$n" \
+			bash --rcfile ~/.local/lib/taskloop/tasklooprc -i \
+			<&0 &
+		bash_pid="$!"
+		read_pid=
+		wait_pids=("$bash_pid" "$toil_pid" "$sleep_pid")
+	fi
+	n="$((n+1))"
+
+	# Wait for one of the three background processes to exit.
+	if wait -np waited_pid "${wait_pids[@]}"; then
+		# One of the processes returned success.
+		case "$waited_pid" in
+			'')
+				printf '%s:%s unexpected null PID\n' \
+					"$0" "$LINENO" \
+					>&2
+				exit 70  # EX_SOFTWARE
+				;;
+			"$toil_pid")
+				# A file change was detected.
+				toil_pid=
+				;;
+			"$sleep_pid")
+				# The timeout for doing a refresh has expired.
+				sleep_pid=
+				;;
+			"$bash_pid")
+				# Bash has exited, either because the user
+				# successfully ran a command, or because Bash
+				# timed out.  Assume the former and loop unless
+				# the exit flag file exists.
+				if [[ -e "$explicit_exit_flag_file" ]]; then
+					# User explicitly ran the "exit"
+					# command.
+					exit 0
+				else
+					bash_pid=
+				fi
+				;;
+			"$read_pid")
+				# The read command has exited.  No way to get
+				# the output, so just assume the user pressed
+				# Return and redraw.  If the user wants to
+				# exit, that's what Ctrl+C is for...
+				read_pid=
+				;;
+			*)
+				printf '%s:%s unexpected PID %s\n' \
+					"$0" "$LINENO" \
+					"$waited_pid" \
+					>&2
+				exit 70  # EX_SOFTWARE
+				;;
+		esac
+	else
+		waitrc="$?"
+		if [[ -v waited_pid && "$waited_pid" = "$bash_pid" ]]; then
+			# Bash can exit with non-zero return codes if the
+			# previous command was unsuccessful.  Don't take that
+			# as an indicator to exit unless the file signalling
+			# that we should really exit exists.
+			if [[ -e "$explicit_exit_flag_file" ]]; then
+				exit "$waitrc"
+			fi
+		elif [[ "$waitrc" = 156 ]]; then
+			# SIGWINCH, so just redraw
+			:
+		else
+			# Non-zero return code or unexpected signal, so exit
+			# with that return code.
+			exit "$waitrc"
+		fi
+	fi
+
+	if [[ "$bash_pid" ]] && kill -0 "$bash_pid" 2>/dev/null; then
+		# The interactive bash session is still running, so we need to
+		# terminate it if the user doesn't appear to be using it, or
+		# wait for it to be done if the user is using it.
+		if [[ ! -e "$bash_in_use_flag_file" ]]; then
+			# User doesn't appear to be using Bash, so send it a
+			# term signal if it's still running.
+			while [[ ! -e "$sigterm_set_flag_file" ]] && kill -0 "$bash_pid" 2>/dev/null; do
+				# Bash hasn't yet indicated it has set the trap
+				# on sigterm, so if we try to terminate it now,
+				# the signal will be ignored.  Wait for the
+				# file to exist before sending the signal.
+				sleep 1
+			done
+			kill "$bash_pid" 2>/dev/null || :
+		fi
+
+		# Wait for the Bash process to exit.
+		wait "$bash_pid" || :
+	fi
+
+	# Wait for files that might get multiple updates in rapid succession to
+	# be stable for a couple of seconds, to avoid rapid cycling.  Wait for
+	# everything else for a second just to be sure toil isn't about to exit
+	# and cause an extra unnecessary loop.
+	echo -n Updating...
+	mtimewait 3 "${delay_update_files[@]}"
+	mtimewait 1 "${immediate_update_files[@]}"
+done
+
+# vim: ft=bash noet ts=8

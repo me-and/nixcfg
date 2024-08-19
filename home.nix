@@ -9,14 +9,18 @@
     pp.dateutil
   ]);
 
-  fileIfExtant = file: lib.optional (builtins.pathExists file) file;
+  # Avoid using lib for this, so it can be safely used with imports.
+  fileIfExtant = file:
+    if builtins.pathExists file
+    then [file]
+    else [];
 in {
   imports =
     [
-      ./local-config.nix
       ./modules/home-manager
       ./modules/shared
     ]
+    ++ fileIfExtant ./local-config.nix
     ++ fileIfExtant ~/.config/home-manager-work;
 
   home = {
@@ -47,6 +51,8 @@ in {
       python
       silver-searcher
       taskwarrior
+      taskloop
+      tmux-taskloop
       toil
 
       # This is in place of setting programs.home-manager.enable, since that

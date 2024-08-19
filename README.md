@@ -52,7 +52,11 @@ All the modules should be imported unconditionally in the appropriate
 circumstances by mentioning them in the relevant `default.nix` files.
 
 Files in this directory should be ones that, at least in principle, could be
-taken upstream: where they define configuration, rather than merely defining
+taken upstream or used by other people (although there's no requirement that
+they not have dependencies on other parts of this repository, so someone else
+actually taking them may need to also take several other parts of the
+repository).  In particular, where they define configuration, rather than
+merely defining
 and implementing configuration _options_, that should be because they're
 defining sensible defaults that others might use.  Configuration that's likely
 to be specific to me should go in either `configuration.nix`, `home.nix` or
@@ -77,9 +81,29 @@ I'm using overlays in the following circumstances:
     build helper.  Packages in the `pkgs` directory should build using
     `pkgs.callPackage` without any additional arguments.
 
+### `lib`
+
+Files in this directory are ones that I want to call explicitly when I need
+them for some specific purpose; there is no requirement that they have a
+standard interface.
+
 ### `config`
 
 TODO
+
+### `local-config.nix`
+
+This file will be imported by both `configuration.nix` and `home.nix` if it
+exists.  In most circumstances, I'd prefer it not to exist, but there are two
+scenarios where I'm using it:
+
+-   Configuration that used to use this model but hasn't yet been migrated to
+    have the configuration checked into the `config` directory with appropriate
+    "is this the right system" tests for whether to use it.
+-   Configuration that uses imports, such as importing hardware modules from
+    the NixOS/nixos-hardware repository, because "is this the right system"
+    tests only happen after the Nix module evaluation has finished importing
+    modules.
 
 ### `secrets` and `local-config`
 
