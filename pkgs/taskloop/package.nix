@@ -4,6 +4,7 @@
   mtimewait,
   toil,
   taskwarrior,
+  ncurses,
   writeCheckedShellApplication,
 }:
 writeCheckedShellApplication {
@@ -14,6 +15,7 @@ writeCheckedShellApplication {
     mtimewait
     taskwarrior
     toil
+    ncurses
   ];
   text =
     builtins.replaceStrings
