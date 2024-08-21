@@ -19,7 +19,7 @@ writeCheckedShellApplication {
   ];
   text =
     builtins.replaceStrings
-    ["~/.local/lib/taskloop/tasklooprc"]
+    ["__TASKLOOPRC_PATH__"]
     ["${./tasklooprc}"]
     (builtins.readFile ./taskloop);
 }

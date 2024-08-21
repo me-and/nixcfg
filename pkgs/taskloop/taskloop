@@ -42,23 +42,44 @@ if ! command -v toil >/dev/null; then
 	exit 69 # EX_UNAVAILABLE
 fi
 
+debug=
+no_prompt=
+watch_sigwinch=Yes
+positional_args=()
+while (( $# > 0 )); do
+	case "$1" in
+		-n)	no_prompt=Yes
+			shift
+			;;
+		-d)	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
+			set -x
+			debug=Yes
+			shift
+			;;
+		-s)	watch_sigwinch=
+			shift
+			;;
+		-n*|-d*|-s*)
+			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
+			;;
+		--)	positional_args+=("$@")
+			break
+			;;
+		*)	positional_args+=("$1")
+			shift
+			;;
+	esac
+done
+
 filter=()
 config=()
 have_reserved_lines=
 have_verbose=
 have_gc=
 have_limit=
-debug=
-no_prompt=
 report=
-for arg; do
+for arg in "${positional_args[@]}"; do
 	case "$arg" in
-		-n)	no_prompt=Yes
-			;;
-		-d)	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
-			set -x
-			debug=Yes
-			;;
 		rc.reserved.lines[:=]*)
 			have_reserved_lines=Yes
 			config+=("${arg#rc.}")
@@ -87,6 +108,7 @@ for arg; do
 			;;
 	esac
 done
+
 [[ "$report" ]] || report=next
 tmpdir="$(mktemp -dt "taskloop.$report.$EPOCHSECONDS.$$.XXXXX")"
 [[ "$have_reserved_lines" ]] || config+=(reserved.lines=0)
@@ -162,7 +184,7 @@ while :; do
 			read -r <&0 &
 			read_pid="$!"
 			bash_pid=
-			trap -- ':' SIGWINCH
+			[[ "$watch_sigwinch" ]] && trap -- ':' SIGWINCH
 		fi
 		wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
 	else
@@ -174,8 +196,9 @@ while :; do
 			sigterm_set_flag_file="$sigterm_set_flag_file" \
 			debug="$debug" \
 			tmpdir="$tmpdir" \
+			watch_sigwinch="$watch_sigwinch" \
 			n="$n" \
-			bash --rcfile ~/.local/lib/taskloop/tasklooprc -i \
+			bash --rcfile __TASKLOOPRC_PATH__ -i \
 			<&0 &
 		bash_pid="$!"
 		read_pid=
