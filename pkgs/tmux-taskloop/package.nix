@@ -3,6 +3,7 @@
   bashInteractive,
   tmux,
   taskloop,
+  coreutils,
   writeTextFile,
   writeCheckedShellApplication,
 }: let
@@ -67,8 +68,10 @@
 in
   writeCheckedShellApplication {
     name = "tmux-taskloop";
+    runtimeInputs = [coreutils];
     text = ''
       exec ${tmux}/bin/tmux \
+          -L tmux-taskloop-$$ \
           start-server \; \
           source-file ${tmuxStartupConf}
     '';
