@@ -116,104 +116,92 @@ in {
   };
 
   config = let
-    localCacheConfig = let
-      inherit
-        (cfg)
-        accessLogPath
-        cache
-        enable
-        resolvers
-        serverAliases
-        serverName
-        upstream
-        ;
-      cacheDirectory =
-        if cache.clearOnRestart
-        then "/tmp/nginxcache"
-        else "/var/cache/nginx";
-    in
-      lib.mkIf enable {
-        services.nginx = {
-          enable = true;
+    inherit
+      (cfg)
+      accessLogPath
+      cache
+      enable
+      resolvers
+      serverAliases
+      serverName
+      upstream
+      ;
+    cacheDirectory =
+      if cache.clearOnRestart
+      then "/tmp/nginxcache"
+      else "/var/cache/nginx";
+  in
+    lib.mkIf enable {
+      services.nginx = {
+        enable = true;
 
-          appendHttpConfig = let
-            proxyCachePathParams =
-              [
-                cacheDirectory
-                "levels=2"
-                "keys_zone=${cache.zone.name}:${cache.zone.size}"
-                "inactive=${cache.ageLimit}"
-                "use_temp_path=off"
-              ]
-              ++ (
-                lib.optional (cache.sizeLimit != null)
-                "max_size=${cache.sizeLimit}"
-              )
-              ++ (
-                lib.optional (cache.minFree != null)
-                "min_free=${cache.minFree}"
-              );
-          in ''
-            proxy_cache_path ${lib.strings.concatStringsSep " " proxyCachePathParams};
-
-            # Cache only success status codes; in particular we don't want to cache 404s.
-            # See https://serverfault.com/a/690258/128321
-            map $status $nix_binary_cache_header {
-              200     "public";
-              302     "public";
-              default "no-cache";
-            }
-          '';
-
-          virtualHosts."${serverName}" = {
-            inherit serverAliases;
-            locations."/" = {
-              proxyPass = "$upstream_endpoint";
-              extraConfig = ''
-                proxy_cache ${cache.zone.name};
-                proxy_cache_valid 200 302 60d;
-                expires max;
-                add_header Cache-Control $nix_binary_cache_header always;
-              '';
-            };
-
-            # Using an Nginx variable for the upstream endpoint ensures that it
-            # is resolved at runtime as opposed to once when the config file is
-            # loaded and then cached forever (we don't want that):
-            # see https://tenzer.dk/nginx-with-dynamic-upstreams/
-            # This fixes errors like
-            #   nginx: [emerg] host not found in upstream "upstream.example.com"
-            # when the upstream host is not reachable for a short time when
-            # nginx is started.
-            extraConfig = lib.strings.concatLines (
-              ["set $upstream_endpoint ${upstream};"]
-              ++ (
-                lib.optional (cfg.resolvers != [])
-                "resolver ${lib.concatStringsSep " " resolvers};"
-              )
-              ++ (
-                lib.optional (accessLogPath != null)
-                "access_log ${accessLogPath};"
-              )
+        appendHttpConfig = let
+          proxyCachePathParams =
+            [
+              cacheDirectory
+              "levels=2"
+              "keys_zone=${cache.zone.name}:${cache.zone.size}"
+              "inactive=${cache.ageLimit}"
+              "use_temp_path=off"
+            ]
+            ++ (
+              lib.optional (cache.sizeLimit != null)
+              "max_size=${cache.sizeLimit}"
+            )
+            ++ (
+              lib.optional (cache.minFree != null)
+              "min_free=${cache.minFree}"
             );
-          };
-        };
+        in ''
+          proxy_cache_path ${lib.strings.concatStringsSep " " proxyCachePathParams};
 
-        # Use the proxy locally, too.  Use mkForce to ensure the upstream server
-        # is never used directly.
-        nix.settings.substituters =
-          lib.mkIf cfg.useLocally
-          (lib.mkForce ["http://${serverName}"]);
+          # Cache only success status codes; in particular we don't want to cache 404s.
+          # See https://serverfault.com/a/690258/128321
+          map $status $nix_binary_cache_header {
+            200     "public";
+            302     "public";
+            default "no-cache";
+          }
+        '';
+
+        virtualHosts."${serverName}" = {
+          inherit serverAliases;
+          locations."/" = {
+            proxyPass = "$upstream_endpoint";
+            extraConfig = ''
+              proxy_cache ${cache.zone.name};
+              proxy_cache_valid 200 302 60d;
+              expires max;
+              add_header Cache-Control $nix_binary_cache_header always;
+            '';
+          };
+
+          # Using an Nginx variable for the upstream endpoint ensures that it
+          # is resolved at runtime as opposed to once when the config file is
+          # loaded and then cached forever (we don't want that):
+          # see https://tenzer.dk/nginx-with-dynamic-upstreams/
+          # This fixes errors like
+          #   nginx: [emerg] host not found in upstream "upstream.example.com"
+          # when the upstream host is not reachable for a short time when
+          # nginx is started.
+          extraConfig = lib.strings.concatLines (
+            ["set $upstream_endpoint ${upstream};"]
+            ++ (
+              lib.optional (cfg.resolvers != [])
+              "resolver ${lib.concatStringsSep " " resolvers};"
+            )
+            ++ (
+              lib.optional (accessLogPath != null)
+              "access_log ${accessLogPath};"
+            )
+          );
+        };
       };
 
-    remoteCacheConfig = lib.mkIf (builtins.pathExists ../../local-config/substituters) {
+      # Use the proxy locally, too.  Use mkForce to ensure the upstream server
+      # is never used directly.
       nix.settings.substituters =
-        lib.splitString "\n"
-        (lib.fileContents ../../local-config/substituters);
+        lib.mkIf cfg.useLocally
+        (lib.mkForce ["http://${serverName}"]);
     };
-  in
-    lib.mkMerge [
-      localCacheConfig
-      remoteCacheConfig
-    ];
 }
