@@ -94,6 +94,7 @@ in {
       {
         hooks.location = "${config.xdg.configHome}/task/hooks";
         recurrence = cfg.createRecurringTasks;
+        "recurrence.limit" = 2;
         color = {
           recurring = null;
           tag.next = null;
@@ -113,6 +114,7 @@ in {
           deleted = "inverse underline";
           completed = "inverse";
         };
+        dateformat.info = "a d b Y H:N:S";
         uda = {
           recurAfterDue.type = "duration";
           recurAfterDue.label = "Rec. after due";
@@ -146,12 +148,21 @@ in {
 
           hiddenTags.type = "string";
           hiddenTags.label = "Hidden tags";
+
+          # Record problems.
+          problems.label = "Problems";
+          problems.type = "string";
+
+          # Field for implementing the blocks: attribute, which is implemented
+          # by my Asmodeus hook scripts.
+          blocks.type = "string";
         };
 
         report = let
           oldOrNewColumnConfig = {
             columns = ["id" "start.age" "entry.age" "modified.age" "depends.indicator" "status.short" "priority" "project" "tags" "recur.indicator" "wait.remaining" "scheduled.relative" "due.relative" "until.relative" "description" "urgency"];
             labels = ["ID" "Active" "Age" "Mod" "D" "S" "P" "Proj" "Tag" "R" "Wait" "Sch" "Due" "Until" "Description" "Urg"];
+            filter = "status:pending or status:waiting";
           };
         in {
           next = {
@@ -198,7 +209,23 @@ in {
             labels = ["ID" "UUID" "Done" "P" "Proj" "Tags" "Due" "Description"];
             sort = ["end-"];
           };
+
+          # Include waiting tasks in the built-in reports I use, as I don't
+          # want those to be hidden.
+          overdue.filter = "( status:pending or status:waiting ) +OVERDUE";
+          recurring.filter = "( ( status:pending or status:waiting ) +CHILD ) or ( status:recurring +PARENT )";
+
+          # Show full project names in the "all" report.
+          all.columns = ["id" "status.short" "uuid.short" "start.age" "entry.age" "end.age" "depends.indicator" "priority" "project" "tags" "recur.indicator" "wait.relative" "scheduled.relative" "due.relative" "until.relative" "description"];
         };
+
+        # Default to a report that'll show blocked and waiting tasks.
+        default.command = "oldest";
+
+        # Make searches case insensitive.  I don't want to remember whether the
+        # word I'm thinking of in a description is at the beginning of the
+        # description or not.
+        search.case.sensitive = false;
 
         # Don't show logs in task info -- it's not worth the screen space.
         journal.info = false;
@@ -215,7 +242,37 @@ in {
           # Reduce the urgency of tasks that are waiting, to reduce the extent
           # to which they boost tasks that block them but which aren't waiting.
           waiting.coefficient = -4;
+
+          # I don't care whether a task is associated with a project or not.
+          project.coefficient = 0;
+          tags.coefficient = 0;
+          annotations.coefficient = 0;
+
+          # Reduce the impact of due dates.  This value puts a task that's due
+          # right now, with no other factors, as having an urgency of 6, i.e.
+          # identical to if it were high priority.
+          due.coefficient = 8.2;
+
+          # If a task can only be done during daylight, bump the priority
+          # slightly so I get to it when it's available.
+          user.tag.daylight.coefficient = 1;
+
+          # I do care about age, I want older tasks to bubble up to the top of
+          # my queue.
+          age.coefficient = 3;
         };
+
+        # Disable nagging: I don't want to be told if I'm not completing the
+        # highest priority task, as I already know.
+        nag = "";
+
+        # Disable changing every instance of a recurring tasks.  It's rare that
+        # I want that, and if I do, I'll do it explicitly.
+        "recurrence.confirmation" = false;
+
+        # Disable renumbering tasks on every filter/list command.  Make it a
+        # manual step that can happen overnight instead.
+        gc = false;
 
         # I have a big shell prompt, so allow multiple lines for it.
         reserved.lines = 3;
@@ -292,80 +349,5 @@ in {
       taskshReviewConfig
       priorityConfig
     ];
-
-    extraConfig = ''
-      # Taskwarrior seems confused about whether tasks that are waiting should be
-      # included in status:pending or not.  The default report definitions seem to
-      # assume they will be, but the behaviour assumes they won't be.  Change the
-      # report definitions to match actual behaviour.
-      report.active.filter=status:pending +ACTIVE
-      report.blocked.filter=status:pending +BLOCKED
-      report.blocking.filter=status:pending +BLOCKING
-      report.list.filter=status:pending
-      report.long.filter=status:pending
-      report.ls.filter=status:pending
-      report.minimal.filter=status:pending or status:waiting
-      report.newest.filter=status:pending or status:waiting
-      report.oldest.filter=status:pending or status:waiting
-      report.overdue.filter=(status:pending or status:waiting) and +OVERDUE
-      report.recurring.filter=((status:pending or status:waiting) +CHILD) or (status:recurring +PARENT)
-      report.timesheet.filter=((status:pending or status:waiting) start.after:now-4wks) or (status:completed end.after:now-4wks)
-      report.unblocked.filter=status:pending -BLOCKED
-      report.waiting.filter=status:waiting
-
-      # Show full project names in the "all" report.
-      report.all.columns=id,status.short,uuid.short,start.age,entry.age,end.age,depends.indicator,priority,project,tags,recur.indicator,wait.relative,scheduled.relative,due.relative,until.relative,description
-
-      # Record problems
-      uda.problems.label=Problems
-      uda.problems.type=string
-
-      # Set dependencies from the blocking tasks as well as the blocked tasks.  This
-      # should always be empty at the point a task is written to file, but it needs
-      # to be defined as a UDA so the field exists for hooks to use.
-      uda.blocks.type=string
-
-      # When creating recurring tasks, create two of them so I get at least a couple
-      # of days for daily tasks.
-      recurrence.limit=2
-
-      # More readable date formats.
-      dateformat.info=a d b Y H:N:S
-
-      # Default to something that'll show blocked and waiting tasks, as that's
-      # probably what I want if I'm using a filter without specifying a report.
-      default.command=oldest
-
-      # Search case insensitive.  I don't want to remember whether the word I'm
-      # thinking of in a description is at the start of the description or not.
-      search.case.sensitive=0
-
-      # I don't care whether a task is associated with a project or not.
-      urgency.project.coefficient=0
-      urgency.tags.coefficient=0
-      urgency.annotations.coefficient=0
-
-      # Reduce the impact of due dates.  This value puts a task that's due now as
-      # having an urgency of 6, the same as having a priority of H.
-      urgency.due.coefficient=8.2
-
-      # If a task can only be done during daylight, bump the priority slightly so I
-      # get to it when it's available
-      urgency.user.tag.daylight.coefficient=1
-
-      # I do care about age; I want older tasks to bubble up to the top of my queue.
-      urgency.age.coefficient=3
-
-      # Don't tell me about not completing the highest priority task; I know!
-      nag=
-
-      # Don't ask if I want to change every instance of a recurring task.  The vast
-      # majority of the time I don't, and if I do, I can ask for that.
-      recurrence.confirmation=no
-
-      # Don't renumber tasks on every filter/list command, and instead make
-      # renumbering a manual step that can happen overnight or similar.
-      gc=0
-    '';
   };
 }
