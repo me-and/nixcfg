@@ -50,6 +50,7 @@ in {
       enum
       ints
       listOf
+      nullOr
       path
       str
       submodule
@@ -428,6 +429,14 @@ in {
       type = listOf unitNameType;
       default = [];
       example = ["usr-local-share-music.mount"];
+    };
+
+    niceness = mkOption {
+      description = ''
+        Niceness value at which to run the Jellyfin server.
+      '';
+      type = nullOr (ints.between (-20) 19);
+      default = null;
     };
 
     # TODO Configure these if they change after the initial configuration, as
@@ -978,10 +987,8 @@ in {
       systemd.services.jellyfin = {
         bindsTo = cfg.requiredSystemdUnits;
         after = cfg.requiredSystemdUnits;
-        serviceConfig.Nice = "-5";
+        serviceConfig.Nice = lib.mkIf (cfg.niceness != null) cfg.niceness;
       };
-
-      users.users."${config.users.me}".extraGroups = ["jellyfin"];
     };
   in
     mkIf cfg.enable (
