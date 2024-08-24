@@ -8,7 +8,6 @@
     ./nginx.nix
     ./nix-cache.nix
     ./pd
-    ./per-system
     ./phone-backup.nix
     ./pi.nix
     ./scantoonedrive.nix

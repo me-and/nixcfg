@@ -20,6 +20,7 @@ in {
       <home-manager/nixos>
       ./modules/nixos
       ./modules/shared
+      ./config/nixos
     ]
     # hardware-configuration.nix is expected to be missing on WSL.
     ++ fileIfExtant ./hardware-configuration.nix
