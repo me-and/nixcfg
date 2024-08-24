@@ -125,8 +125,6 @@ lib.mkIf (config.system.name == "lucy") {
     # manage to get this working with the default system resolver?
   };
 
-  services.postfix.enable = true;
-
   services.scanToOneDrive = {
     enable = true;
     ftpPasvPortRange = {

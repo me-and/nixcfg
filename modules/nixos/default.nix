@@ -3,13 +3,14 @@
     ./channels.nix
     ./hyperv.nix
     ./jellyfin.nix
-    ./mail.nix
+    ./mailutils.nix
     ./mosh.nix
     ./nginx.nix
     ./nix-cache.nix
     ./pd
     ./phone-backup.nix
     ./pi.nix
+    ./postfix.nix
     ./scantoonedrive.nix
     ./sudo.nix
     ./syncthing.nix
