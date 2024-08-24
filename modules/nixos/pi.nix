@@ -13,6 +13,11 @@
       }
     ];
 
+    # Want the Raspberry Pi hardware overlay.
+    nix.channels = {
+      nixos-hardware = "https://github.com/NixOS/nixos-hardware/archive/master.tar.gz";
+    };
+
     # Working bootloader configuration for the Pi.
     boot.loader = {
       grub.enable = false;
