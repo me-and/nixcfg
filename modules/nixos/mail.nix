@@ -14,9 +14,6 @@
     services.postfix = {
       enable = true;
 
-      # Forward emails sent to root to me.
-      rootAlias = config.users.me;
-
       # Set the domain on outgoing emails sent through postfix's sendmail to be
       # the FQDN of this system.  Slightly surprised this isn't the default.
       hostname = lib.mkIf hasFqdn fqdn;
