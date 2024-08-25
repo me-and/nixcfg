@@ -17,9 +17,13 @@
 
       # Disable the status line and prefix keys, so any inner/outer tmux window
       # works normally.
-      set-option status off
-      set-option prefix None
-      set-option prefix2 None
+      %if "#{TMUX_TASKLOOP_DEBUG}"
+          display-message "Debug: leaving status line and prefix in place"
+      %else
+          set-option status off
+          set-option prefix none
+          set-option prefix2 none
+      %endif
 
       # Set up the window layout for the current window size.
       source-file ${tmuxResizeConf}
@@ -70,6 +74,18 @@ in
     name = "tmux-taskloop";
     runtimeInputs = [coreutils];
     text = ''
+      while (( $# > 0 )); do
+          case "$1" in
+          -d|--debug)
+              export TMUX_TASKLOOP_DEBUG=Yes
+              shift
+              ;;
+          *)  echo "Unexpected argument $1" >&2
+              exit 64  # EX_USAGE
+              ;;
+          esac
+      done
+
       exec ${tmux}/bin/tmux \
           -L tmux-taskloop-$$ \
           start-server \; \
