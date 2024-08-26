@@ -14,6 +14,7 @@
       new-session -s taskloop -n taskloop -e TMUX_TASKLOOP=Yes
       new-window -d -n taskloop-next ${bashInteractive}/bin/bash -c 'read; exec ${taskloop}/bin/taskloop -ns'
       new-window -d -n taskloop-waitingfor ${bashInteractive}/bin/bash -c 'read; exec ${taskloop}/bin/taskloop -ns waitingfor'
+      set-environment -h pane_state 'all separate'
 
       # Disable the status line and prefix keys, so any inner/outer tmux window
       # works normally.
@@ -30,12 +31,8 @@
 
       # Set hooks to exit when the command prompt exits, and to resize when the
       # window resizes.
-      set-hook -w pane-exited kill-session
-      set-hook -w window-resized {
-          break-pane -d -s %1 -n taskloop-next
-          break-pane -d -s %2 -n taskloop-waitingfor
-          source-file ${tmuxResizeConf}
-      }
+      set-hook -g pane-exited kill-session
+      set-hook -g window-resized 'source-file ${tmuxResizeConf}'
     '';
   };
 
@@ -47,6 +44,13 @@
   tmuxResizeConf = writeTextFile {
     name = "tmux-taskloop-resize.conf";
     text = ''
+      %if "#{##:#{pane_state},all in one}"
+          break-pane -d -s %1 -n taskloop-next
+          break-pane -d -s %2 -n taskloop-waitingfor
+      %elif "#{!=:#{pane_state,all separate}"
+          display-message -d0 "Unexpected pane state #{pane_state}"
+      %endif
+
       %if "#{e|>:#{window_width},160}"
           # Pull in the panes from the taskloop-next and taskloop-waitingfor
           # windows.  Arrange them one on top of another on the left, with the
@@ -56,16 +60,14 @@
           resize-pane -t %0 -x 80
           select-pane -t %0
 
+          set-environment -h pane_state 'all in one'
+
           # Send Return to the two report windows, to trigger them to redraw or
           # run the initial report.
           send-keys -t %1 C-m
           send-keys -t %2 C-m
       %else
-          # Turn on the status line so the message is visible, then show a
-          # warning.
-          set-option status on
-          display-message -d0 "Don't know how to handle a #{window_width}x#{window_height} window!"
-          set-option status off
+          display-message -d0 "Cannot handle a #{window_width}x#{window_height} window"
       %endif
     '';
   };
