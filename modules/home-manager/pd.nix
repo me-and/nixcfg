@@ -20,8 +20,7 @@
       exec ${unison}/bin/unison \
           -ignore 'Name Thumbs.db' \
           -ignore 'Name .*' \
-          -ignore 'Name ~$*' \
-          -ignore 'Name ~*.idlk' \
+          -ignore 'Name ~*' \
           -dontchmod -perms 0 \
           -fastcheck true \
           -ui text \
