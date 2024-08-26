@@ -12,7 +12,8 @@
     runtimeInputs = [pkgs.coreutils];
     text = ''
       UNISON=${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions/.unison-state"}
-      export UNISON
+      UNISONLOCALHOSTNAME=FakePDUnisonOneDriveSyncHost
+      export UNISON UNISONLOCALHOSTNAME
 
       this_year="$(date +%Y)"
 
