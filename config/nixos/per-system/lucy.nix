@@ -114,7 +114,6 @@ lib.mkIf (config.system.name == "lucy") {
 
   services.nixBinaryCache = {
     enable = true;
-    accessLogPath = "/var/log/nginx/access.log";
 
     # Cache is on a separate partition, so no need to use an absolute size
     # limit, and can use a small free space limit as there shouldn't be
