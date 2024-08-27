@@ -9,17 +9,18 @@
   fileServerSync = pkgs.writeCheckedShellApplication {
     name = "pd-sync-with-fileserver";
     purePath = true;
+    runtimeInputs = [pkgs.coreutils];
     text = ''
       UNISON=${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions/.unison-state"}
-      export UNISON
+      UNISONLOCALHOSTNAME=FakePDUnisonOneDriveSyncHost
+      export UNISON UNISONLOCALHOSTNAME
 
       this_year="$(date +%Y)"
 
       exec ${unison}/bin/unison \
           -ignore 'Name Thumbs.db' \
           -ignore 'Name .*' \
-          -ignore 'Name ~$*' \
-          -ignore 'Name ~*.idlk' \
+          -ignore 'Name ~*' \
           -dontchmod -perms 0 \
           -fastcheck true \
           -ui text \

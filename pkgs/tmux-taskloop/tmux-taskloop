@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+tmux_control_mode_args=()
+while (( $# > 0 )); do
+	case "$1" in
+	-d|--debug)
+		export TMUX_TASKLOOP_DEBUG=Yes
+		shift
+		;;
+	-C|--control)
+		tmux_control_mode_args=(-C)
+		shift
+		;;
+	-d*|-C*)
+		set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
+		;;
+	*)	echo "Unexpected argument $1" >&2
+		exit 64  # EX_USAGE
+		;;
+	esac
+done
+
+exec tmux \
+	-L tmux-taskloop-$$ \
+	"${tmux_control_mode_args[@]}" \
+	start-server \; \
+	source-file tmux-taskloop.conf
