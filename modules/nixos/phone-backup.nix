@@ -30,8 +30,9 @@
         ConfigurationDirectoryMode = "0770";
         RuntimeDirectory = runtimeMountDir;
         RuntimeDirectoryMode = "0770";
+        UMask = "0007";
         User = "syncthing";
-        Group = "syncthing";
+        Group = "rclone";
 
         # TODO This is producing permissions errors.  The mount still unmounts,
         # although I think that's because systemd just kills the rclone process
@@ -90,6 +91,9 @@ in {
               where = "/var/cache/rclone";
             }
           ];
+
+          # Want a group for things that share access to the rclone cache.
+          users.groups.rclone.members = ["syncthing"];
         }
       ]
       ++ (
