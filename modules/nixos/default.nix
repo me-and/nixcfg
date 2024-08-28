@@ -11,6 +11,7 @@
     ./phone-backup.nix
     ./pi.nix
     ./postfix.nix
+    ./rclone.nix
     ./scantoonedrive.nix
     ./sudo.nix
     ./syncthing.nix
