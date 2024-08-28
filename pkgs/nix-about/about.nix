@@ -54,6 +54,7 @@
       Insecure = boolToYN p.meta.insecure;
       Definition = p.meta.position;
       Unsupported = boolToYN p.meta.unsupported;
+      "Store path" = p.outPath;
     };
 
     outputSections = (
@@ -70,6 +71,7 @@
       ++ (lib.optional (p ? meta && p.meta ? longDescription) "Long description")
       ++ ["License"]
       ++ (lib.optional (p ? meta && p.meta ? position) "Definition")
+      ++ (lib.optional (p ? outPath) "Store path")
       ++ (lib.optional (p ? meta && p.meta ? homepage) "Website")
     );
 
