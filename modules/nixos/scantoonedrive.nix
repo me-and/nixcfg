@@ -75,6 +75,7 @@ in {
       hashedPasswordFile = cfg.scannerHashedPasswordFile;
     };
     users.groups."${cfg.scannerGroup}" = {};
+    users.groups.rclone.members = [cfg.scannerUser];
 
     # Set up the FTP server that the scanner will log into.
     services.vsftpd = {
@@ -116,6 +117,8 @@ in {
         CacheDirectoryMode = "0770";
         ConfigurationDirectory = "rclone";
         ConfigurationDirectoryMode = "0770";
+        User = cfg.scannerUser;
+        Group = "rclone";
         ExecStart = pkgs.writeCheckedShellScript {
           name = "ftp-to-onedrive.sh";
           runtimeInputs = [

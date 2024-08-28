@@ -6,12 +6,6 @@
 }: let
   cfg = config.services.rclone;
 
-  escapeSystemdPath = str:
-    lib.strings.fileContents (
-      pkgs.runCommandLocal "escape" {}
-      "${pkgs.systemd}/bin/systemd-escape -p ${lib.strings.escapeShellArg str} >$out"
-    );
-
   waitForTimesync = pkgs.writeCheckedShellScript {
     name = "wait-for-timesync.sh";
     runtimeInputs = [pkgs.inotify-tools];
@@ -57,7 +51,7 @@
   };
 
   mountToService = mountpoint: target: let
-    escapedMountpoint = escapeSystemdPath mountpoint;
+    escapedMountpoint = pkgs.escapeSystemdPath mountpoint;
   in {
     "rclone-mount@${escapedMountpoint}" = {
       Unit = {

@@ -114,7 +114,6 @@ lib.mkIf (config.system.name == "lucy") {
 
   services.nixBinaryCache = {
     enable = true;
-    accessLogPath = "/var/log/nginx/access.log";
 
     # Cache is on a separate partition, so no need to use an absolute size
     # limit, and can use a small free space limit as there shouldn't be
@@ -133,5 +132,17 @@ lib.mkIf (config.system.name == "lucy") {
     };
     scannerUser = "ida";
     scannerHashedPasswordFile = ../../../secrets/ida;
+  };
+
+  services.gnucashFileServer = {
+    enable = true;
+    rclone.needsTime = true;
+    rclone.needsNetwork = true;
+    rclone.gnucashDirectory = "onedrive:Documents/Gnucash";
+    extraVirtualHostConfig = {
+      enableACME = true;
+      acmeRoot = null;
+    };
+    authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
   };
 }

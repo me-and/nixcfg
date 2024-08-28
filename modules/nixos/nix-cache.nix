@@ -103,22 +103,11 @@ in {
       # Using as default the value from Solene's suggested configuration.
       default = "100m";
     };
-
-    accessLogPath = lib.mkOption {
-      description = ''
-        Path to the file in which to store access logs.  If null, no access
-        logs will be kept.
-      '';
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-      example = "/var/log/nginx/access.log";
-    };
   };
 
   config = let
     inherit
       (cfg)
-      accessLogPath
       cache
       enable
       resolvers
@@ -189,10 +178,6 @@ in {
             ++ (
               lib.optional (cfg.resolvers != [])
               "resolver ${lib.concatStringsSep " " resolvers};"
-            )
-            ++ (
-              lib.optional (accessLogPath != null)
-              "access_log ${accessLogPath};"
             )
           );
         };
