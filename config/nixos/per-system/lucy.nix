@@ -133,4 +133,16 @@ lib.mkIf (config.system.name == "lucy") {
     scannerUser = "ida";
     scannerHashedPasswordFile = ../../../secrets/ida;
   };
+
+  services.gnucashFileServer = {
+    enable = true;
+    rclone.needsTime = true;
+    rclone.needsNetwork = true;
+    rclone.gnucashDirectory = "onedrive:Documents/Gnucash";
+    extraVirtualHostConfig = {
+      enableACME = true;
+      acmeRoot = null;
+    };
+    authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
+  };
 }
