@@ -29,24 +29,6 @@ in {
       default = "http://cache.nixos.org";
     };
 
-    # TODO Work out whether this can be made to work using the default system
-    # DNS resolver.
-    resolvers = lib.mkOption {
-      description = "DNS servers";
-      # Default to a selection of public DNS servers to rotate through.
-      default = [
-        "1.1.1.1"
-        "1.0.0.1"
-        "8.8.4.4"
-        "8.8.8.8"
-        "9.9.9.9"
-        "149.112.112.112"
-        "208.67.222.222"
-        "208.67.220.220"
-      ];
-      type = lib.types.listOf lib.types.str;
-    };
-
     useLocally = lib.mkOption {
       description = ''
         Whether to use the binary cache for the local system, as well as
@@ -124,7 +106,20 @@ in {
       services.nginx = {
         enable = true;
 
+        resolver.addresses = [
+          "1.1.1.1"
+          "1.0.0.1"
+          "8.8.4.4"
+          "8.8.8.8"
+          "9.9.9.9"
+          "149.112.112.112"
+          "208.67.222.222"
+          "208.67.220.220"
+        ];
+
         appendHttpConfig = let
+          # Don't use NixOS `services.nginx.proxyCachePath` here as that
+          # doesn't support the options I'd like to use.
           proxyCachePathParams =
             [
               cacheDirectory
@@ -173,13 +168,7 @@ in {
           #   nginx: [emerg] host not found in upstream "upstream.example.com"
           # when the upstream host is not reachable for a short time when
           # nginx is started.
-          extraConfig = lib.strings.concatLines (
-            ["set $upstream_endpoint ${upstream};"]
-            ++ (
-              lib.optional (cfg.resolvers != [])
-              "resolver ${lib.concatStringsSep " " resolvers};"
-            )
-          );
+          extraConfig = "set $upstream_endpoint ${upstream};";
         };
       };
 
