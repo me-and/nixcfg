@@ -45,6 +45,7 @@ fi
 debug=
 prompt=Yes
 watch_sigwinch=Yes
+show_count=
 positional_args=()
 while (( $# > 0 )); do
 	case "$1" in
@@ -59,7 +60,10 @@ while (( $# > 0 )); do
 		-s)	watch_sigwinch=
 			shift
 			;;
-		-n*|-d*|-s*)
+		-c)	show_count=Yes
+			shift
+			;;
+		-n*|-d*|-s*|-c*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
 		--)	positional_args+=("$@")
@@ -70,6 +74,19 @@ while (( $# > 0 )); do
 			;;
 	esac
 done
+
+if [[ "$show_count" ]]; then
+	if [[ "$prompt" ]]; then
+		echo "Can't currently show counts unless prompts are disabled" >&2
+		echo 'Either specify `-n` or remove `-c`' >&2
+		exit 64 # EX_USAGE
+	fi
+	if ! command -v jq >/dev/null; then
+		echo 'jq missing' >&2
+		echo 'Cannot show counts without jq' >&2
+		exit 69 # EX_UNAVAILABLE
+	fi
+fi
 
 filter=()
 config=()
@@ -178,6 +195,10 @@ while :; do
 	mapfile -t config <"$task_config_file"
 	mapfile -t filter <"$task_filter_file"
 	task "${config[@]/#/rc.}" "${filter[@]}" "$report"
+
+	if [[ "$show_count" ]]; then
+		task -COMPLETED -DELETED export | jq -j '"\(length) "'
+	fi
 
 	if [[ "$prompt" ]]; then
 		# Start an interactive Bash shell so the user can enter task commands.
