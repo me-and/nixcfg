@@ -13,20 +13,21 @@
     then [file]
     else [];
 
-  currentDir = builtins.toString ./.;
+  configRootDir = builtins.toString ../..;
 in {
   imports =
     [
       <home-manager/nixos>
-      ./modules/nixos
-      ./modules/shared
-      ./config/nixos
+      ../../modules/nixos
+      ../../modules/shared
+      ./jellyfin.nix
+      ./mail.nix
+      ./nginx.nix
+      ./user.nix
     ]
-    # hardware-configuration.nix is expected to be missing on WSL.
-    ++ fileIfExtant ./hardware-configuration.nix
     # I want to avoid using local-config.nix if I can, but sometimes using it
     # is the quickest and easiest option.
-    ++ fileIfExtant ./local-config.nix;
+    ++ fileIfExtant ../../local-config.nix;
 
   config = {
     warnings = let
@@ -41,7 +42,7 @@ in {
           message = "System hostname left at default.  Consider setting networking.hostName";
         }
         {
-          assertion = !(builtins.pathExists ./passwords);
+          assertion = !(builtins.pathExists ../passwords);
           message = "./passwords exists, and has been renamed ./secrets";
         }
       ];
@@ -115,7 +116,7 @@ in {
       environment.NIX_INDEX_DATABASE = "/var/cache/nix-index";
       environment.NIX_PATH = lib.concatStringsSep ":" [
         "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos"
-        "nixos-config=${currentDir}/configuration.nix"
+        "nixos-config=${configRootDir}/configuration.nix"
         "/nix/var/nix/profiles/per-user/root/channels"
       ];
     };
@@ -147,7 +148,7 @@ in {
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
-    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${currentDir}/secrets/nix-daemon-environment";
+    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${configRootDir}/secrets/nix-daemon-environment";
 
     nix.settings = {
       trusted-users = ["@wheel"];

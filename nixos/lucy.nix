@@ -1,11 +1,13 @@
-{
-  config,
-  lib,
-  ...
-}:
-lib.mkIf (config.system.name == "lucy") {
+{config, ...}: {
+  imports = [
+    <nixos-hardware/raspberry-pi/4>
+    ./common
+    ./lucy-hardware.nix
+  ];
+
   system.stateVersion = "24.05";
   system.isPi4 = true;
+  networking.hostName = "lucy";
   networking.domain = "dinwoodie.org";
 
   programs.mosh = {

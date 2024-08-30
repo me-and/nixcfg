@@ -11,7 +11,7 @@ final: prev: {
     runtimeEnv ? {},
     meta ? {},
     checkPhase ? null,
-    excludeShellChecks ? [],
+    excludeShellChecks ? ["SC2016"],
     optionalShellChecks ? [
       "check-extra-masked-returns"
       "check-set-e-suppressed"

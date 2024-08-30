@@ -43,12 +43,13 @@ if ! command -v toil >/dev/null; then
 fi
 
 debug=
-no_prompt=
+prompt=Yes
 watch_sigwinch=Yes
+show_count=
 positional_args=()
 while (( $# > 0 )); do
 	case "$1" in
-		-n)	no_prompt=Yes
+		-n)	prompt=
 			shift
 			;;
 		-d)	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
@@ -59,7 +60,10 @@ while (( $# > 0 )); do
 		-s)	watch_sigwinch=
 			shift
 			;;
-		-n*|-d*|-s*)
+		-c)	show_count=Yes
+			shift
+			;;
+		-n*|-d*|-s*|-c*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
 		--)	positional_args+=("$@")
@@ -70,6 +74,19 @@ while (( $# > 0 )); do
 			;;
 	esac
 done
+
+if [[ "$show_count" ]]; then
+	if [[ "$prompt" ]]; then
+		echo "Can't currently show counts unless prompts are disabled" >&2
+		echo 'Either specify `-n` or remove `-c`' >&2
+		exit 64 # EX_USAGE
+	fi
+	if ! command -v jq >/dev/null; then
+		echo 'jq missing' >&2
+		echo 'Cannot show counts without jq' >&2
+		exit 69 # EX_UNAVAILABLE
+	fi
+fi
 
 filter=()
 config=()
@@ -166,7 +183,7 @@ while :; do
 	sleep 15m &
 	sleep_pid="$!"
 
-	if [[ "$no_prompt" ]]; then
+	if [[ -z "$prompt" ]]; then
 		# Clear the screen so short tasklists don't get confused by
 		# showing part of the previous list as well as the latest one.
 		# Only do this when running without a prompt, as if there's a
@@ -179,15 +196,11 @@ while :; do
 	mapfile -t filter <"$task_filter_file"
 	task "${config[@]/#/rc.}" "${filter[@]}" "$report"
 
-	if [[ "$no_prompt" ]]; then
-		if [[ -z "$read_pid" ]]; then
-			read -r <&0 &
-			read_pid="$!"
-			bash_pid=
-			[[ "$watch_sigwinch" ]] && trap -- ':' SIGWINCH
-		fi
-		wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
-	else
+	if [[ "$show_count" ]]; then
+		task -COMPLETED -DELETED export | jq -j '"\(length) "'
+	fi
+
+	if [[ "$prompt" ]]; then
 		# Start an interactive Bash shell so the user can enter task commands.
 		rm -f "$sigterm_set_flag_file"
 		bash_in_use_flag_file="$tmpdir"/doingthings."$n"
@@ -203,6 +216,14 @@ while :; do
 		bash_pid="$!"
 		read_pid=
 		wait_pids=("$bash_pid" "$toil_pid" "$sleep_pid")
+	else
+		if [[ -z "$read_pid" ]]; then
+			read -r <&0 &
+			read_pid="$!"
+			bash_pid=
+			[[ "$watch_sigwinch" ]] && trap -- ':' SIGWINCH
+		fi
+		wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
 	fi
 	n="$((n+1))"
 

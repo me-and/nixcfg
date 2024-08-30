@@ -14,9 +14,9 @@ where I'm currently at...
 
 ### `configuration.nix` and `home.nix`
 
-These are the root files for NixOS and Home Manager builds respectively.  They
-should define the configuration I want that's common to everywhere I'm using
-NixOS or Home Manager.
+These files should be symlinks to a system-specific file under the `nixos` or
+`home-manager` directories.  The symlink determines which system this is, and
+these paths are ignored in `.gitignore`.
 
 ### `pkgs`
 
@@ -91,25 +91,12 @@ Files in this directory are ones that I want to call explicitly when I need
 them for some specific purpose; there is no requirement that they have a
 standard interface.
 
-### `config`
-
-This directory contains the actual configuration.  I'm still working out the
-layout...
-
 ### `local-config.nix`
 
-This file will be imported by both `configuration.nix` and `home.nix` if it
-exists, but it isn't checked into the repository.  It records things in the
-following categories:
-
--   Configuration to identify the system in question, so that other appropriate
-    configuration can be applied.  This normally means `networking.hostName`.
--   Imports of modules that can't be usefully hidden behind configuration
-    switches, such as hardware modules from the NixOS/nixos-hardware
-    repository.
--   Private-but-not-secret configuration: things I'm happy to appear in the
-    local Nix store but that I don't want to check into this repository: things
-    like email addresses and IP addresses.
+This file is ignored in `.gitignore`.  It is imported by my Home Manager and
+NixOS configurations, and stores private-but-not-secret information: things
+that are fine to be in the Nix store but that I don't want committed to a
+public repository, such as email or IP addresses.
 
 ### `secrets`
 
@@ -124,5 +111,9 @@ Nix files should follow the [Alejandra][] formatting style; this is checked
 using the `style.sh` script, which is run automatically by GitHub Actions.
 Having tried a selection of different formatters, Alejandra's style was the one
 I ended up objecting to least.
+
+The exception is `nixos/*-hardware.nix` files, which – insofar as possible –
+should be left in the format produced by `nixos-generate-config`, in the name
+of making it easier to diff versions of these files.
 
 [Alejandra]: https://kamadorueda.com/alejandra/

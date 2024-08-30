@@ -5,6 +5,7 @@
   toil,
   taskwarrior,
   ncurses,
+  jq,
   writeCheckedShellApplication,
 }:
 writeCheckedShellApplication {
@@ -15,6 +16,7 @@ writeCheckedShellApplication {
     mtimewait
     taskwarrior
     toil
+    jq
     ncurses
   ];
   text =
