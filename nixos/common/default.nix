@@ -42,7 +42,7 @@ in {
           message = "System hostname left at default.  Consider setting networking.hostName";
         }
         {
-          assertion = !(builtins.pathExists ../passwords);
+          assertion = !(builtins.pathExists ../../passwords);
           message = "./passwords exists, and has been renamed ./secrets";
         }
       ];
@@ -170,7 +170,7 @@ in {
       acceptTerms = true;
       defaults = {
         dnsProvider = "mythicbeasts";
-        environmentFile = builtins.toString ./secrets/mythic-beasts;
+        environmentFile = "${configRootDir}/secrets/mythic-beasts";
       };
     };
 

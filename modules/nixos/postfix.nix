@@ -30,10 +30,15 @@ in {
 
     secureAuth = lib.mkOption {
       description = ''
-        Whether to set up SMTP authentication to use secure connections.
+        Whether to set up SMTP authentication to use secure connections.  By
+        default, this will be enabled if there is a relay authentication file,
+        as you want to be sure the connection to the relay is secure, and
+        disabled otherwise, as either you're not connecting anywhere remotely
+        or you're sending mail directly so can't rely on any particular server
+        supporting TLS.
       '';
       type = lib.types.bool;
-      default = true;
+      default = cfg.relayAuthFile != null;
     };
   };
 

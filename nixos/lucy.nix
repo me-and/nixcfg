@@ -1,4 +1,6 @@
-{config, ...}: {
+{config, ...}: let
+  secretsDir = builtins.toString ../secrets;
+in {
   imports = [
     <nixos-hardware/raspberry-pi/4>
     ./common
@@ -59,7 +61,7 @@
     };
     users.initialUser = {
       name = "adam";
-      passwordFile = "/etc/nixos/secrets/jellyfin/adam";
+      passwordFile = "${secretsDir}/jellyfin/adam";
     };
     libraries = {
       Music = {
@@ -133,7 +135,7 @@
       to = 56624;
     };
     scannerUser = "ida";
-    scannerHashedPasswordFile = ../../../secrets/ida;
+    scannerHashedPasswordFile = "${secretsDir}/ida";
   };
 
   services.gnucashFileServer = {
@@ -145,6 +147,6 @@
       enableACME = true;
       acmeRoot = null;
     };
-    authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
+    authFilePath = "${secretsDir}/${config.networking.fqdn}-auth";
   };
 }
