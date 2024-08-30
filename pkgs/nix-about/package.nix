@@ -1,8 +1,8 @@
 {
-  writeShellApplication,
+  writeCheckedShellApplication,
   nix,
 }:
-writeShellApplication {
+writeCheckedShellApplication {
   name = "nix-about";
   text = ''
     set_nixpkgs_args () {
@@ -52,7 +52,6 @@ writeShellApplication {
         fi
         # shellcheck disable=SC1003
         escaped_name="''${p//'\'/'\\'}"
-        # shellcheck disable=SC2016
         escaped_name="''${escaped_name//${"'"}''${'/'\''${'}"
         escaped_name="''${escaped_name//'"'/'\"'}"
         package_names+="\"$escaped_name\""
