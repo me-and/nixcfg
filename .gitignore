@@ -1,5 +1,7 @@
 /secrets/
 /local-config/
-/hardware-configuration.nix
 /local-config.nix
+/configuration.nix
+/home.nix
+/hardware-configuration.nix
 result

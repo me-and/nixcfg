@@ -1,9 +1,7 @@
 {
-  config,
-  lib,
-  ...
-}:
-lib.mkIf (config.system.name == "multivac") {
+  imports = [./common];
+
+  system.name = "multivac";
   system.stateVersion = "24.05";
   system.isWsl = true;
   networking.domain = "dinwoodie.org";

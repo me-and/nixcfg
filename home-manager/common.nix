@@ -17,10 +17,10 @@
 in {
   imports =
     [
-      ./modules/home-manager
-      ./modules/shared
+      ../modules/home-manager
+      ../modules/shared
     ]
-    ++ fileIfExtant ./local-config.nix;
+    ++ fileIfExtant ../local-config.nix;
 
   home = {
     username = lib.mkDefault "adam";
