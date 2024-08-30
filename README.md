@@ -112,4 +112,8 @@ using the `style.sh` script, which is run automatically by GitHub Actions.
 Having tried a selection of different formatters, Alejandra's style was the one
 I ended up objecting to least.
 
+The exception is `nixos/*-hardware.nix` files, which – insofar as possible –
+should be left in the format produced by `nixos-generate-config`, in the name
+of making it easier to diff versions of these files.
+
 [Alejandra]: https://kamadorueda.com/alejandra/

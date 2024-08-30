@@ -6,7 +6,7 @@ find_args=(
 	\(
 		\(
 			-path ./.git
-			-o -name hardware-configuration.nix
+			-o -path './nixos/*-hardware.nix'
 		\)
 		-prune
 	\)

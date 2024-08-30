@@ -2,6 +2,7 @@
   imports = [
     <nixos-hardware/raspberry-pi/4>
     ./common
+    ./lucy-hardware.nix
   ];
 
   system.stateVersion = "24.05";

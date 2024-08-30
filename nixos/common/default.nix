@@ -25,8 +25,6 @@ in {
       ./nginx.nix
       ./user.nix
     ]
-    # hardware-configuration.nix is expected to be missing on WSL.
-    ++ fileIfExtant ../../hardware-configuration.nix
     # I want to avoid using local-config.nix if I can, but sometimes using it
     # is the quickest and easiest option.
     ++ fileIfExtant ../../local-config.nix;
