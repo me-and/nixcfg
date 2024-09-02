@@ -90,9 +90,20 @@ in
     # don't include those files so they need making separately.  This based on
     # the contents of the make command in the buildPhase in the standard
     # builder.
-    preConfigure = ''
+    preConfigure = let
+      # May or may not have Nixpkgs' 6bdfef9d2de2 (stdenv: generalize
+      # _accumFlagsArray to concatTo, 2024-06-09)
+      #
+      # TODO Remove this once I only care about versions that have this patch,
+      # which probably means once NixOS 24.11 is released and I've shifted all
+      # my systems over to it.
+      buildArrayCmd =
+        if lib.versionAtLeast lib.version "24.11pre-git"
+        then "concatTo flagsArray"
+        else "_accumFlagsArray";
+    in ''
       local flagsArray=(''${enableParallelBuilding:+-j''${NIX_BUILD_CORES}} SHELL=$SHELL)
-      _accumFlagsArray makeFlags makeFlagsArray buildFlags buildFlagsArray
+      ${buildArrayCmd} makeFlags makeFlagsArray buildFlags buildFlagsArray
       echoCmd 'configure build flags' "''${flagsArray[@]}"
       make ''${makefile:+-f $makefile} "''${flagsArray[@]}" configure
       unset flagsArray
