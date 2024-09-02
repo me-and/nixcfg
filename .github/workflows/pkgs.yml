@@ -45,14 +45,16 @@ jobs:
           extra-conf: sandbox = relaxed
       - name: Set up Nix cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
-      - name: Get Nix channel ${{ matrix.channel }}
+      - name: Store Nix channel to use
         if: matrix.channel != null
         env:
           CHANNEL: ${{ matrix.channel }}
         run: |
-          nix-channel --add https://nixos.org/channels/"$CHANNEL" nixos
-          nix-channel --update
+          printf 'NIX_PATH=nixpkgs=channel:%s\n' "$CHANNEL" >>$GITHUB_ENV
       - name: Build ${{ matrix.package }}
         env:
           PACKAGE: ${{ matrix.package }}
-        run: nix-build pkgs -A "$PACKAGE" -I nixpkgs-overlays="$PWD"/overlays
+        run: |
+          nix-instantiate --eval --json -E '(import <nixpkgs> {}).lib.version' |
+              jq -r '"Nixpkgs version: \(.)"' >&2
+          nix-build pkgs -A "$PACKAGE" -I nixpkgs-overlays="$PWD"/overlays
