@@ -1,5 +1,6 @@
 {
   imports = [
+    ./calendar-emails.nix
     ./forward.nix
     ./homeshick.nix
     ./overlays.nix
