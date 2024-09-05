@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
@@ -22,7 +21,7 @@ in {
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
-  home.file = lib.mkIf config.systemd.user.enable (lib.attrsets.mergeAttrsList [
+  home.file = lib.attrsets.mergeAttrsList [
     (systemdWants "ssh-agent.service" "default.target")
     (systemdWants "taskwarrior-gc.service" "default.target")
     (systemdWants "taskwarrior-sync.service" "default.target")
@@ -34,7 +33,7 @@ in {
     (systemdWants "homeshick-report.timer" "timers.target")
     (systemdWants "taskwarrior-gc.timer" "timers.target")
     (systemdWants "taskwarrior-sync.timer" "timers.target")
-  ]);
+  ];
 
   #programs.git.package = pkgs.git-tip;
 
