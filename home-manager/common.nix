@@ -53,6 +53,7 @@ in {
       silver-searcher
       taskwarrior
       taskloop
+      tmux
       tmux-taskloop
       toil
 
