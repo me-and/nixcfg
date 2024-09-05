@@ -2,6 +2,9 @@
 set -euo pipefail
 
 tmux_control_mode_args=()
+
+export TMUX_TASKLOOP_MAIN_REPORT=next
+
 while (( $# > 0 )); do
 	case "$1" in
 	-d|--debug)
@@ -10,6 +13,18 @@ while (( $# > 0 )); do
 		;;
 	-C|--control)
 		tmux_control_mode_args=(-C)
+		shift
+		;;
+	-r|--report)
+		TMUX_TASKLOOP_MAIN_REPORT="$2"
+		shift 2
+		;;
+	-r*)
+		TMUX_TASKLOOP_MAIN_REPORT="${1#-r}"
+		shift
+		;;
+	--report=*)
+		TMUX_TASKLOOP_MAIN_REPORT="${1#--report=}"
 		shift
 		;;
 	-d*|-C*)
