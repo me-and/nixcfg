@@ -1,9 +1,9 @@
 {
   imports = [./common];
 
-  system.name = "multivac";
   system.stateVersion = "24.05";
   system.isWsl = true;
+  networking.hostName = "multivac";
   networking.domain = "dinwoodie.org";
 
   networking.accessPD = true;
