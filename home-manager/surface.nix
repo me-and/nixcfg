@@ -35,15 +35,10 @@ in {
     (systemdWants "taskwarrior-sync.timer" "timers.target")
   ];
 
-  #programs.git.package = pkgs.git-tip;
-
-  pd.enable = true;
-
   # Configure programs.taskwarrior.sync.credentials in local-config.nix.  Not
   # sure this is necessary, but I'd rather have it private than not.
   programs.taskwarrior = {
     enable = true;
-    createRecurringTasks = true;
     sync = {
       enable = true;
       address = "taskwarrior.dinwoodie.org";
