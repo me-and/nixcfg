@@ -2,6 +2,7 @@
 set -euo pipefail
 
 tmux_control_mode_args=()
+filter=()
 
 export TMUX_TASKLOOP_MAIN_REPORT=next
 
@@ -34,11 +35,18 @@ while (( $# > 0 )); do
 	-d*|-C*|-o*)
 		set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 		;;
-	*)	echo "Unexpected argument $1" >&2
-		exit 64  # EX_USAGE
+	--)
+		shift
+		filter+=("$@")
+		break
+		;;
+	*)	filter+=("$1")
+		shift
 		;;
 	esac
 done
+
+export TMUX_TASKLOOP_FILTER="${filter[*]}"
 
 exec tmux \
 	-L tmux-taskloop-$$ \
