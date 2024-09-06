@@ -27,6 +27,7 @@
           `.service` part.
         '';
         type = lib.types.str;
+        defaultText = "rclone-mount@<escaped `config.where`>";
       };
       unitFullName = lib.mkOption {
         description = ''
@@ -75,12 +76,12 @@
       };
       mountDirPerms = lib.mkOption {
         description = "Permissions for directories in the mount.";
-        type = lib.types.str;
+        type = lib.types.strMatching "[0-7]{3,4}";
         default = "0750";
       };
       mountFilePerms = lib.mkOption {
         description = "Permissions for files in the mount.";
-        type = lib.types.str;
+        type = lib.types.strMatching "[0-7]{3,4}";
         default = "0640";
       };
       readOnly = lib.mkOption {
@@ -88,7 +89,46 @@
         default = false;
         type = lib.types.bool;
       };
+      cacheMode = lib.mkOption {
+        description = "The VFS cache mode to use.";
+        type = lib.types.enum [
+          "off"
+          "minimal"
+          "writes"
+          "full"
+        ];
+        default = "full";
+      };
 
+      extraRcloneArgs = lib.mkOption {
+        description = ''
+          Extra arguments to pass to the `rclone mount` command.  These will be
+          merged with the generated arguments.
+
+          These arguments won't be escaped, so make sure to use
+          lib.strings.escapeShellString if necessary.  But that does mean you
+          can use shell variables, which include $CONFIGURATION_DIRECTORY, and
+          $uid and $gid for the IDs corresponding to config.mountOwner and
+          config.mountGroup.
+        '';
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        example = ["--allow-non-empty"];
+      };
+      rcloneArgs = lib.mkOption {
+        description = ''
+          Arguments to pass to rclone.  Setting this will replace all arguments
+          except the "mount" command and the "what" and "where" positional
+          arguments.
+
+          These arguments won't be escaped, so make sure to use
+          lib.strings.escapeShellString if necessary.  But that does mean you
+          can use shell variables, which include $CONFIGURATION_DIRECTORY, and
+          $uid and $gid for the IDs corresponding to config.mountOwner and
+          config.mountGroup.
+        '';
+        type = lib.types.listOf lib.types.str;
+      };
       extraUnitConfig = lib.mkOption {
         description = ''
           Extra configuration for the systemd unit.  This will be merged with
@@ -103,11 +143,25 @@
       };
     };
 
-    config = let
+    config = {
       unitName = lib.mkDefault "rclone-mount@${pkgs.escapeSystemdPath config.where}";
-    in {
-      inherit unitName;
       unitFullName = systemdServiceCfg."${config.unitName}".name;
+
+      rcloneArgs = lib.mkDefault (
+        [
+          "--config=\"\${CONFIGURATION_DIRECTORY}/rclone.conf\""
+          "--cache-dir=\"\$CACHE_DIRECTORY\""
+          "--vfs-cache-mode=${config.cacheMode}"
+          "--allow-other"
+          "--default-permissions"
+          "--dir-perms=${lib.escapeShellArg config.mountDirPerms}"
+          "--file-perms=${lib.escapeShellArg config.mountFilePerms}"
+          "--uid=\"\$uid\""
+          "--gid=\"\$gid\""
+        ]
+        ++ config.extraRcloneArgs
+        ++ lib.optional config.readOnly "--read-only"
+      );
 
       unitConfig =
         lib.recursiveUpdate
@@ -138,16 +192,7 @@
                 IFS=: read -r _ _ gid _ <<<"$mount_group_info"
 
                 exec ${pkgs.rclone}/bin/rclone mount \
-                    --config="''${CONFIGURATION_DIRECTORY}/rclone.conf" \
-                    --cache-dir="''${CACHE_DIRECTORY}" \
-                    --vfs-cache-mode full \
-                    ${lib.optionalString config.readOnly "--read-only"} \
-                    --allow-other \
-                    --default-permissions \
-                    --dir-perms ${lib.escapeShellArg config.mountDirPerms} \
-                    --file-perms ${lib.escapeShellArg config.mountFilePerms} \
-                    --uid "$uid" \
-                    --gid "$gid" \
+                    ${lib.concatStringsSep " \\\n    " config.rcloneArgs} \
                     ${lib.escapeShellArg config.what} \
                     ${lib.escapeShellArg config.where}
               '';
