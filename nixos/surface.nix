@@ -3,10 +3,8 @@
 
   system.stateVersion = "24.05";
   system.isWsl = true;
-  networking.hostName = "multivac";
+  networking.hostName = "surface";
   networking.domain = "dinwoodie.org";
-
-  networking.accessPD = true;
 
   services.postfix = {
     enable = true;

@@ -2,6 +2,10 @@
 set -euo pipefail
 
 tmux_control_mode_args=()
+filter=()
+
+export TMUX_TASKLOOP_MAIN_REPORT=next
+
 while (( $# > 0 )); do
 	case "$1" in
 	-d|--debug)
@@ -12,14 +16,37 @@ while (( $# > 0 )); do
 		tmux_control_mode_args=(-C)
 		shift
 		;;
-	-d*|-C*)
+	-o|--one)
+		export TMUX_TASKLOOP_ONE_REPORT=Yes
+		shift
+		;;
+	-r|--report)
+		TMUX_TASKLOOP_MAIN_REPORT="$2"
+		shift 2
+		;;
+	-r*)
+		TMUX_TASKLOOP_MAIN_REPORT="${1#-r}"
+		shift
+		;;
+	--report=*)
+		TMUX_TASKLOOP_MAIN_REPORT="${1#--report=}"
+		shift
+		;;
+	-d*|-C*|-o*)
 		set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 		;;
-	*)	echo "Unexpected argument $1" >&2
-		exit 64  # EX_USAGE
+	--)
+		shift
+		filter+=("$@")
+		break
+		;;
+	*)	filter+=("$1")
+		shift
 		;;
 	esac
 done
+
+export TMUX_TASKLOOP_FILTER="${filter[*]}"
 
 exec tmux \
 	-L tmux-taskloop-$$ \

@@ -191,10 +191,11 @@ while :; do
 		clear
 	fi
 
-	# Draw the task list.
+	# Draw the task list.  Ignore errors because they normally mean the
+	# tasklist is empty, but that doesn't mean I need to quit.
 	mapfile -t config <"$task_config_file"
 	mapfile -t filter <"$task_filter_file"
-	task "${config[@]/#/rc.}" "${filter[@]}" "$report"
+	task "${config[@]/#/rc.}" "${filter[@]}" "$report" || :
 
 	if [[ "$show_count" ]]; then
 		task -COMPLETED -DELETED export | jq -j '"\(length) "'

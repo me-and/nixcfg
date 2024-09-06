@@ -29,6 +29,9 @@
           -root /usr/share/gonzo \
           -path Empire/GOD \
           -path 'IT/Front End/Empire.mdb' \
+          -path 'IT/Front End/Backups' \
+          -ignore 'Path IT/Front End/Backups/*' \
+          -ignorenot 'Path IT/Front End/Backups/*Empire*.mdb' \
           -path IT/Fonts \
           -path 'IT/Software/Printer Drivers' \
           -path Artwork/Logos \
