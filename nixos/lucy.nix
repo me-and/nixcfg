@@ -1,4 +1,8 @@
-{config, ...}: let
+{
+  config,
+  pkgs,
+  ...
+}: let
   secretsDir = builtins.toString ../secrets;
 in {
   imports = [
@@ -37,8 +41,9 @@ in {
     {
       what = "/dev/disk/by-uuid/06ab96b5-b34b-47e7-862d-1410dd0a5425";
       type = "btrfs";
-      where = "/usr/local/share/av";
-      options = "subvol=@av";
+      where = "/run/av";
+      options = "subvol=@av,noexec";
+      mountConfig.RuntimeDirectory = "av";
     }
     {
       what = "/dev/disk/by-uuid/213a8de3-da05-40ca-995d-40c1b76eb3ca";
@@ -48,11 +53,48 @@ in {
     }
   ];
 
+  programs.rclone.mounts =
+    map
+    (
+      dirName: {
+        what = ":hasher,remote=/,hashes=quickxor:/run/av/${dirName}";
+        where = "/usr/local/share/av/${dirName}";
+        needsNetwork = false;
+        mountOwner = "jellyfin";
+        mountGroup = "jellyfin";
+        mountDirPerms = "0775";
+        mountFilePerms = "0664";
+        cacheMode = "writes";
+        extraRcloneArgs = ["--vfs-fast-fingerprint"];
+        extraUnitConfig = {
+          unitConfig.RequiresMountsFor = ["/run/av"];
+          serviceConfig.ExecStartPre = [
+            "${pkgs.coreutils}/bin/mkdir -p /usr/local/share/av/${dirName}"
+          ];
+          serviceConfig.User = "root";
+          serviceConfig.Group = "root";
+        };
+      }
+    )
+    [
+      "music"
+      "films"
+      "tv"
+      "fitness"
+    ];
+
   services.jellyfin = {
     enable = true;
     # This server can be very slow to start up...
     configTimeout = 120;
-    requiredSystemdUnits = ["usr-local-share-av.mount"];
+    requiredSystemdUnits =
+      map (n: "rclone-mount@usr-local-share-av-${n}.service")
+      [
+        "music"
+        "films"
+        "tv"
+        "fitness"
+      ];
     virtualHost = {
       enable = true;
       fqdn = "jelly.dinwoodie.org";
@@ -85,10 +127,11 @@ in {
     apiDebugScript = true;
     forceReconfigure = false;
   };
+
   services.snapper.configs.av = {
     TIMELINE_CREATE = true;
     TIMELINE_CLEANUP = true;
-    SUBVOLUME = "/usr/local/share/av";
+    SUBVOLUME = "/run/av";
     ALLOW_USERS = [config.users.me];
     SYNC_ACL = true;
     EMPTY_PRE_POST_CLEANUP = true;
