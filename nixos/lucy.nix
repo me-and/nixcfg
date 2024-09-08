@@ -71,8 +71,6 @@ in {
           serviceConfig.ExecStartPre = [
             "${pkgs.coreutils}/bin/mkdir -p /usr/local/share/av/${dirName}"
           ];
-          serviceConfig.User = "root";
-          serviceConfig.Group = "root";
         };
       }
     )
