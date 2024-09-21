@@ -16,20 +16,6 @@
     taskd.trust = cfg.sync.trust;
   };
 
-  taskshReviewConfig = {
-    uda.reviewed = {
-      type = "date";
-      label = "Reviewed";
-    };
-    report._reviewed = {
-      description = "Tasksh review report.  Adjust the filter to your needs.";
-      columns = ["uuid"];
-      sort = ["problems" "reviewed+" "modified+"];
-      filter = "( reviewed.none: or reviewed.before:now-6days or problems.any: ) -COMPLETED -DELETED";
-      context = false;
-    };
-  };
-
   # Rejig priorities: I want L to mean "explicitly low", and to rescore
   # accordingly.
   priorityConfig = {
@@ -346,7 +332,6 @@ in {
       }
 
       taskdConfig
-      taskshReviewConfig
       priorityConfig
     ];
   };
