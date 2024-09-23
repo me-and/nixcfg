@@ -14,6 +14,7 @@ stdenvNoCC.mkDerivation rec {
     rev = "v${version}";
     hash = "sha256-7usTM6pKv6toLs61RGVtOHC4Yzh1YIgqFclA265vmtg=";
   };
+  nativeBuildInputs = [makeWrapper];
   installPhase = ''
     mkdir -p $out/bin
     cp mtimewait $out/bin/mtimewait
