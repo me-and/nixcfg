@@ -1,11 +1,11 @@
 {
-  writeShellApplication,
+  writeCheckedShellApplication,
   nix-index,
 }:
-writeShellApplication {
+writeCheckedShellApplication {
   name = "nix-locate-bin";
   text = ''
-    ${nix-index}/bin/nix-locate \
+    exec ${nix-index}/bin/nix-locate \
         --minimal \
         --no-group \
         --type x --type s \
