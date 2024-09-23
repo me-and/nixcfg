@@ -63,6 +63,22 @@ in {
   # therefore everything needs to be done manually.
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
+  systemd.user.services = {
+    taskwarrior-create-recurring-tasks = {
+      Unit.Description = "Create recurring Taskwarrior tasks";
+      Service.Type = "oneshot";
+      Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.recurrence=true ids";
+    };
+  };
+  systemd.user.timers = {
+    taskwarrior-create-recurring-tasks = {
+      Unit.Description = "Create recurring Taskwarrior tasks daily";
+      Install.WantedBy = ["timers.target"];
+      Timer.OnCalendar = "01:00";
+      Timer.AccuracySec = "6h";
+    };
+  };
+
   services.rclone.enable = true;
   services.rclone.mountPoints = {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
@@ -113,5 +129,7 @@ in {
     ];
   };
 
+  # TODO Fix my email config.
   home.packages = [pkgs.offlineimap];
+  programs.neomutt.enable = true;
 }
