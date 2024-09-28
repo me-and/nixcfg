@@ -51,6 +51,13 @@ in {
 
   home.packages = [pkgs.keepass];
 
+  programs.firefox = {
+    enable = true;
+    package = pkgs.firefox.override {
+      nativeMessagingHosts = [pkgs.gnome-browser-connector];
+    };
+  };
+
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
