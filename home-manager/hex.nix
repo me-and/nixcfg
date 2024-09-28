@@ -28,14 +28,12 @@
     "bash\\x2dgit\\x2dprompt"
     "homeshick"
   ];
-  systemdTimerSymlinks =
-      map systemdWantsTimer [
-        "disk-usage-report"
-        "homeshick-report"
-        "taskwarrior-gc"
-        "taskwarrior-sync"
-      ]
-    ;
+  systemdTimerSymlinks = map systemdWantsTimer [
+    "disk-usage-report"
+    "homeshick-report"
+    "taskwarrior-gc"
+    "taskwarrior-sync"
+  ];
   systemdPathSymlinks = [];
 
   systemdSymlinks = lib.mergeAttrsList (
