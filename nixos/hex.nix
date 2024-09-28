@@ -1,5 +1,6 @@
 {
   imports = [
+    <nixos-hardware/framework/16-inch/7040-amd>
     ./hex-hardware.nix
     ./common
   ];
