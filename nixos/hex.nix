@@ -25,6 +25,8 @@
 
   nix.settings.substituters = ["http://192.168.1.131"];
 
+  programs.steam.enable = true;
+
   # Work around https://github.com/NixOS/nixos-hardware/pull/1151
   environment.etc."libinput/local-overrides.quirks".text = lib.mkForce ''
     [Framework Laptop 16 Keyboard Module]
