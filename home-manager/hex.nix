@@ -50,7 +50,7 @@ in {
   home.stateVersion = "24.05";
 
   home.packages = [
-    pkgs.keepass
+    pkgs.keepassxc
     pkgs.gnucash
   ];
 
