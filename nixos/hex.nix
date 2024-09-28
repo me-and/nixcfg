@@ -1,4 +1,4 @@
-{
+{lib, ...}: {
   imports = [
     <nixos-hardware/framework/16-inch/7040-amd>
     ./hex-hardware.nix
@@ -24,6 +24,20 @@
   };
 
   nix.settings.substituters = ["http://192.168.1.131"];
+
+  # Work around https://github.com/NixOS/nixos-hardware/pull/1151
+  environment.etc."libinput/local-overrides.quirks".text = lib.mkForce ''
+    [Framework Laptop 16 Keyboard Module]
+    MatchName=Framework Laptop 16 Keyboard Module*
+    MatchUdevType=keyboard
+    MatchDMIModalias=dmi:*svnFramework:pnLaptop16*
+    AttrKeyboardIntegration=internal
+  '';
+
+  # https://github.com/NixOS/nixos-hardware/pull/1152
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0012", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
+  '';
 
   system.stateVersion = "24.05";
 }
