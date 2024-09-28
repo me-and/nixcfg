@@ -45,11 +45,14 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./common.nix];
+  imports = [./common];
 
   home.stateVersion = "24.05";
 
-  home.packages = [pkgs.keepass];
+  home.packages = [
+    pkgs.keepass
+    pkgs.gnucash
+  ];
 
   programs.firefox = {
     enable = true;

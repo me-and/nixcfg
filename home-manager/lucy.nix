@@ -54,7 +54,7 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./common.nix];
+  imports = [./common];
 
   home.stateVersion = "24.05";
 
