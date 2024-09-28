@@ -17,6 +17,7 @@
 in {
   imports =
     [
+      ./firefox.nix
       ../../modules/home-manager
       ../../modules/shared
     ]
