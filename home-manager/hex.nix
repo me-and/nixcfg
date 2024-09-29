@@ -47,10 +47,18 @@ in {
 
   home.stateVersion = "24.05";
 
-  home.packages = [
-    pkgs.keepassxc
-    pkgs.gnucash
+  home.packages = with pkgs; [
+    gnucash
+    keepassxc
+    netflix
   ];
+
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [
+      "netflix-via-google-chrome"
+      "google-chrome"
+      "netflix-icon"
+    ];
 
   programs.firefox = {
     enable = true;
