@@ -2,6 +2,17 @@
 #!nix-shell -i bash -p alejandra -p findutils
 set -euo pipefail
 
+command=(alejandra -c)
+while (( $# > 0 )); do
+	if [[ "$1" = '-f' || "$1" = '--fix' ]]; then
+		command=(alejandra)
+		shift
+	else
+		printf 'Unrecognised argument: %s\n' "$1" >&2
+		exit 64 # EX_USAGE
+	fi
+done
+
 find_args=(
 	\(
 		\(
@@ -13,7 +24,7 @@ find_args=(
 	-o \(
 		-type f
 		-name '*.nix'
-		-exec alejandra -c {} +
+		-exec "${command[@]}" {} +
 	\)
 )
 
