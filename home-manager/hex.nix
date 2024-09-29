@@ -28,14 +28,12 @@
     "bash\\x2dgit\\x2dprompt"
     "homeshick"
   ];
-  systemdTimerSymlinks =
-      map systemdWantsTimer [
-        "disk-usage-report"
-        "homeshick-report"
-        "taskwarrior-gc"
-        "taskwarrior-sync"
-      ]
-    ;
+  systemdTimerSymlinks = map systemdWantsTimer [
+    "disk-usage-report"
+    "homeshick-report"
+    "taskwarrior-gc"
+    "taskwarrior-sync"
+  ];
   systemdPathSymlinks = [];
 
   systemdSymlinks = lib.mergeAttrsList (
@@ -45,16 +43,26 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./common.nix];
+  imports = [./common];
 
   home.stateVersion = "24.05";
 
-  home.packages = [pkgs.keepass];
+  home.packages = [
+    pkgs.keepassxc
+    pkgs.gnucash
+  ];
+
+  programs.firefox = {
+    enable = true;
+    package = pkgs.firefox.override {
+      nativeMessagingHosts = [pkgs.gnome-browser-connector];
+    };
+  };
 
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
-  #home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
+  home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
   services.rclone.enable = true;
   services.rclone.mountPoints = {
