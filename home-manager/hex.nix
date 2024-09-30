@@ -52,6 +52,7 @@ in {
     gnucash
     keepassxc
     netflix
+    telegram-desktop
     whatsapp-for-linux
   ];
 
