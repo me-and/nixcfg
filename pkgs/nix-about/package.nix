@@ -4,6 +4,7 @@
 }:
 writeCheckedShellApplication {
   name = "nix-about";
+  purePath = true;
   text = ''
     set_nixpkgs_args () {
         nixpkgs_args+=(--arg pkgs "import ($1) {}")

@@ -28,24 +28,13 @@
     "bash\\x2dgit\\x2dprompt"
     "homeshick"
   ];
-  systemdTimerSymlinks =
-    (
-      map systemdWantsTimer [
-        "disk-usage-report"
-        "homeshick-report"
-        "report-onedrive-conflicts"
-        "taskwarrior-gc"
-        "taskwarrior-inbox"
-        "taskwarrior-monthly"
-        "taskwarrior-project-check"
-        "taskwarrior-sync"
-      ]
-    )
-    ++ [(systemdWantsInstance "offlineimap-full@.timer" "adam\\x40dinwoodie.org" "timers.target")];
-  systemdPathSymlinks = map systemdWantsPath [
-    "taskwarrior-dinwoodie.org-emails"
-    "sign-petitions"
+  systemdTimerSymlinks = map systemdWantsTimer [
+    "disk-usage-report"
+    "homeshick-report"
+    "taskwarrior-gc"
+    "taskwarrior-sync"
   ];
+  systemdPathSymlinks = [];
 
   systemdSymlinks = lib.mergeAttrsList (
     systemdServiceSymlinks
@@ -58,26 +47,22 @@ in {
 
   home.stateVersion = "24.05";
 
+  home.packages = [
+    pkgs.keepassxc
+    pkgs.gnucash
+  ];
+
+  programs.firefox = {
+    enable = true;
+    package = pkgs.firefox.override {
+      nativeMessagingHosts = [pkgs.gnome-browser-connector];
+    };
+  };
+
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
-
-  systemd.user.services = {
-    taskwarrior-create-recurring-tasks = {
-      Unit.Description = "Create recurring Taskwarrior tasks";
-      Service.Type = "oneshot";
-      Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.recurrence=true ids";
-    };
-  };
-  systemd.user.timers = {
-    taskwarrior-create-recurring-tasks = {
-      Unit.Description = "Create recurring Taskwarrior tasks daily";
-      Install.WantedBy = ["timers.target"];
-      Timer.OnCalendar = "01:00";
-      Timer.AccuracySec = "6h";
-    };
-  };
 
   services.rclone.enable = true;
   services.rclone.mountPoints = {
@@ -117,19 +102,4 @@ in {
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   accounts.email.forwardLocal.enable = true;
-
-  #programs.git.package = pkgs.git-tip;
-
-  services.calendarEmails = {
-    enable = true;
-    calendars = [
-      config.accounts.email.accounts.main.address
-      "Birthdays"
-      "Adam Dinwoodie's Facebook Events"
-    ];
-  };
-
-  # TODO Fix my email config.
-  home.packages = [pkgs.offlineimap];
-  programs.neomutt.enable = true;
 }

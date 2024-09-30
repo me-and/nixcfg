@@ -14,7 +14,7 @@
 
   homeshickReportUnit = instance: systemdWantsInstance "homeshick-pull@.service" instance "homeshick-report.service";
 in {
-  imports = [./common.nix];
+  imports = [./common];
 
   home.stateVersion = "24.05";
 

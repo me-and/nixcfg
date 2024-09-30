@@ -14,7 +14,7 @@
 
   homeshickReportUnit = instance: systemdWantsInstance "homeshick-pull@.service" instance "homeshick-report.service";
 in {
-  imports = [./common.nix];
+  imports = [./common];
 
   home.stateVersion = "24.05";
 
@@ -43,7 +43,6 @@ in {
   # sure this is necessary, but I'd rather have it private than not.
   programs.taskwarrior = {
     enable = true;
-    createRecurringTasks = true;
     sync = {
       enable = true;
       address = "taskwarrior.dinwoodie.org";

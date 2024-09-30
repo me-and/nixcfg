@@ -1,6 +1,9 @@
 {
+  lib,
   fetchFromGitHub,
   stdenvNoCC,
+  makeWrapper,
+  coreutils,
 }:
 stdenvNoCC.mkDerivation rec {
   pname = "mtimewait";
@@ -11,8 +14,11 @@ stdenvNoCC.mkDerivation rec {
     rev = "v${version}";
     hash = "sha256-7usTM6pKv6toLs61RGVtOHC4Yzh1YIgqFclA265vmtg=";
   };
+  nativeBuildInputs = [makeWrapper];
   installPhase = ''
     mkdir -p $out/bin
-    cp mtimewait $out/bin/
+    cp mtimewait $out/bin/mtimewait
+    wrapProgram $out/bin/mtimewait \
+        --set PATH ${lib.makeBinPath [coreutils]}
   '';
 }
