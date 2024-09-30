@@ -48,16 +48,19 @@ in {
   home.stateVersion = "24.05";
 
   home.packages = with pkgs; [
+    discord
     gnucash
     keepassxc
     netflix
+    whatsapp-for-linux
   ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [
-      "netflix-via-google-chrome"
+      "discord"
       "google-chrome"
       "netflix-icon"
+      "netflix-via-google-chrome"
     ];
 
   programs.firefox = {
