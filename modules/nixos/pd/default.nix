@@ -27,6 +27,7 @@
           "${secretsDir}/my-pd-key.crt"
         ]
         vpnConfigTemplate;
+      updateResolvConf = true;
     };
   };
 
