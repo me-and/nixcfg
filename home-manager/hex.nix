@@ -47,10 +47,22 @@ in {
 
   home.stateVersion = "24.05";
 
-  home.packages = [
-    pkgs.keepassxc
-    pkgs.gnucash
+  home.packages = with pkgs; [
+    discord
+    gnucash
+    keepassxc
+    netflix
+    telegram-desktop
+    whatsapp-for-linux
   ];
+
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [
+      "discord"
+      "google-chrome"
+      "netflix-icon"
+      "netflix-via-google-chrome"
+    ];
 
   programs.firefox = {
     enable = true;
