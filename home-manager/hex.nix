@@ -54,6 +54,7 @@ in {
     netflix
     telegram-desktop
     whatsapp-for-linux
+    zoom-us
   ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
@@ -62,6 +63,7 @@ in {
       "google-chrome"
       "netflix-icon"
       "netflix-via-google-chrome"
+      "zoom"
     ];
 
   programs.firefox = {
