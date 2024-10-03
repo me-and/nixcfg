@@ -18,6 +18,12 @@
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
+  hardware.pulseaudio.enable = true;
+  hardware.bluetooth.enable = true;
+  services.hardware.bolt.enable = true;
+  services.colord.enable = true;
+  services.samba.enable = true;
+  services.autorandr.enable = true;
 
   services.postfix = {
     enable = true;
