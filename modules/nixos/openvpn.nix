@@ -10,6 +10,7 @@ in
     systemd.services = lib.optionalAttrs cfg.restartAfterSleep {
       openvpn-restart.script = let
         unitNames = map (n: "openvpn-${n}.service") (builtins.attrNames cfg.servers);
-      in lib.mkForce "systemctl try-restart ${lib.escapeShellArgs unitNames}";
+      in
+        lib.mkForce "systemctl try-restart ${lib.escapeShellArgs unitNames}";
     };
   }
