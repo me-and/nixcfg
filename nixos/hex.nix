@@ -23,7 +23,6 @@
   services.hardware.bolt.enable = true;
   services.colord.enable = true;
   services.samba.enable = true;
-  services.autorandr.enable = true;
 
   services.postfix = {
     enable = true;
