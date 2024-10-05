@@ -50,8 +50,10 @@ in {
   home.packages = with pkgs; [
     discord
     gnucash
+    gnome.gnome-calculator # Prefer this to the KDE options
     keepassxc
     netflix
+    qalculate-gtk
     telegram-desktop
     whatsapp-for-linux
     zoom-us
