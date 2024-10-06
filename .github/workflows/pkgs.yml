@@ -19,7 +19,7 @@ jobs:
           delim="$(uuidgen)"
           exec >"$GITHUB_OUTPUT"
           printf 'packages<<%s\n' "$delim"
-          nix-instantiate --eval --json -E 'import ./lib/freepackages.nix {}'
+          nix-instantiate --eval --json -E 'builtins.attrNames (import ./pkgs {})'
           printf '%s\n' "$delim"
 
   build-packages:
@@ -36,6 +36,8 @@ jobs:
           - nixos-unstable-small
           - nixpkgs-unstable
           - null
+    env:
+      NIXPKGS_ALLOW_UNFREE: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
