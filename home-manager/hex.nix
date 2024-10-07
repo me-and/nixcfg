@@ -47,10 +47,27 @@ in {
 
   home.stateVersion = "24.05";
 
-  home.packages = [
-    pkgs.keepassxc
-    pkgs.gnucash
+  home.packages = with pkgs; [
+    discord
+    gnucash
+    gnome.gnome-calculator # Prefer this to the KDE options
+    jellyfin-via-google-chrome
+    keepassxc
+    netflix
+    qalculate-gtk
+    telegram-desktop
+    whatsapp-for-linux
+    zoom-us
   ];
+
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [
+      "discord"
+      "google-chrome"
+      "netflix-icon"
+      "netflix-via-google-chrome"
+      "zoom"
+    ];
 
   programs.firefox = {
     enable = true;

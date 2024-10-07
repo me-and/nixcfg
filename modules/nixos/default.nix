@@ -7,6 +7,7 @@
     ./mosh.nix
     ./nginx.nix
     ./nix-cache.nix
+    ./openvpn.nix
     ./pd
     ./phone-backup.nix
     ./pi.nix
