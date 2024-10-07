@@ -83,8 +83,9 @@
         Group = "rclone";
         Type = "oneshot";
         CacheDirectory = "rclone";
+        CacheDirectoryMode = "0770";
         ConfigurationDirectory = "rclone";
-        ConfigurationDirectoryPerms = "0770";
+        ConfigurationDirectoryMode = "0770";
         Nice = 5;
       };
       script = ''

@@ -174,9 +174,9 @@
           serviceConfig = {
             Type = "notify";
             CacheDirectory = "rclone";
-            CacheDirectoryMode = "0750";
+            CacheDirectoryMode = "0770";
             ConfigurationDirectory = "rclone";
-            ConfigurationDirectoryMode = "0750";
+            ConfigurationDirectoryMode = "0770";
             # This sets the user and group for the rclone mount process; the user
             # and group for the mounted directory are set separately.
             User = "rclone";
