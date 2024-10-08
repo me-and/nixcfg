@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   imports = [
     <nixos-hardware/framework/16-inch/7040-amd>
     ./hex-hardware.nix
@@ -33,6 +37,12 @@
   nix.settings.substituters = ["http://192.168.1.131"];
 
   programs.steam.enable = true;
+
+  # Use Nautilus, the Gnome file manager as well as the KDE one, as I prefer
+  # the search interface for it.  Also enable the indexing tools that it uses.
+  environment.systemPackages = [pkgs.gnome.nautilus];
+  services.gnome.tracker.enable = true;
+  services.gnome.tracker-miners.enable = true;
 
   # Work around https://github.com/NixOS/nixos-hardware/pull/1151
   environment.etc."libinput/local-overrides.quirks".text = lib.mkForce ''
