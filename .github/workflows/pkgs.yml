@@ -19,7 +19,7 @@ jobs:
           delim="$(uuidgen)"
           exec >"$GITHUB_OUTPUT"
           printf 'packages<<%s\n' "$delim"
-          nix-instantiate --eval --json -E 'builtins.attrNames (import ./pkgs {})'
+          nix-instantiate --eval --json -E 'import ./lib/github-testable-packages.nix {}'
           printf '%s\n' "$delim"
 
   build-packages:
