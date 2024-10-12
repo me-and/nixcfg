@@ -22,11 +22,15 @@
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
-  hardware.pulseaudio.enable = true;
   hardware.bluetooth.enable = true;
   services.hardware.bolt.enable = true;
   services.colord.enable = true;
   services.samba.enable = true;
+
+  # This setting seems to be necessary to have both the speakers and mics work
+  # on my Bluetooth headsets.
+  # https://atish3604.medium.com/solved-bluetooth-headset-mic-not-working-detected-in-ubuntu-20-04-86a5236444d0
+  services.pipewire.pulse.enable = true;
 
   services.postfix = {
     enable = true;
