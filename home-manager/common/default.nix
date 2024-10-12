@@ -57,6 +57,7 @@ in {
       tmux
       tmux-taskloop
       toil
+      unzip
 
       # This is in place of setting programs.home-manager.enable, since that
       # doesn't pick up my overlay.
