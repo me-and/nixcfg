@@ -55,6 +55,7 @@ in {
     keepassxc
     netflix
     qalculate-gtk
+    signal-desktop
     telegram-desktop
     whatsapp-for-linux
     zoom-us
