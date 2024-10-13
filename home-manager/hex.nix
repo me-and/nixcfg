@@ -53,6 +53,7 @@ in {
     gnome.gnome-calculator # Prefer this to the KDE options
     jellyfin-via-google-chrome
     keepassxc
+    libreoffice
     netflix
     qalculate-gtk
     signal-desktop
