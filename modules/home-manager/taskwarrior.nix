@@ -266,11 +266,11 @@ in {
         context = let
           readFilter = s: "( ${s} ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )";
         in {
-          evening-weekend.read = readFilter "-business -southport -dadford -work";
-          allotment.read = readFilter "-home -southport -dadford -enfield -work";
+          evening-weekend.read = readFilter "-business -southport -dadford -work -office";
+          allotment.read = readFilter "-home -southport -dadford -enfield -work -office";
           day-off = {
             # Prioritise things that can only be done in business hours.
-            read = readFilter "-southport -dadford -work";
+            read = readFilter "-southport -dadford -work -office";
             rc.urgency.user.tag.business.coefficient = 6;
           };
           work = {
@@ -285,17 +285,17 @@ in {
           dadford = {
             # Prioritise things that can only be done on site, and filter out
             # things that aren't urgent and aren't PD related.
-            read = readFilter "-home -southport -enfield -business -work -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
+            read = readFilter "-home -southport -enfield -business -work -office -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
             write = "+dadford";
             rc.urgency.user.tag.dadford.coefficient = 10;
           };
           southport = {
             # Prioritise things that can only be done in Southport.
-            read = readFilter "-allotment -enfield -dadford -home -work";
+            read = readFilter "-allotment -enfield -dadford -home -work -office";
             rc.urgency.user.tag.southport.coefficient = 20;
           };
-          bike.read = readFilter "-home -southport -dadford -enfield -work -car -multivac -cornwall -phone";
-          bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -pc -multivac -audio -business -alex -car -cornwall -phone -surface";
+          bike.read = readFilter "-home -southport -dadford -enfield -work -office -car -multivac -cornwall -phone";
+          bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -office -pc -multivac -audio -business -alex -car -cornwall -phone -surface";
           office = {
             # Prioritise things that can only be done in the office.
             read = readFilter "-southport -dadford -multivac -allotment -nsfw -alex -home -car";
