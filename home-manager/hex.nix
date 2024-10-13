@@ -81,6 +81,7 @@ in {
   services.rclone.enable = true;
   services.rclone.mountPoints = {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
+    "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
   };
 
   # Configure programs.taskwarrior.sync.credentials in local-config.nix.  Not
