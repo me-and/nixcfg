@@ -146,9 +146,10 @@ in {
 
         report = let
           oldOrNewColumnConfig = {
-            columns = ["id" "start.age" "entry.age" "modified.age" "depends.indicator" "status.short" "priority" "project" "tags" "recur.indicator" "wait.remaining" "scheduled.relative" "due.relative" "until.relative" "description" "urgency"];
+            columns = ["id" "start.age" "entry.age" "modified.age" "depends.indicator" "status.short" "priority" "project" "tags" "recur.indicator" "wait.remaining" "scheduled.relative" "due.relative" "until.relative" "description.count" "urgency"];
             labels = ["ID" "Active" "Age" "Mod" "D" "S" "P" "Proj" "Tag" "R" "Wait" "Sch" "Due" "Until" "Description" "Urg"];
             filter = "status:pending or status:waiting";
+            context = false;
           };
         in {
           next = {
@@ -175,16 +176,8 @@ in {
             sort = ["due+"];
           };
 
-          oldest =
-            {
-              context = false;
-            }
-            // oldOrNewColumnConfig;
-          newest =
-            {
-              context = false;
-            }
-            // oldOrNewColumnConfig;
+          oldest = oldOrNewColumnConfig;
+          newest = oldOrNewColumnConfig;
           all.context = false;
           completed.context = false;
 
