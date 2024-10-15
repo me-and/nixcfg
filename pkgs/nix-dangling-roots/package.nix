@@ -17,7 +17,9 @@ writeCheckedShellApplication {
         -type l \
         \! -xtype l \
         \! -lname '/home/*/.local/state/nix/profiles/*' \
+        \! -lname '/root/.local/state/nix/profiles/*' \
         \! -lname '/home/*/.local/state/home-manager/gcroots/*' \
+        \! -lname '/root/.local/state/home-manager/gcroots/*' \
         \! -lname '/nix/var/nix/profiles/*' \
         -exec \
             ${coreutils}/bin/ls --color=auto -lvh {} +
