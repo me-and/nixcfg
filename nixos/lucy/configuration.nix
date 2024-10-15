@@ -3,13 +3,13 @@
   pkgs,
   ...
 }: let
-  secretsDir = builtins.toString ../secrets;
+  secretsDir = builtins.toString ../../secrets;
 in {
   imports = [
     <nixos-hardware/raspberry-pi/4>
-    ./common
-    ./lucy-hardware.nix
-    ./lucy-media.nix
+    ../common
+    ./hardware-configuration.nix
+    ./media.nix
   ];
 
   system.stateVersion = "24.05";

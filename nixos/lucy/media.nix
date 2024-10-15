@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  secretsDir = builtins.toString ../secrets;
+  secretsDir = builtins.toString ../../secrets;
 
   # Check times all randomly generated.
   mediaDirectories = [
