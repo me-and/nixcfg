@@ -46,6 +46,7 @@ in {
       mtimewait
       ncdu
       nix-about
+      nix-dangling-roots
       nix-diff
       nix-locate-bin
       psmisc
