@@ -58,6 +58,7 @@ in {
     qalculate-gtk
     signal-desktop
     telegram-desktop
+    vlc
     whatsapp-for-linux
     zoom-us
   ];
