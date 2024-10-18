@@ -21,7 +21,6 @@
   fetchurl,
   stdenv,
   xorg,
-
   # If you have your own UIDs allocated, this is the place to define them, e.g.
   # by adding `"-DDefaultUIDRoot=1.2.840.99999"`.
   imakeConfigurationArgs ? [],
