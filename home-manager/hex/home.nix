@@ -43,7 +43,7 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./common];
+  imports = [../common];
 
   home.stateVersion = "24.05";
 
@@ -53,9 +53,12 @@ in {
     gnome.gnome-calculator # Prefer this to the KDE options
     jellyfin-via-google-chrome
     keepassxc
+    libreoffice
     netflix
     qalculate-gtk
+    signal-desktop
     telegram-desktop
+    vlc
     whatsapp-for-linux
     zoom-us
   ];
@@ -79,6 +82,7 @@ in {
   services.rclone.enable = true;
   services.rclone.mountPoints = {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
+    "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
   };
 
   # Configure programs.taskwarrior.sync.credentials in local-config.nix.  Not

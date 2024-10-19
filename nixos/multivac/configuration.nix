@@ -1,10 +1,12 @@
 {
-  imports = [./common];
+  imports = [../common];
 
   system.stateVersion = "24.05";
   system.isWsl = true;
-  networking.hostName = "surface";
+  networking.hostName = "multivac";
   networking.domain = "dinwoodie.org";
+
+  networking.accessPD = true;
 
   services.postfix = {
     enable = true;

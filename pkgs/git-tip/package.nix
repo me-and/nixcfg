@@ -112,15 +112,9 @@ in
 
     preInstallCheck =
       # https://github.com/NixOS/nixpkgs/pull/314258
-      (
-        builtins.replaceStrings
-        ["disable_test t1700-split-index"] [":"]
-        oldAttrs.preInstallCheck
-      )
-      # https://github.com/NixOS/nixpkgs/commit/150cd0ab619dae2da2fc7f8d8478000571e1717d
-      + ''
-        disable_test t9902-completion
-      '';
+      builtins.replaceStrings
+      ["disable_test t1700-split-index"] [":"]
+      oldAttrs.preInstallCheck;
 
     # If we want to keep the source in the store rather than allowing it to be
     # garbage collected (useful as it means the next fetch doesn't need to

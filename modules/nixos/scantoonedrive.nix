@@ -125,6 +125,7 @@ in {
             pkgs.lsof
             pkgs.rclone
             pkgs.system-sendmail
+            pkgs.coreutils
           ];
           runtimeEnv = {
             MAIL_USER = config.users.me;
@@ -134,14 +135,30 @@ in {
             shopt -s nullglob
             for ext in pdf jpg; do
                 for file in *."$ext"; do
-                    # Wait for the file to be closed; lsof will loop until it is.
-                    rc=0
-                    lsof -f +r -Fpn -w -- "$file" || rc="$?"
-                    if (( rc != 0 && rc != 1 )); then
-                        # Unexpected return code, e.g. because Bash couldn't find
-                        # lsof.
-                        exit "$rc"
-                    fi
+                    # Wait until two separate invocations of lsof, spaced by a
+                    # couple of seconds, have failed to spot anything with this
+                    # file open.  When just waiting for nothing to have the
+                    # file open, I've seen occasional uploads of empty files,
+                    # so this loop adds a bit of delay to hopefully avoid that.
+                    no_open_file_count=0
+                    while (( no_open_file_count < 2 )); do
+                        sleep 2
+                        rc=0
+                        lsof -f +r -Fpn -w -- "$file" || rc="$?"
+                        if (( rc == 0 )); then
+                            # Saw something that had the file open.  The file
+                            # has now closed, but I don't entirely trust
+                            # something to not open it again.
+                            no_open_file_count=0
+                        elif (( rc == 1 )); then
+                            # Nothing had the file open.
+                            no_open_file_count=$(( no_open_file_count + 1 ))
+                        else
+                            # Unexpected return code, e.g. because Bash
+                            # couldn't find lsof.
+                            exit "$rc"
+                        fi
+                    done
 
                     basename="''${file%."$ext"}"
 

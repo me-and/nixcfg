@@ -5,8 +5,8 @@
 }: {
   imports = [
     <nixos-hardware/framework/16-inch/7040-amd>
-    ./hex-hardware.nix
-    ./common
+    ./hardware-configuration.nix
+    ../common
   ];
 
   boot.loader.systemd-boot.enable = true;
