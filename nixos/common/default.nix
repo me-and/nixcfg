@@ -23,6 +23,7 @@ in {
       ./jellyfin.nix
       ./mail.nix
       ./nginx.nix
+      ./root.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
@@ -98,7 +99,7 @@ in {
     # For the system Git installation, gitMinimal is fine; I'll have the full
     # installation, probably on the tip, in Home Manager.
     programs.git.enable = true;
-    programs.git.package = pkgs.gitMinimal;
+    programs.git.package = pkgs.gitMinimal.out;
 
     home-manager.useGlobalPkgs = true;
 
