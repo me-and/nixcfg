@@ -64,7 +64,7 @@ in {
     programs.vim.defaultEditor = true;
 
     # Always want a /mnt directory.
-    system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
+    system.activationScripts.mnt = "mkdir -m 755 -p /mnt";
 
     # Always want screen.  Including this here looks like it also sets up some
     # PAM configuration, which is presumably relevant...
