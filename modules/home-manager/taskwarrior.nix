@@ -16,6 +16,18 @@
     taskd.trust = cfg.sync.trust;
   };
 
+  # Disable the built-in aliases by configuring them to be themselves.  If I
+  # type "history" in a task description, I don't want it to be silently
+  # rewritten to "history.monthly".
+  aliasConfig = {
+    alias = {
+      burndown = "burndown";
+      ghistory = "ghistory";
+      history = "history";
+      rm = "rm";
+    };
+  };
+
   # Rejig priorities: I want L to mean "explicitly low", and to rescore
   # accordingly.
   priorityConfig = {
@@ -324,6 +336,7 @@ in {
         verbose = ["affected" "blank" "context" "edit" "header" "footnote" "label" "new-id" "project" "sync" "override" "recur"];
       }
 
+      aliasConfig
       taskdConfig
       priorityConfig
     ];
