@@ -48,6 +48,7 @@ in {
   home.stateVersion = "24.05";
 
   home.packages = with pkgs; [
+    android-tools # adb
     discord
     gnucash
     gnome.gnome-calculator # Prefer this to the KDE options
