@@ -12,6 +12,13 @@ in {
     ./media.nix
   ];
 
+  # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
+  hardware = {
+    raspberry-pi."4".apply-overlays-dtmerge.enable = true;
+    deviceTree.enable = true;
+    deviceTree.filter = "*rpi-4-*.dtb";
+  };
+
   system.stateVersion = "24.05";
   system.isPi4 = true;
   networking.hostName = "lucy";
