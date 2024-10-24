@@ -123,6 +123,7 @@
               --checksum \
               --modify-window=1s \
               --skip-links \
+              --skip-specials \
               --verbose \
               :hasher,remote=/,hashes=quickxor:${lib.escapeShellArg bindMountpoint} \
               onedrive:'Held for other people/Mum/iMac data' || :
@@ -132,6 +133,7 @@
               --checksum \
               --modify-window=1s \
               --skip-links \
+              --skip-specials \
               :hasher,remote=/,hashes=quickxor:${lib.escapeShellArg bindMountpoint} \
               onedrive:'Held for other people/Mum/iMac data'
         '';
