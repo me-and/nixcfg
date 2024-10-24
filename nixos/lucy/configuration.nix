@@ -42,6 +42,11 @@ in {
 
   services.openssh.ports = [22 44035];
 
+  systemd.watchdog = {
+    runtimeTime = "15s";
+    rebootTime = "5m";
+  };
+
   services.nibbleBackup.enable = true;
 
   #networking.accessPD = true;
