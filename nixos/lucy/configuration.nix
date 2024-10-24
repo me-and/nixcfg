@@ -110,4 +110,10 @@ in {
     };
     authFilePath = "${secretsDir}/${config.networking.fqdn}-auth";
   };
+
+  nix.nixBuildDotNet = {
+    enable = true;
+    enableSubstituter = true;
+    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
+  };
 }
