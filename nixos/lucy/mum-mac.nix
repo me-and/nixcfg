@@ -111,6 +111,7 @@
       wantedBy = ["multi-user.target"];
       serviceConfig.User = "adam"; # TODO Fragile
       serviceConfig.Group = "users"; # TODO Fragile
+      serviceConfig.Nice = 10;
 
       serviceConfig.ExecStart = pkgs.writeCheckedShellScript {
         name = "rclone-mum-mac.sh";
