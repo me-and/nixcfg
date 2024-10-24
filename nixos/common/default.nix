@@ -23,6 +23,7 @@ in {
       ./jellyfin.nix
       ./mail.nix
       ./nginx.nix
+      ./root.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
@@ -64,7 +65,7 @@ in {
     programs.vim.defaultEditor = true;
 
     # Always want a /mnt directory.
-    system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
+    system.activationScripts.mnt = "mkdir -m 755 -p /mnt";
 
     # Always want screen.  Including this here looks like it also sets up some
     # PAM configuration, which is presumably relevant...
@@ -98,7 +99,7 @@ in {
     # For the system Git installation, gitMinimal is fine; I'll have the full
     # installation, probably on the tip, in Home Manager.
     programs.git.enable = true;
-    programs.git.package = pkgs.gitMinimal;
+    programs.git.package = pkgs.gitMinimal.out;
 
     home-manager.useGlobalPkgs = true;
 

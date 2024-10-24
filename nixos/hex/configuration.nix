@@ -48,6 +48,8 @@
   services.gnome.tracker.enable = true;
   services.gnome.tracker-miners.enable = true;
 
+  programs.kdeconnect.enable = true;
+
   # Work around https://github.com/NixOS/nixos-hardware/pull/1151
   environment.etc."libinput/local-overrides.quirks".text = lib.mkForce ''
     [Framework Laptop 16 Keyboard Module]
