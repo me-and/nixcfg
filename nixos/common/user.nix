@@ -12,10 +12,7 @@ in {
   # necessary, but in practice a bunch of things need extra work without this
   # (e.g. the UIDs get confused, and you can't launch GUI applications as a
   # result).
-  users.me =
-    if config.system.isWsl
-    then config.wsl.defaultUser
-    else "adam";
+  users.me = config.wsl.defaultUser or "adam";
 
   # Set up my user account.
   users.users."${cfg.me}" = {

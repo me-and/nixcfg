@@ -1,8 +1,11 @@
 {
-  imports = [../common];
+  imports = [
+    <nixos-wsl/modules>
+    ../common
+  ];
 
   system.stateVersion = "24.05";
-  system.isWsl = true;
+  wsl.enable = true;
   networking.hostName = "surface";
   networking.domain = "dinwoodie.org";
 

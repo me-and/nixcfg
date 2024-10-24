@@ -25,6 +25,7 @@ in {
       ./nginx.nix
       ./root.nix
       ./user.nix
+      ./wsl.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
     # is the quickest and easiest option.
