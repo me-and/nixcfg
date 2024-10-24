@@ -38,8 +38,6 @@
     relayPort = 587;
   };
 
-  nix.settings.substituters = ["http://192.168.1.131"];
-
   programs.steam.enable = true;
 
   # Use Nautilus, the Gnome file manager as well as the KDE one, as I prefer
