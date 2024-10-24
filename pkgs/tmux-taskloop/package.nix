@@ -14,6 +14,7 @@ stdenvNoCC.mkDerivation {
     bashInteractive
     makeBinaryWrapper
   ];
+  preferLocalBuild = true;
   installPhase = ''
     mkdir -p $out/bin $out/lib
 

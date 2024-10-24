@@ -30,8 +30,6 @@ final: prev: {
     writeTextFile {
       inherit name meta destination derivationArgs;
       executable = true;
-      allowSubstitutes = true;
-      preferLocalBuild = false;
 
       text =
         ''

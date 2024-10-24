@@ -78,7 +78,7 @@ in {
   networking.dhcpcd.IPv6rs = false;
 
   services.nixBinaryCache = {
-    enable = true;
+    enable = false;
 
     # Cache is on a separate partition, so no need to use an absolute size
     # limit, and can use a small free space limit as there shouldn't be
