@@ -53,8 +53,14 @@
     ++ systemdTimerSymlinks
     ++ systemdPathSymlinks
   );
+
+  # Avoid using lib for this, so it can be safely used with imports.
+  fileIfExtant = file:
+    if builtins.pathExists file
+    then [file]
+    else [];
 in {
-  imports = [../common];
+  imports = [../common] ++ fileIfExtant ./local-config.nix;
 
   home.stateVersion = "24.05";
 

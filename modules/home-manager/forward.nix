@@ -11,7 +11,14 @@
   primaryEmailAccount =
     lib.lists.findSingle (acc: acc.primary) null null
     (builtins.attrValues cfg.accounts);
-  primaryEmailAddress = primaryEmailAccount.address;
+  primaryEmailAddress =
+    if primaryEmailAccount == null
+    then throw ''
+      No primary email account found to forward local emails to.  Either define
+      accounts.email.forwardLocal.target or mark an account under
+      accounts.email.accounts as being primary.
+      ''
+    else primaryEmailAccount.address;
 in {
   options.accounts.email.forwardLocal = {
     enable = lib.mkOption {

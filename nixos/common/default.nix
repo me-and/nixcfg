@@ -7,12 +7,6 @@
 }: let
   defaultPriority = (lib.mkOptionDefault {}).priority;
 
-  # Avoid using lib for this, so it can be safely used with imports.
-  fileIfExtant = file:
-    if builtins.pathExists file
-    then [file]
-    else [];
-
   configRootDir = builtins.toString ../..;
 in {
   imports =
@@ -26,10 +20,7 @@ in {
       ./root.nix
       ./user.nix
       ./wsl.nix
-    ]
-    # I want to avoid using local-config.nix if I can, but sometimes using it
-    # is the quickest and easiest option.
-    ++ fileIfExtant ../../local-config.nix;
+    ];
 
   config = {
     warnings = let
@@ -48,6 +39,13 @@ in {
           message = "./passwords exists, and has been renamed ./secrets";
         }
       ];
+
+    assertions = [
+      {
+        assertion = ! builtins.pathExists ../../local-config.nix;
+        message = "${builtins.toString ../../local-config.nix} exists and should be moved to a device-specific location";
+      }
+    ];
 
     # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
     # Nix builds -- notably install images -- from being able to complete.

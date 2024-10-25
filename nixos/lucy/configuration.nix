@@ -4,13 +4,20 @@
   ...
 }: let
   secretsDir = builtins.toString ../../secrets;
+
+  # Avoid using lib for this, so it can be safely used with imports.
+  fileIfExtant = file:
+    if builtins.pathExists file
+    then [file]
+    else [];
 in {
   imports = [
     <nixos-hardware/raspberry-pi/4>
     ../common
     ./hardware-configuration.nix
     ./media.nix
-  ];
+  ]
+  ++ fileIfExtant ./local-config.nix;
 
   system.stateVersion = "24.05";
   system.isPi4 = true;

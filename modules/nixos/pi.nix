@@ -2,13 +2,15 @@
   config,
   lib,
   ...
-}: {
+}: let
+  wsl = config.wsl.enable or false;
+in {
   options.system.isPi4 = lib.mkEnableOption "Raspberry Pi 4 configuration";
 
   config = lib.mkIf config.system.isPi4 {
     assertions = [
       {
-        assertion = ! config.system.isWsl;
+        assertion = ! wsl;
         message = "Cannot be both WSL and a Raspberry Pi!";
       }
     ];

@@ -2,12 +2,19 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  # Avoid using lib for this, so it can be safely used with imports.
+  fileIfExtant = file:
+    if builtins.pathExists file
+    then [file]
+    else [];
+in {
   imports = [
     <nixos-hardware/framework/16-inch/7040-amd>
     ./hardware-configuration.nix
     ../common
-  ];
+  ]
+  ++ fileIfExtant ./local-config.nix;
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

@@ -9,19 +9,20 @@
     pp.dateutil
   ]);
 
-  # Avoid using lib for this, so it can be safely used with imports.
-  fileIfExtant = file:
-    if builtins.pathExists file
-    then [file]
-    else [];
 in {
   imports =
     [
       ./firefox.nix
       ../../modules/home-manager
       ../../modules/shared
-    ]
-    ++ fileIfExtant ../../local-config.nix;
+    ];
+
+  assertions = [
+    {
+      assertion = ! builtins.pathExists ../../local-config.nix;
+      message = "${builtins.toString ../../local-config.nix} exists and should be moved to a device-specific location";
+    }
+  ];
 
   home = {
     username = lib.mkDefault "adam";
