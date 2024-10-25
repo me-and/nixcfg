@@ -27,5 +27,9 @@
       userName = "Adam Dinwoodie";
       userEmail = lib.mkDefault (throw "Set home-manager.users.root.programs.git.userEmail in local-config.nix");
     };
+
+    # Want gh in path so root can call `gh auth login`.  This also
+    # automatically enables using gh as a Git authentication helper.
+    programs.gh.enable = true;
   };
 }

@@ -21,6 +21,7 @@ in {
       ../../modules/nixos
       ../../modules/shared
       ./jellyfin.nix
+      ./garbage.nix
       ./mail.nix
       ./nginx.nix
       ./root.nix
@@ -149,22 +150,6 @@ in {
       lib.optional
       (config.services.desktopManager.plasma6.enable || config.services.xserver.desktopManager.gnome.enable)
       pkgs.xterm;
-
-    # Clean the Nix config store regularly.  TODO integrate this properly with
-    # nix.gc and nix.optimise.
-    nix.gc = {
-      automatic = true;
-      dates = "weekly";
-      randomizedDelaySec = "6h";
-      options = "--delete-older-than 7d";
-    };
-    systemd.services.nix-gc = {
-      onSuccess = ["nix-optimise.service"];
-      serviceConfig = {
-        IOSchedulingClass = "idle";
-        CPUSchedulingPolicy = "idle";
-      };
-    };
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.

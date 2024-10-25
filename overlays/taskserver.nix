@@ -13,7 +13,7 @@ in {
         git = writeShellApplication {
           name = "git";
           text = ''
-            ${final.git}/bin/git \
+            exec ${final.git}/bin/git \
                 -c 'url.https://github.com/GothenburgBitFactory/.insteadOf=https://git.tasktools.org/scm/tm/' \
                 "$@"
           '';
