@@ -194,6 +194,15 @@ in {
         fallback = true
       '';
 
+    # I've seen issues with time synchronisation that may or may not be related
+    # to these units not being automatically included in the NixOS systemd
+    # config.  Including them seems like it will do very little harm and might
+    # help.
+    boot.initrd.systemd.additionalUpstreamUnits = [
+      "time-sync.target"
+      "time-set.target"
+    ];
+
     nixpkgs.config.allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [
         "steam"
