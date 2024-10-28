@@ -10,7 +10,6 @@ in {
     ../common
     ./hardware-configuration.nix
     ./media.nix
-    ./mum-mac.nix
   ];
 
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4

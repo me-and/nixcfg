@@ -25,6 +25,7 @@ in {
       ./mail.nix
       ./nginx.nix
       ./root.nix
+      ./systemd.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it

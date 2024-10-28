@@ -3,18 +3,7 @@
   pkgs,
   ...
 }: let
-  mountpoint = "/run/mum-mac";
-  mountpointEscaped = pkgs.escapeSystemdPath mountpoint;
-
-  bindMountpoint = "/run/mum-mac-rebind";
-  bindMountpointEscaped = pkgs.escapeSystemdPath bindMountpoint;
-
-  outerVolumeDevicePath = "/dev/mapper/pi-mum--mac--data";
-  outerVolumeDevicePathEscaped = pkgs.escapeSystemdPath outerVolumeDevicePath;
-
-  innerPartitionUuid = "8070817c-6512-3035-997c-8dd5ee05a3ef";
-  innerPartitionUuidEscaped = pkgs.escapeSystemdString innerPartitionUuid;
-
+  # Units for setting up loopback devices.
   loopDeviceConfig = let
     commonConfig = {
       unitConfig.RequiresMountsFor = ["%f" "%t"];
@@ -48,25 +37,7 @@
     };
   };
 
-  mountConfig = {
-    environment.systemPackages = [pkgs.bindfs];
-    systemd.mounts = [
-      {
-        what = outerVolumeDevicePath;
-        where = mountpoint;
-        after = [
-          "blockdev@${outerVolumeDevicePathEscaped}.target"
-        ];
-      }
-      {
-        what = mountpoint;
-        where = bindMountpoint;
-        type = "fuse.bindfs";
-        options = "force-user=adam,force-group=users,multithreaded,perms=u=rD:g=:o=";
-      }
-    ];
-  };
-
+  # Unit for sending emails reporting the state of another unit.
   mailStateConfig = {
     systemd.services."mail-state@" = {
       description = "Unit %i state report";
@@ -104,49 +75,8 @@
     };
   };
 
-  rcloneConfig = {
-    systemd.services.rclone-mum-mac = {
-      description = "Copy data from Mum's Mac to OneDrive";
-      wants = ["network-online.target"];
-      after = ["network-online.target" "time-sync.target"];
-      unitConfig.RequiresMountsFor = [bindMountpoint];
-      unitConfig.OnFailure = ["mail-state@%n.service"];
-      unitConfig.OnSuccess = ["mail-state@%n.service"];
-      wantedBy = ["multi-user.target"];
-      serviceConfig.User = "adam"; # TODO Fragile
-      serviceConfig.Group = "users"; # TODO Fragile
-      serviceConfig.Nice = 10;
-
-      serviceConfig.ExecStart = pkgs.writeCheckedShellScript {
-        name = "rclone-mum-mac.sh";
-        text = ''
-          ${pkgs.rclone}/bin/rclone sync \
-              --config=/home/adam/.config/rclone/rclone.conf \
-              --cache-dir=/home/adam/.cache/rclone \
-              --checksum \
-              --modify-window=1s \
-              --skip-links \
-              --skip-specials \
-              --verbose \
-              :hasher,remote=/,hashes=quickxor:${lib.escapeShellArg bindMountpoint} \
-              onedrive:'Held for other people/Mum/iMac data' || :
-          exec ${pkgs.rclone}/bin/rclone check \
-              --config=/home/adam/.config/rclone/rclone.conf \
-              --cache-dir=/home/adam/.cache/rclone \
-              --checksum \
-              --modify-window=1s \
-              --skip-links \
-              --skip-specials \
-              :hasher,remote=/,hashes=quickxor:${lib.escapeShellArg bindMountpoint} \
-              onedrive:'Held for other people/Mum/iMac data'
-        '';
-      };
-    };
-  };
 in
   lib.mkMerge [
     loopDeviceConfig
-    mountConfig
     mailStateConfig
-    rcloneConfig
   ]
