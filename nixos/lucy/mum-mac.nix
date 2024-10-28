@@ -112,8 +112,7 @@
       serviceConfig.ExecStart = pkgs.writeCheckedShellScript {
         name = "rclone-mum-mac.sh";
         text = ''
-          ${pkgs.rclone}/bin/rclone copy \
-              --ignore-existing \
+          ${pkgs.rclone}/bin/rclone sync \
               --config=/home/adam/.config/rclone/rclone.conf \
               --cache-dir=/home/adam/.cache/rclone \
               --checksum \
