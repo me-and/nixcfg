@@ -81,14 +81,22 @@
             shorthost="$3"
             longhost="$4"
 
-            unit_state="$(${pkgs.systemd}/bin/systemctl --user show -PActiveState "$unit")"
+            if [[ "$user" = root ]]; then
+                systemctl () { ${pkgs.systemd}/bin/systemctl --system "$@"; }
+                from="\"systemd on $shorthost\" <''${user}@''${longhost}>"
+            else
+                systemctl () { ${pkgs.systemd}/bin/systemctl --user "$@"; }
+                from="\"''${user}'s systemd on $shorthost\" <''${user}@''${longhost}>"
+            fi
+
+            unit_state="$(systemctl show -PActiveState "$unit")"
 
             # shellcheck disable=SC2312 # systemctl expected to return non-zero
             SYSTEMD_COLORS=True SYSTEMD_URLIFY=False \
-                ${pkgs.systemd}/bin/systemctl --user status "$unit" |
+                systemctl status "$unit" |
                 ${pkgs.colourmail}/bin/colourmail \
                     -s "Unit $unit $unit_state on $shorthost" \
-                    -r "$user on $shorthost <''${user}@''${longhost}>" \
+                    -r "$from" \
                     -- "$user"
           '';
         };
