@@ -9,7 +9,7 @@
   bindMountpoint = "/run/mum-mac-rebind";
   bindMountpointEscaped = pkgs.escapeSystemdPath bindMountpoint;
 
-  outerVolumeDevicePath = "/dev/mapper/pi-mum--mac";
+  outerVolumeDevicePath = "/dev/mapper/pi-mum--mac--data";
   outerVolumeDevicePathEscaped = pkgs.escapeSystemdPath outerVolumeDevicePath;
 
   innerPartitionUuid = "8070817c-6512-3035-997c-8dd5ee05a3ef";
@@ -52,15 +52,11 @@
     environment.systemPackages = [pkgs.bindfs];
     systemd.mounts = [
       {
-        what = "/dev/disk/by-uuid/${innerPartitionUuid}";
+        what = outerVolumeDevicePath;
         where = mountpoint;
-        requires = ["setup-loop-device-ro@${outerVolumeDevicePathEscaped}.service"];
         after = [
           "blockdev@${outerVolumeDevicePathEscaped}.target"
-          "setup-loop-device-ro@${outerVolumeDevicePathEscaped}.service"
         ];
-        #options = "uid=1001,gid=100";  # TODO Fragile
-        type = "hfsplus";
       }
       {
         what = mountpoint;
