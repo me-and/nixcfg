@@ -6,7 +6,7 @@
   ...
 }: let
   normalUsers = lib.filterAttrs (k: v: v.isNormalUser) config.users.users;
-  normalUserNames = lib.mapAttrsToList (k: v: k) normalUsers;
+  normalUserNames = lib.mapAttrsToList (k: v: v.name) normalUsers;
 
   defaultPriority = (lib.mkOptionDefault {}).priority;
 in {
