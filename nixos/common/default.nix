@@ -45,6 +45,10 @@ in {
         assertion = ! builtins.pathExists ../../local-config.nix;
         message = "${builtins.toString ../../local-config.nix} exists and should be moved to a device-specific location";
       }
+      {
+        assertion = ! builtins.pathExists ../../hardware-configuration.nix;
+        message ="${builtins.toString ../../hardware-configuration.nix} exists and should be moved to a device-specific location";
+      }
     ];
 
     # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
