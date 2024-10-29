@@ -21,8 +21,10 @@ in {
       ../../modules/nixos
       ../../modules/shared
       ./jellyfin.nix
+      ./garbage.nix
       ./mail.nix
       ./nginx.nix
+      ./root.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
@@ -64,7 +66,7 @@ in {
     programs.vim.defaultEditor = true;
 
     # Always want a /mnt directory.
-    system.activationScripts.mnt = "mkdir -m 700 -p /mnt";
+    system.activationScripts.mnt = "mkdir -m 755 -p /mnt";
 
     # Always want screen.  Including this here looks like it also sets up some
     # PAM configuration, which is presumably relevant...
@@ -98,7 +100,7 @@ in {
     # For the system Git installation, gitMinimal is fine; I'll have the full
     # installation, probably on the tip, in Home Manager.
     programs.git.enable = true;
-    programs.git.package = pkgs.gitMinimal;
+    programs.git.package = pkgs.gitMinimal.out;
 
     home-manager.useGlobalPkgs = true;
 
@@ -148,22 +150,6 @@ in {
       lib.optional
       (config.services.desktopManager.plasma6.enable || config.services.xserver.desktopManager.gnome.enable)
       pkgs.xterm;
-
-    # Clean the Nix config store regularly.  TODO integrate this properly with
-    # nix.gc and nix.optimise.
-    nix.gc = {
-      automatic = true;
-      dates = "weekly";
-      randomizedDelaySec = "6h";
-      options = "--delete-older-than 7d";
-    };
-    systemd.services.nix-gc = {
-      onSuccess = ["nix-optimise.service"];
-      serviceConfig = {
-        IOSchedulingClass = "idle";
-        CPUSchedulingPolicy = "idle";
-      };
-    };
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.

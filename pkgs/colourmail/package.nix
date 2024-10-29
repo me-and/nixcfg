@@ -19,6 +19,7 @@ in
       rev = "v${version}";
       hash = "sha256-ruQTeCwObqNKPRyDB7FRTdvbtnaI1f1PX/93wKumoNY=";
     };
+    preferLocalBuild = true;
     nativeBuildInputs = [makeWrapper];
     installPhase = ''
       mkdir -p $out/bin

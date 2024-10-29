@@ -38,8 +38,6 @@
     relayPort = 587;
   };
 
-  nix.settings.substituters = ["http://192.168.1.131"];
-
   programs.steam.enable = true;
 
   # Use Nautilus, the Gnome file manager as well as the KDE one, as I prefer
@@ -47,6 +45,8 @@
   environment.systemPackages = [pkgs.gnome.nautilus];
   services.gnome.tracker.enable = true;
   services.gnome.tracker-miners.enable = true;
+
+  programs.kdeconnect.enable = true;
 
   # Work around https://github.com/NixOS/nixos-hardware/pull/1151
   environment.etc."libinput/local-overrides.quirks".text = lib.mkForce ''

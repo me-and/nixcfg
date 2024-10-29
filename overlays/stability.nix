@@ -8,7 +8,7 @@ final: prev: let
     )
   );
   channelData = rawChannelData.data.result;
-  channelInfo =
+  channelInfo = excludeOverlays:
     map (data: rec {
       name = data.metric.channel;
       status =
@@ -22,11 +22,33 @@ final: prev: let
         then v
         else throw "Unexpected channel variant ${v} for channel ${name}";
       url = "https://channels.nixos.org/${name}/nixexprs.tar.xz";
-      pkgs = import (builtins.fetchTarball url) {};
+      pkgs =
+        if excludeOverlays == null
+        then import (builtins.fetchTarball url) {}
+        else let
+          # Based on the nixpkgs overlays configuration.
+          path = ./.;
+          content = builtins.readDir path;
+          overlayFiles = builtins.filter (n:
+            !(builtins.elem n excludeOverlays)
+            && (
+              (
+                (builtins.match ".*\\.nix" n != null)
+                && (builtins.match "\\.#.*" n == null)
+              )
+              || builtins.pathExists (path + ("/" + n + "/default.nix"))
+            ))
+          (builtins.attrNames content);
+          overlays = map (n: import (path + ("/" + n))) overlayFiles;
+        in
+          import (builtins.fetchTarball url) {inherit overlays;};
     })
     channelData;
 
-  allowedChannels = builtins.filter (c: c.status != "unmaintained" && c.variant != "darwin") channelInfo;
+  allowedChannels = excludeOverlays:
+    builtins.filter
+    (c: c.status != "unmaintained" && c.variant != "darwin")
+    (channelInfo excludeOverlays);
 
   # More stable = lower = at the front of the sorted list.  Assume anything
   # marked as "stable" is more stable than anything that isn't, anything marked
@@ -50,10 +72,14 @@ final: prev: let
       else a.variant == "small"
     else throw "Cannot sort channels ${a.name} and ${b.name} in stability order";
 
-  channelsByStability = builtins.sort stabilityCmp allowedChannels;
+  channelsByStability = excludeOverlays:
+    builtins.sort stabilityCmp (allowedChannels excludeOverlays);
 
-  packageFromChannel = name: channel: final.lib.attrByPath (final.lib.splitString "." name) null channel.pkgs;
-  packagesByStability = name: builtins.filter (p: p != null) (map (packageFromChannel name) channelsByStability);
+  packageFromChannel = name: channel:
+    final.lib.attrByPath (final.lib.splitString "." name) null channel.pkgs;
+  packagesByStability = excludeOverlays: name:
+    builtins.filter (p: p != null)
+    (map (packageFromChannel name) (channelsByStability excludeOverlays));
 in {
   lib = prev.lib.attrsets.recursiveUpdate prev.lib {
     channels = {
@@ -61,19 +87,25 @@ in {
         name,
         pred,
         default,
-        testFirst ? [], # e.g. if calling from an overlay, add prev.package in case the local nixpkgs already satisfies the predicate
+        excludeOverlays ? null,
+        # If calling from an overlay, can add prev.package in case the local
+        # package already satisfies the predicate.
+        testFirst ? [],
       }:
-        final.lib.findFirst pred default (testFirst ++ packagesByStability name);
+        final.lib.findFirst pred default
+        (testFirst ++ packagesByStability excludeOverlays name);
 
       mostStablePackageVersionAtLeast = {
         name,
         version,
+        excludeOverlays ? null,
         testFirst ? [],
       }:
         final.lib.channels.mostStablePackageWith {
-          inherit name testFirst;
+          inherit name excludeOverlays testFirst;
           pred = p: final.lib.versionAtLeast p.version version;
-          default = throw "No ${name} package with version at least ${version} available";
+          default =
+            throw "No ${name} package with version at least ${version} available";
         };
     };
   };
