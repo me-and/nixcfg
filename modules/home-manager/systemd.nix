@@ -18,7 +18,7 @@
     name = repo;
     rev = "HEAD";
     private = true;
-    hash = "sha256-2CPdGlPJ4OAssSYbSj53AOWPbZgQEFDZ19MooPK+31Y=";
+    hash = "sha256-+FdKuaRQmxw1gblmbvij10c3DiiydySVrCh4D8rXweA=";
   in
     pkgs.fetchzip ({
         inherit name hash;
