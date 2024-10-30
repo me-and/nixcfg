@@ -122,6 +122,13 @@ in {
         "nixos-config=${configRootDir}/configuration.nix"
         "/nix/var/nix/profiles/per-user/root/channels"
       ];
+      # nix-index is super memory hungry.  Make sure it doesn't pull down the
+      # entire system as a result.
+      serviceConfig = {
+        MemoryHigh = "50%";
+        MemoryMax = "60%";
+        MemorySwapMax = "75%";
+      };
     };
     systemd.timers.nix-index = {
       wantedBy = ["timers.target"];

@@ -6,13 +6,11 @@
   ...
 }: let
   normalUsers = lib.filterAttrs (k: v: v.isNormalUser) config.users.users;
-  normalUserNames = lib.mapAttrsToList (k: v: k) normalUsers;
+  normalUserNames = lib.mapAttrsToList (k: v: v.name) normalUsers;
 
   defaultPriority = (lib.mkOptionDefault {}).priority;
 in {
-  options.system.isHyperV = lib.mkEnableOption "Hyper-V configuration";
-
-  config = lib.mkIf config.system.isHyperV {
+  config = lib.mkIf config.virtualisation.hypervGuest.enable {
     warnings =
       lib.optional
       (options.virtualisation.hypervGuest.videoMode.highestPrio == defaultPriority)
@@ -21,7 +19,6 @@ in {
         virtualisation.hypervGuest.videoMode.
       '';
     boot.kernelParams = ["nomodeset"];
-    virtualisation.hypervGuest.enable = true;
     services.xserver.modules = [pkgs.xorg.xf86videofbdev];
     services.xserver.videoDrivers = ["hyperv_fb"];
     users.groups.video.members = ["gdm"] ++ normalUserNames;
