@@ -1,0 +1,14 @@
+diff --git a/src/wslu-header b/src/wslu-header
+index 1efa0e5..5cde1d2 100644
+--- a/src/wslu-header
++++ b/src/wslu-header
+@@ -37,9 +37,6 @@ if [ ! -d "$wslu_state_dir" ]; then
+ 	mkdir -p "$wslu_state_dir"
+ fi
+ 
+-# prevent bash -x
+-set +x
+-
+ bash_version_full=$(bash --version | head -n 1)
+ bash_version_major=$(echo "$bash_version_full" | cut -d ' ' -f 4 | cut -d '.' -f 1)
+ bash_version_minor=$(echo "$bash_version_full" | cut -d ' ' -f 4 | cut -d '.' -f 2)
