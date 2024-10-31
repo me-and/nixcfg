@@ -74,7 +74,6 @@
       in "${reportScript} %i %u %l %H";
     };
   };
-
 in
   lib.mkMerge [
     loopDeviceConfig

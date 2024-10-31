@@ -58,12 +58,13 @@ in {
             maxJobs = 100;
             supportedFeatures = ["benchmark" "big-parallel"];
           };
-        in map buildMachine [
-          "x86_64-linux"
-          "i686-linux"
-          "aarch64-linux"
-          "arm7l-linux"
-        ];
+        in
+          map buildMachine [
+            "x86_64-linux"
+            "i686-linux"
+            "aarch64-linux"
+            "arm7l-linux"
+          ];
       };
     };
 
@@ -73,5 +74,6 @@ in {
         trusted-public-keys = ["nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio="];
       };
     };
-  in lib.mkMerge [sharedConfig builderConfig substituterConfig];
+  in
+    lib.mkMerge [sharedConfig builderConfig substituterConfig];
 }
