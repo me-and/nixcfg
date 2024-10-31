@@ -1,0 +1,98 @@
+diff --git a/src/bin/nix-channel-index.rs b/src/bin/nix-channel-index.rs
+index 75de785..b706b80 100644
+--- a/src/bin/nix-channel-index.rs
++++ b/src/bin/nix-channel-index.rs
+@@ -1,6 +1,6 @@
+ //! Toor for generating a nix-index database.
+ use std::ffi::OsString;
+-use std::io::{self, Write};
++use std::io::{self, IsTerminal, Write};
+ use std::os::unix::ffi::OsStringExt;
+ use std::path::PathBuf;
+ use std::process;
+@@ -20,6 +20,16 @@ async fn update_index(args: &Args) -> Result<()> {
+     let connection =
+         Connection::open_in_memory().map_err(|_| ErrorKind::CreateDatabase(args.output.clone()))?;
+ 
++    let mut stderr = io::stderr();
++    let stderr_is_terminal = stderr.is_terminal();
++    eprint!("ALPHA\n");
++    if stderr_is_terminal {
++        eprint!("BETA\n");
++    };
++    if !stderr_is_terminal {
++        eprint!("GAMMA\n");
++    };
++
+     connection
+         .execute(
+             r#"
+@@ -78,13 +88,18 @@ async fn update_index(args: &Args) -> Result<()> {
+ 
+         eprint!("+ generating index: {:05} paths found :: {:05} paths not in binary cache :: {:05} paths in queue \r",
+                indexed, missing, watch.queue_len());
++        if !stderr_is_terminal {
++            eprint!("\n");
++        };
+         io::stderr().flush().expect("flushing stderr failed");
+     });
+ 
+     let mut files = files.filter_map(future::ready);
+ 
+-    eprint!("+ generating index");
+-    eprint!("\r");
++    eprint!("+ generating index\r");
++    if !stderr_is_terminal {
++        eprint!("\n");
++    };
+ 
+     while let Some((path, nar, files)) = files.next().await {
+         let origin = path.origin();
+diff --git a/src/bin/nix-index.rs b/src/bin/nix-index.rs
+index 004e0e0..63b1f17 100644
+--- a/src/bin/nix-index.rs
++++ b/src/bin/nix-index.rs
+@@ -1,7 +1,7 @@
+ //! Tool for generating a nix-index database.
+ use std::ffi::OsStr;
+ use std::fs::{self, File};
+-use std::io::{self, Write};
++use std::io::{self, IsTerminal, Write};
+ use std::path::PathBuf;
+ use std::process;
+ 
+@@ -30,6 +30,9 @@ async fn update_index(args: &Args) -> Result<()> {
+         None
+     };
+ 
++    let mut stderr = io::stderr();
++    let stderr_is_terminal = stderr.is_terminal();
++
+     eprintln!("+ querying available packages");
+     let fetcher = Fetcher::new(CACHE_URL.to_string()).map_err(ErrorKind::ParseProxy)?;
+     let (files, watch) = match cached {
+@@ -65,17 +68,23 @@ async fn update_index(args: &Args) -> Result<()> {
+ 
+         eprint!("+ generating index: {:05} paths found :: {:05} paths not in binary cache :: {:05} paths in queue \r",
+                indexed, missing, watch.queue_len());
+-        io::stderr().flush().expect("flushing stderr failed");
++        if !stderr_is_terminal {
++            eprint!("\n");
++        };
++        stderr.flush().expect("flushing stderr failed");
+     });
+ 
+     // Filter packages with no file listings available
+     let mut files = files.filter_map(future::ready);
+ 
+     eprint!("+ generating index");
+     if !args.filter_prefix.is_empty() {
+         eprint!(" (filtering by `{}`)", args.filter_prefix);
+     }
+     eprint!("\r");
++    if !stderr_is_terminal {
++        eprint!("\n");
++    };
+     fs::create_dir_all(&args.database)
+         .chain_err(|| ErrorKind::CreateDatabaseDir(args.database.clone()))?;
+     let mut db = Writer::create(args.database.join("files"), args.compression_level)
