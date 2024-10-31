@@ -54,6 +54,8 @@ in {
     gnome.gnome-calculator # Prefer this to the KDE options
     jellyfin-via-google-chrome
     keepassxc
+    hunspell
+    hunspellDicts.en-gb-ise
     libreoffice
     netflix
     qalculate-gtk
