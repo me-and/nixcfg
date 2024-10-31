@@ -53,7 +53,6 @@ in {
     gnucash
     gnome.gnome-calculator # Prefer this to the KDE options
     jellyfin-via-google-chrome
-    keepassxc
     hunspell
     hunspellDicts.en-gb-ise
     libreoffice
@@ -121,4 +120,6 @@ in {
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   accounts.email.forwardLocal.enable = true;
+
+  programs.keepassxc.enable = true;
 }
