@@ -3,6 +3,7 @@
     ./channels.nix
     ./hyperv.nix
     ./jellyfin.nix
+    ./framework-rfkill.nix
     ./mailutils.nix
     ./mosh.nix
     ./nginx.nix
