@@ -10,7 +10,6 @@ in {
     ../common
     ./hardware-configuration.nix
     ./media.nix
-    ./mum-mac.nix
   ];
 
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
@@ -41,6 +40,11 @@ in {
   };
 
   services.openssh.ports = [22 44035];
+
+  systemd.watchdog = {
+    runtimeTime = "15s";
+    rebootTime = "5m";
+  };
 
   services.nibbleBackup.enable = true;
 
@@ -109,5 +113,11 @@ in {
       acmeRoot = null;
     };
     authFilePath = "${secretsDir}/${config.networking.fqdn}-auth";
+  };
+
+  nix.nixBuildDotNet = {
+    enable = true;
+    enableSubstituter = true;
+    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
   };
 }

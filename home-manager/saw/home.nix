@@ -48,29 +48,17 @@ in {
   home.stateVersion = "24.05";
 
   home.packages = with pkgs; [
-    android-tools # adb
     discord
     gnucash
     gnome.gnome-calculator # Prefer this to the KDE options
-    jellyfin-via-google-chrome
-    hunspell
-    hunspellDicts.en-gb-ise
-    libreoffice
-    netflix
-    qalculate-gtk
     signal-desktop
     telegram-desktop
-    vlc
     whatsapp-for-linux
-    zoom-us
   ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [
       "discord"
-      "google-chrome"
-      "netflix-icon"
-      "netflix-via-google-chrome"
       "zoom"
     ];
 
@@ -84,7 +72,6 @@ in {
   services.rclone.enable = true;
   services.rclone.mountPoints = {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
-    "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
   };
 
   # Configure programs.taskwarrior.sync.credentials in local-config.nix.  Not
@@ -96,7 +83,7 @@ in {
       address = "taskwarrior.dinwoodie.org";
       port = 50340;
       certPath = "${config.xdg.configHome}/task/adam.cert.pem";
-      keyPath = "${config.xdg.configHome}/task/adam.key.pem";
+      keyPath = "${config.xdg.configHome}/home-manager/secrets/adam.key.pem";
     };
   };
 

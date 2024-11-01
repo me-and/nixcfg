@@ -25,6 +25,7 @@ in {
       ./mail.nix
       ./nginx.nix
       ./root.nix
+      ./systemd.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
@@ -121,6 +122,13 @@ in {
         "nixos-config=${configRootDir}/configuration.nix"
         "/nix/var/nix/profiles/per-user/root/channels"
       ];
+      # nix-index is super memory hungry.  Make sure it doesn't pull down the
+      # entire system as a result.
+      serviceConfig = {
+        MemoryHigh = "50%";
+        MemoryMax = "60%";
+        MemorySwapMax = "75%";
+      };
     };
     systemd.timers.nix-index = {
       wantedBy = ["timers.target"];
@@ -193,6 +201,15 @@ in {
         connect-timeout = 3
         fallback = true
       '';
+
+    # I've seen issues with time synchronisation that may or may not be related
+    # to these units not being automatically included in the NixOS systemd
+    # config.  Including them seems like it will do very little harm and might
+    # help.
+    boot.initrd.systemd.additionalUpstreamUnits = [
+      "time-sync.target"
+      "time-set.target"
+    ];
 
     nixpkgs.config.allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [
