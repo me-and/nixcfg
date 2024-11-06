@@ -27,6 +27,7 @@
   services.colord.enable = true;
   services.samba.enable = true;
   services.printing.enable = true;
+  services.displayManager.sddm.autoNumlock = true;
 
   # This setting seems to be necessary to have both the speakers and mics work
   # on my Bluetooth headsets.
