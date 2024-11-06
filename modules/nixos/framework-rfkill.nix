@@ -7,7 +7,7 @@
 }: {
   options.hardware.frameworkBluetoothWorkaround = lib.mkEnableOption "the Framework workaround for Bluetooth devices on v6.11 kernels";
 
-  config = lib.mkIf (config.hardware.frameworkBluetoothWorkaround && (config.boot.kernelPackages.kernelAtLeast "6.11")) {
+  config = lib.mkIf (config.hardware.frameworkBluetoothWorkaround && (config.boot.kernelPackages.kernelAtLeast "6.11") && config.boot.kernelPackages.kernelOlder "6.12") {
     systemd.services = {
       bluetooth-rfkill-suspend = {
         description = "Soft block Bluetooth on suspend/hibernate";
