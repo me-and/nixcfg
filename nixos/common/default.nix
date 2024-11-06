@@ -22,9 +22,11 @@ in {
       ../../modules/shared
       ./jellyfin.nix
       ./garbage.nix
-      ./gui.nix
+      ./gnome.nix
+      ./gui-common.nix
       ./mail.nix
       ./nginx.nix
+      ./plasma.nix
       ./root.nix
       ./systemd.nix
       ./user.nix
