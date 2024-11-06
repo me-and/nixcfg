@@ -22,6 +22,7 @@ in {
       ../../modules/shared
       ./jellyfin.nix
       ./garbage.nix
+      ./gui.nix
       ./mail.nix
       ./nginx.nix
       ./root.nix
@@ -139,25 +140,6 @@ in {
         Persistent = "true";
       };
     };
-
-    environment.gnome.excludePackages = with pkgs; [
-      gnome-tour
-      gnome.epiphany # Web browser
-      gnome.geary # Email client
-      gnome.gnome-contacts
-      gnome.gnome-calendar
-      gnome.gnome-maps
-      gnome.gnome-music
-      gnome.gnome-weather
-      nixos-render-docs # NixOS manual
-    ];
-
-    # Don't need xterm if I'm using Gnome or Plasma, as they have their own,
-    # better integrated, terminal emulators.
-    services.xserver.excludePackages =
-      lib.optional
-      (config.services.desktopManager.plasma6.enable || config.services.xserver.desktopManager.gnome.enable)
-      pkgs.xterm;
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
