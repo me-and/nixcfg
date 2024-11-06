@@ -95,6 +95,16 @@ in {
         final.lib.findFirst pred default
         (testFirst ++ packagesByStability excludeOverlays name);
 
+      mostStablePackage = {
+        name,
+        excludeOverlays ? null,
+      }:
+        final.lib.channels.mostStablePackageWith {
+          inherit name excludeOverlays;
+          pred = final.lib.trivial.const true;
+          default = throw "No ${name} package available.";
+        };
+
       mostStablePackageVersionAtLeast = {
         name,
         version,
