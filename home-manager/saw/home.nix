@@ -51,7 +51,6 @@ in {
     discord
     gnucash
     gnome.gnome-calculator # Prefer this to the KDE options
-    keepassxc
     signal-desktop
     telegram-desktop
     whatsapp-for-linux
@@ -108,4 +107,6 @@ in {
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   accounts.email.forwardLocal.enable = true;
+
+  programs.keepassxc.enable = true;
 }

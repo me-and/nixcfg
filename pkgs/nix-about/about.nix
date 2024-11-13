@@ -54,7 +54,8 @@
       Insecure = boolToYN p.meta.insecure;
       Definition = p.meta.position;
       Unsupported = boolToYN p.meta.unsupported;
-      "Store path" = p.outPath;
+      Path = p.outPath;
+      Paths = lib.concatStrings (map (k: "\n    ${k}: ${p."${k}".outPath}") p.outputs);
     };
 
     outputSections = (
@@ -70,9 +71,10 @@
       ++ ["Description"]
       ++ (lib.optional (p ? meta && p.meta ? longDescription) "Long description")
       ++ ["License"]
-      ++ (lib.optional (p ? meta && p.meta ? position) "Definition")
-      ++ (lib.optional (p ? outPath) "Store path")
       ++ (lib.optional (p ? meta && p.meta ? homepage) "Website")
+      ++ (lib.optional (p ? meta && p.meta ? position) "Definition")
+      ++ (lib.optional ((builtins.length p.outputs) == 1) "Path")
+      ++ (lib.optional ((builtins.length p.outputs) > 1) "Paths")
     );
 
     outputLiner = section: "${section}: ${outputValues."${section}"}";

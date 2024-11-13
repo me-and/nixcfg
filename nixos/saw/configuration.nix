@@ -28,11 +28,5 @@
     relayPort = 587;
   };
 
-  # Use Nautilus, the Gnome file manager as well as the KDE one, as I prefer
-  # the search interface for it.  Also enable the indexing tools that it uses.
-  environment.systemPackages = [pkgs.gnome.nautilus];
-  services.gnome.tracker.enable = true;
-  services.gnome.tracker-miners.enable = true;
-
   system.stateVersion = "24.05";
 }

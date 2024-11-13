@@ -26,6 +26,10 @@
 
       userName = "Adam Dinwoodie";
       userEmail = lib.mkDefault (throw "Set home-manager.users.root.programs.git.userEmail in local-config.nix");
+
+      extraConfig = {
+        pull.rebase = false;
+      };
     };
 
     # Want gh in path so root can call `gh auth login`.  This also

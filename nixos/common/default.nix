@@ -22,9 +22,13 @@ in {
       ../../modules/shared
       ./jellyfin.nix
       ./garbage.nix
+      ./gnome.nix
+      ./gui-common.nix
       ./mail.nix
       ./nginx.nix
+      ./plasma.nix
       ./root.nix
+      ./systemd.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
@@ -175,25 +179,6 @@ in {
       };
     };
 
-    environment.gnome.excludePackages = with pkgs; [
-      gnome-tour
-      gnome.epiphany # Web browser
-      gnome.geary # Email client
-      gnome.gnome-contacts
-      gnome.gnome-calendar
-      gnome.gnome-maps
-      gnome.gnome-music
-      gnome.gnome-weather
-      nixos-render-docs # NixOS manual
-    ];
-
-    # Don't need xterm if I'm using Gnome or Plasma, as they have their own,
-    # better integrated, terminal emulators.
-    services.xserver.excludePackages =
-      lib.optional
-      (config.services.desktopManager.plasma6.enable || config.services.xserver.desktopManager.gnome.enable)
-      pkgs.xterm;
-
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
     systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${configRootDir}/secrets/nix-daemon-environment";
@@ -236,6 +221,15 @@ in {
         connect-timeout = 3
         fallback = true
       '';
+
+    # I've seen issues with time synchronisation that may or may not be related
+    # to these units not being automatically included in the NixOS systemd
+    # config.  Including them seems like it will do very little harm and might
+    # help.
+    boot.initrd.systemd.additionalUpstreamUnits = [
+      "time-sync.target"
+      "time-set.target"
+    ];
 
     nixpkgs.config.allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [
