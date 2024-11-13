@@ -26,6 +26,7 @@ in {
       ./gui-common.nix
       ./mail.nix
       ./nginx.nix
+      ./nix-index.nix
       ./plasma.nix
       ./root.nix
       ./systemd.nix
@@ -110,74 +111,6 @@ in {
 
     # Make sure `apropos` and similar work.
     documentation.man.generateCaches = true;
-
-    # Enable nix-index, run it automatically, and replace command-not-found
-    # with it.
-    programs.nix-index.enable = true;
-    programs.nix-index.enableBashIntegration = true;
-    programs.command-not-found.enable = false;
-    environment.variables.NIX_INDEX_DATABASE = "/var/cache/nix-index";
-    systemd.services.nix-index = {
-      environment.NIX_INDEX_DATABASE = "/var/cache/nix-index";
-      wants = ["network-online.target"];
-      after = ["network-online.target"];
-      serviceConfig.Type = "oneshot";
-      serviceConfig.ExecStart = pkgs.writeCheckedShellScript {
-        name = "update-nix-index.sh";
-        text = ''
-          set -x
-
-          target="$NIX_INDEX_DATABASE"/files
-
-          arch="$(${pkgs.coreutils}/bin/uname -m)"
-          if [[ "$arch" = arm64 ]]; then
-              arch=aarch64
-          elif [[ "$arch" != x86_64 ]]; then
-              echo "unexpected architecture $arch" >&2
-              exit 78 # EX_CONFIG
-          fi
-
-          # Get a temporary file name.  Fine for this to not be created
-          # securely, we just want to know it's unlikely we'll get a collision
-          # when we do the download.  curl's --no-clobber will make sure we
-          # haven't hit an obscure window condition.
-          ${pkgs.coreutils}/bin/mkdir -p "$NIX_INDEX_DATABASE"
-          tmpfile="$(${pkgs.coreutils}/bin/mktemp --dry-run --tmpdir="$NIX_INDEX_DATABASE")"
-          trap 'rm -f -- "$tmpfile"' EXIT
-
-          if [[ -e "$target" ]]; then
-              curl_time_args=(--time-cond "$target")
-          else
-              curl_time_args=()
-          fi
-
-          ${pkgs.curl}/bin/curl \
-              --fail \
-              --location \
-              --output "$tmpfile" \
-              --retry 12 \
-              --no-clobber \
-              --no-progress-meter \
-              "''${curl_time_args[@]}" \
-              https://github.com/me-and/nix-index-database/releases/latest/download/index-"$arch"-linux
-
-          # Won't have downloaded anything if the existing file is newer than
-          # the remote one
-          if [[ -e "$tmpfile" ]]; then
-              ${pkgs.coreutils}/bin/mv "$tmpfile" "$target"
-          fi
-        '';
-      };
-    };
-    systemd.timers.nix-index = {
-      wantedBy = ["timers.target"];
-      timerConfig = {
-        OnCalendar = "18:00";
-        AccuracySec = "24h";
-        RandomizedDelaySec = "1h";
-        Persistent = "true";
-      };
-    };
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
