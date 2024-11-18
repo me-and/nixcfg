@@ -50,6 +50,7 @@ in {
       nix-dangling-roots
       nix-diff
       nix-locate-bin
+      nixos-generators
       psmisc
       pv
       python
