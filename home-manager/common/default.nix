@@ -18,6 +18,7 @@ in {
   imports =
     [
       ./firefox.nix
+      ./keepassxc.nix
       ../../modules/home-manager
       ../../modules/shared
     ]

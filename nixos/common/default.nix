@@ -22,9 +22,14 @@ in {
       ../../modules/shared
       ./jellyfin.nix
       ./garbage.nix
+      ./gnome.nix
+      ./gui-common.nix
       ./mail.nix
       ./nginx.nix
+      ./nix-index.nix
+      ./plasma.nix
       ./root.nix
+      ./systemd.nix
       ./user.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
@@ -107,59 +112,11 @@ in {
     # Make sure `apropos` and similar work.
     documentation.man.generateCaches = true;
 
-    # Enable nix-index, run it automatically, and replace command-not-found
-    # with it.
-    programs.nix-index.enable = true;
-    programs.nix-index.enableBashIntegration = true;
-    programs.command-not-found.enable = false;
-    environment.variables.NIX_INDEX_DATABASE = "/var/cache/nix-index";
-    systemd.services.nix-index = {
-      script = "${pkgs.nix-index}/bin/nix-index";
-      environment.NIX_INDEX_DATABASE = "/var/cache/nix-index";
-      environment.NIX_PATH = lib.concatStringsSep ":" [
-        "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos"
-        "nixos-config=${configRootDir}/configuration.nix"
-        "/nix/var/nix/profiles/per-user/root/channels"
-      ];
-      # nix-index is super memory hungry.  Make sure it doesn't pull down the
-      # entire system as a result.
-      serviceConfig = {
-        MemoryHigh = "50%";
-        MemoryMax = "60%";
-        MemorySwapMax = "75%";
-      };
-    };
-    systemd.timers.nix-index = {
-      wantedBy = ["timers.target"];
-      timerConfig = {
-        OnCalendar = "Mon 18:00";
-        AccuracySec = "24h";
-        RandomizedDelaySec = "1h";
-        Persistent = "true";
-      };
-    };
-
-    environment.gnome.excludePackages = with pkgs; [
-      gnome-tour
-      gnome.epiphany # Web browser
-      gnome.geary # Email client
-      gnome.gnome-contacts
-      gnome.gnome-calendar
-      gnome.gnome-maps
-      gnome.gnome-music
-      gnome.gnome-weather
-      nixos-render-docs # NixOS manual
-    ];
-
-    # Don't need xterm if I'm using Gnome or Plasma, as they have their own,
-    # better integrated, terminal emulators.
-    services.xserver.excludePackages =
-      lib.optional
-      (config.services.desktopManager.plasma6.enable || config.services.xserver.desktopManager.gnome.enable)
-      pkgs.xterm;
-
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
+    #
+    # TODO This results in the generated unit having a path including /mnt
+    # after using this file in nixos-install.  Work out how to fix that!
     systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${configRootDir}/secrets/nix-daemon-environment";
 
     nix.settings = {
@@ -200,6 +157,15 @@ in {
         connect-timeout = 3
         fallback = true
       '';
+
+    # I've seen issues with time synchronisation that may or may not be related
+    # to these units not being automatically included in the NixOS systemd
+    # config.  Including them seems like it will do very little harm and might
+    # help.
+    boot.initrd.systemd.additionalUpstreamUnits = [
+      "time-sync.target"
+      "time-set.target"
+    ];
 
     nixpkgs.config.allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [

@@ -26,6 +26,8 @@
   services.hardware.bolt.enable = true;
   services.colord.enable = true;
   services.samba.enable = true;
+  services.printing.enable = true;
+  services.displayManager.sddm.autoNumlock = true;
 
   # This setting seems to be necessary to have both the speakers and mics work
   # on my Bluetooth headsets.
@@ -39,12 +41,6 @@
   };
 
   programs.steam.enable = true;
-
-  # Use Nautilus, the Gnome file manager as well as the KDE one, as I prefer
-  # the search interface for it.  Also enable the indexing tools that it uses.
-  environment.systemPackages = [pkgs.gnome.nautilus];
-  services.gnome.tracker.enable = true;
-  services.gnome.tracker-miners.enable = true;
 
   programs.kdeconnect.enable = true;
 
@@ -67,4 +63,6 @@
   };
 
   system.stateVersion = "24.05";
+
+  hardware.frameworkBluetoothWorkaround = true;
 }
