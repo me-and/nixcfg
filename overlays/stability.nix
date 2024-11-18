@@ -12,7 +12,7 @@ final: prev: let
     map (data: rec {
       name = data.metric.channel;
       status =
-        if builtins.elem data.metric.status ["stable" "rolling" "unmaintained"]
+        if builtins.elem data.metric.status ["stable" "beta" "rolling" "unmaintained"]
         then data.metric.status
         else throw "Unexpected channel status ${data.metric.status} for channel ${name}";
       variant = let
@@ -50,6 +50,8 @@ final: prev: let
     (c: c.status != "unmaintained" && c.variant != "darwin")
     (channelInfo excludeOverlays);
 
+  # TODO Update comments re presence of the "beta" status.
+  #
   # More stable = lower = at the front of the sorted list.  Assume anything
   # marked as "stable" is more stable than anything that isn't, anything marked
   # as "small" is less stable than anything marked as "primary", and anything
@@ -62,7 +64,12 @@ final: prev: let
   # identically.
   stabilityCmp = a: b:
     if a.status != b.status
-    then a.status == "stable"
+    then
+      if a.status == "stable"
+      then true
+      else if b.status == "stable"
+      then false
+      else a.status == "beta"
     else if a.variant != b.variant
     then
       if a.variant == "primary"
