@@ -114,6 +114,9 @@ in {
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
+    #
+    # TODO This results in the generated unit having a path including /mnt
+    # after using this file in nixos-install.  Work out how to fix that!
     systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${configRootDir}/secrets/nix-daemon-environment";
 
     nix.settings = {
