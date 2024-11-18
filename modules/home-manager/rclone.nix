@@ -60,12 +60,12 @@
       };
       Service = {
         Type = "notify";
-        ExecStartPre = "mkdir -vp %f";
+        ExecStartPre = "/run/current-system/sw/bin/mkdir -vp %f";
         CacheDirectory = "rclone";
         ExecStart = "${pkgs.rclone}/bin/rclone mount --config=%h/.config/rclone/rclone.conf --cache-dir=\${CACHE_DIRECTORY} --vfs-cache-mode=full ${lib.strings.escapeShellArg target} %f";
         # fusermount has to come from the system, because it requires setuid/setgid.
-        ExecStop = "fusermount -u %f";
-        ExecReload = "kill -HUP $MAINPID";
+        ExecStop = "/run/wrappers/bin/fusermount -u %f";
+        ExecReload = "/run/current-system/sw/bin/kill -HUP $MAINPID";
       };
       Install.WantedBy = ["default.target"];
     };
