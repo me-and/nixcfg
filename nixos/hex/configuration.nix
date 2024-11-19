@@ -67,4 +67,10 @@
   system.stateVersion = "24.05";
 
   hardware.frameworkBluetoothWorkaround = true;
+
+  nix.nixBuildDotNet = {
+    enableBuildSystems = ["aarch64-linux"];
+    enableSubstituter = true;
+    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
+  };
 }
