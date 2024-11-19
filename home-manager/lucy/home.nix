@@ -76,6 +76,7 @@ in {
       Install.WantedBy = ["timers.target"];
       Timer.OnCalendar = "01:00";
       Timer.AccuracySec = "6h";
+      Timer.Persistent = true;
     };
   };
 
