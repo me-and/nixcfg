@@ -110,9 +110,12 @@ in {
       allowedTCPPortRanges = [cfg.ftpPasvPortRange];
     };
 
-    # Set up the subdirectory that the scanner will upload files to.
+    # Set up the subdirectory that the scanner will upload files to, creating
+    # it if it doesn't exist and correcting the permissions and ownership if it
+    # does.
     systemd.tmpfiles.rules = [
       "d '${cfg.scannerDestDir}' 0770 ${cfg.scannerUser} ${cfg.scannerGroup}"
+      "Z '${cfg.scannerDestDir}' ~0770 ${cfg.scannerUser} ${cfg.scannerGroup}"
     ];
 
     # Set up the systemd service that will copy files from the FTP directory to
