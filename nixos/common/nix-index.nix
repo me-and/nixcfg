@@ -21,12 +21,6 @@ in {
         target="$NIX_INDEX_DATABASE"/files
 
         arch="$(${pkgs.coreutils}/bin/uname -m)"
-        if [[ "$arch" = arm64 ]]; then
-            arch=aarch64
-        elif [[ "$arch" != x86_64 ]]; then
-            echo "unexpected architecture $arch" >&2
-            exit 78 # EX_CONFIG
-        fi
 
         # Get a temporary file name.  Fine for this to not be created
         # securely, we just want to know it's unlikely we'll get a collision
