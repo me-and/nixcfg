@@ -50,15 +50,6 @@ in {
 
   #networking.accessPD = true;
 
-  systemd.mounts = [
-    {
-      what = "/dev/disk/by-uuid/213a8de3-da05-40ca-995d-40c1b76eb3ca";
-      type = "ext4";
-      where = "/var/cache/nginx";
-      options = "noexec";
-    }
-  ];
-
   services.snapper.configs.mail = {
     SUBVOLUME = "/home/adam/.cache/mail";
     ALLOW_USERS = [config.users.me];
