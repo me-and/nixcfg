@@ -60,7 +60,7 @@ in {
 
   #networking.accessPD = true;
 
-  filesystems."/home/adam/.cache/mail".options = ["noexec"];
+  fileSystems."/home/adam/.cache/mail".options = ["noexec"];
   services.snapper.configs.mail = {
     SUBVOLUME = "/home/adam/.cache/mail";
     ALLOW_USERS = [config.users.me];
