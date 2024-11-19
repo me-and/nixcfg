@@ -110,11 +110,11 @@ in {
       mostStablePackage = {
         name,
         excludeOverlays ? null,
+        default ? throw "No ${name} package available.",
       }:
         final.lib.channels.mostStablePackageWith {
-          inherit name excludeOverlays;
+          inherit name excludeOverlays default;
           pred = final.lib.trivial.const true;
-          default = throw "No ${name} package available.";
         };
 
       mostStablePackageVersionAtLeast = {
@@ -122,12 +122,11 @@ in {
         version,
         excludeOverlays ? null,
         testFirst ? [],
+        default ? throw "No ${name} package with version at least ${version} available",
       }:
         final.lib.channels.mostStablePackageWith {
-          inherit name excludeOverlays testFirst;
+          inherit name excludeOverlays testFirst default;
           pred = p: final.lib.versionAtLeast p.version version;
-          default =
-            throw "No ${name} package with version at least ${version} available";
         };
     };
   };
