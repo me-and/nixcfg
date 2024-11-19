@@ -50,18 +50,22 @@ final: prev: let
     (c: c.status != "unmaintained" && c.variant != "darwin")
     (channelInfo excludeOverlays);
 
-  # TODO Update comments re presence of the "beta" status.
+  # More stable = lower = at the front of the sorted list.
   #
-  # More stable = lower = at the front of the sorted list.  Assume anything
-  # marked as "stable" is more stable than anything that isn't, anything marked
-  # as "small" is less stable than anything marked as "primary", and anything
-  # with neither "small" nor "primary" labels -- which seems to mean
-  # nixpkgs-unstable -- is least stable.
+  # Order by:
+  # - status:
+  #   - stable
+  #   - beta
+  #   - rolling
+  # - variant:
+  #   - primary
+  #   - small
+  #   - neither (which seems to mean "nixpkgs-unstable")
   #
   # Order tests assume the values are restricted by the filtering in
   # allowedChannels and the value tests in channelInfo.  The final `throw`
   # should only be hit in the event there are multiple channels that compare
-  # identically.
+  # identically, and shouldn't be hit if there are invalid/unexpected values.
   stabilityCmp = a: b:
     if a.status != b.status
     then
