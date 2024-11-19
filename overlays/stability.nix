@@ -89,8 +89,7 @@ final: prev: let
   packageFromChannel = name: channel:
     final.lib.attrByPath (final.lib.splitString "." name) null channel.pkgs;
   packagesByStability = excludeOverlays: name:
-    builtins.filter (p: p != null)
-    (map (packageFromChannel name) (channelsByStability excludeOverlays));
+    map (packageFromChannel name) (channelsByStability excludeOverlays);
 in {
   lib = prev.lib.attrsets.recursiveUpdate prev.lib {
     channels = {
@@ -102,8 +101,10 @@ in {
         # If calling from an overlay, can add prev.package in case the local
         # package already satisfies the predicate.
         testFirst ? [],
-      }:
-        final.lib.findFirst pred default
+      }: let
+        pred' = p: p != null && pred p;
+      in
+        final.lib.findFirst pred' default
         (testFirst ++ packagesByStability excludeOverlays name);
 
       mostStablePackage = {
