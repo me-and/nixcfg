@@ -12,8 +12,6 @@
     if builtins.pathExists file
     then [file]
     else [];
-
-  configRootDir = builtins.toString ../..;
 in {
   imports =
     [
@@ -47,10 +45,6 @@ in {
         {
           assertion = options.networking.hostName.highestPrio != defaultPriority;
           message = "System hostname left at default.  Consider setting networking.hostName";
-        }
-        {
-          assertion = !(builtins.pathExists ../../passwords);
-          message = "./passwords exists, and has been renamed ./secrets";
         }
       ];
 
@@ -114,10 +108,7 @@ in {
 
     # Set up the Nix daemon to be able to access environment variables for
     # things like access to private GitHub repositories.
-    #
-    # TODO This results in the generated unit having a path including /mnt
-    # after using this file in nixos-install.  Work out how to fix that!
-    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-${configRootDir}/secrets/nix-daemon-environment";
+    systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-/etc/nixos/secrets/nix-daemon-environment";
 
     nix.settings = {
       trusted-users = ["@wheel"];
@@ -139,7 +130,7 @@ in {
       acceptTerms = true;
       defaults = {
         dnsProvider = "mythicbeasts";
-        environmentFile = "${configRootDir}/secrets/mythic-beasts";
+        environmentFile = "/etc/nixos/secrets/mythic-beasts";
       };
     };
 

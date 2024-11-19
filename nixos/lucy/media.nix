@@ -4,8 +4,6 @@
   pkgs,
   ...
 }: let
-  secretsDir = builtins.toString ../../secrets;
-
   # Check times all randomly generated.
   mediaDirectories = [
     {
@@ -133,7 +131,7 @@
       };
       users.initialUser = {
         name = "adam";
-        passwordFile = "${secretsDir}/jellyfin/adam";
+        passwordFile = "/etc/nixos/secrets/jellyfin/adam";
       };
       apiDebugScript = true;
       forceReconfigure = false;

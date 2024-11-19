@@ -2,9 +2,7 @@
   config,
   pkgs,
   ...
-}: let
-  secretsDir = builtins.toString ../../secrets;
-in {
+}: {
   imports = [
     <nixos-hardware/raspberry-pi/4>
     ../common
@@ -102,7 +100,7 @@ in {
       to = 56624;
     };
     scannerUser = "ida";
-    scannerHashedPasswordFile = "${secretsDir}/ida";
+    scannerHashedPasswordFile = "/etc/nixos/secrets/ida";
     uploadUser = "rclone";
   };
 
@@ -115,7 +113,7 @@ in {
       enableACME = true;
       acmeRoot = null;
     };
-    authFilePath = "${secretsDir}/${config.networking.fqdn}-auth";
+    authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
   };
 
   nix.nixBuildDotNet = {

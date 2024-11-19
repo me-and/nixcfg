@@ -4,9 +4,6 @@
   pkgs,
   ...
 }: let
-  currentDir = builtins.toString ./.;
-  secretsDir = builtins.toString ../../../secrets;
-
   vpnConfigTemplate = builtins.readFile ./pd.ovpn;
 
   # Only need VPN config on non-WSL systems; on WSL systems the VPN will be
@@ -22,9 +19,9 @@
           "@@MY_CERT_KEY@@"
         ]
         [
-          "${currentDir}/pd.crt"
-          "${currentDir}/me.crt"
-          "${secretsDir}/my-pd-key.crt"
+          "${./pd.crt}"
+          "${./me.crt}"
+          "/etc/nixos/secrets/my-pd-key.crt"
         ]
         vpnConfigTemplate;
       updateResolvConf = true;
@@ -36,7 +33,7 @@
       mountOptions = lib.mkMerge [
         [
           "rw"
-          "credentials=${secretsDir}/gonzo-mount-creds"
+          "credentials=/etc/nixos/secrets/gonzo-mount-creds"
           "uid=${config.users.me}"
           "gid=users"
           "forceuid"

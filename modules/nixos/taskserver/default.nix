@@ -13,7 +13,7 @@
       fqdn = lib.mkDefault config.networking.fqdn;
 
       # I already have a CA certificate for clients to connect.
-      pki.manual.ca.cert = builtins.toString ./ca.cert.pem;
+      pki.manual.ca.cert = "/etc/nixos/modules/nixos/taskserver/ca.cert.pem";
 
       organisations.adam.users = ["adam"];
       organisations.adam.groups = ["users"];
