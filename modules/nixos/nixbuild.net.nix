@@ -115,9 +115,9 @@ in {
     substituterConfig = lib.mkIf cfg.enableSubstituter {
       nix.settings = {
         substituters =
-          if cfg.substituteOrder == null
+          if cfg.substituterOrder == null
           then ["ssh://eu.nixbuild.net"]
-          else lib.mkOrder cfg.substituteOrder ["ssh://eu.nixbuild.net"];
+          else lib.mkOrder cfg.substituterOrder ["ssh://eu.nixbuild.net"];
         trusted-public-keys = ["nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio="];
       };
     };
