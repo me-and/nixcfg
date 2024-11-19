@@ -143,20 +143,11 @@ in {
       };
     };
 
-    nix.extraOptions =
-      # Keep intermediate build stages around to speed up subsequent builds.
-      ''
-        keep-outputs = true
-        keep-derivations = true
-      ''
-      # I'm using local binary caches in some places, but if they're
-      # inaccessible, I want the build to continue without them.
-      #
-      # See also https://github.com/NixOS/nix/issues/3514
-      + ''
-        connect-timeout = 3
-        fallback = true
-      '';
+    # Keep intermediate build stages around to speed up subsequent builds.
+    nix.extraOptions = ''
+      keep-outputs = true
+      keep-derivations = true
+    '';
 
     # I've seen issues with time synchronisation that may or may not be related
     # to these units not being automatically included in the NixOS systemd
