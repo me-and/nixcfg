@@ -41,15 +41,10 @@ in {
       default = cfg.uploadUser;
     };
 
-    scannerHomeDir = lib.mkOption {
-      description = "Home directory for the scanner user.";
-      type = lib.types.path;
-      default = "/var/tmp/${cfg.scannerUser}";
-    };
     scannerDestDir = lib.mkOption {
       description = "Directory that will actually be used for uploads.";
       type = lib.types.path;
-      default = cfg.scannerHomeDir;
+      default = "/var/tmp/${cfg.scannerUser}";
     };
 
     scannerHashedPasswordFile = lib.mkOption {
@@ -80,8 +75,6 @@ in {
       description = "Printer scanner upload account";
       isSystemUser = true;
       group = cfg.scannerGroup;
-      home = cfg.scannerHomeDir;
-      createHome = true;
       hashedPasswordFile = cfg.scannerHashedPasswordFile;
     };
     users.groups."${cfg.scannerGroup}".members = [cfg.uploadUser];
