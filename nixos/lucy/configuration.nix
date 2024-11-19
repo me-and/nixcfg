@@ -101,6 +101,7 @@ in {
     };
     scannerUser = "ida";
     scannerHashedPasswordFile = "${secretsDir}/ida";
+    uploadUser = "rclone";
   };
 
   services.gnucashFileServer = {

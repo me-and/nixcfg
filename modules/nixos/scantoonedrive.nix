@@ -22,13 +22,23 @@ in {
     };
 
     scannerUser = lib.mkOption {
-      description = "Username to use for uploading from the scanner.";
+      description = "Username to use for uploading from the scanner to the local directory.";
       type = lib.types.str;
     };
     scannerGroup = lib.mkOption {
-      description = "Group name to use for uploading from the scanner.";
+      description = "Group name to use for uploading from the scanner to the local directory.";
       type = lib.types.str;
       default = cfg.scannerUser;
+    };
+
+    uploadUser = lib.mkOption {
+      description = "Username to use for uploading from the local directory to OneDrive.";
+      type = lib.types.str;
+    };
+    uploadGroup = lib.mkOption {
+      description = "Group name to use for uploading from the local directory to OneDrive.";
+      type = lib.types.str;
+      default = cfg.uploadUser;
     };
 
     scannerHomeDir = lib.mkOption {
@@ -74,8 +84,8 @@ in {
       createHome = true;
       hashedPasswordFile = cfg.scannerHashedPasswordFile;
     };
-    users.groups."${cfg.scannerGroup}" = {};
-    users.groups.rclone.members = [cfg.scannerUser];
+    users.groups."${cfg.scannerGroup}".members = [cfg.uploadUser];
+    users.groups."${cfg.uploadGroup}".members = [cfg.scannerUser];
 
     # Set up the FTP server that the scanner will log into.
     services.vsftpd = {
@@ -102,7 +112,7 @@ in {
 
     # Set up the subdirectory that the scanner will upload files to.
     systemd.tmpfiles.rules = [
-      "d '${cfg.scannerDestDir}' 0700 ${cfg.scannerUser} ${cfg.scannerGroup}"
+      "d '${cfg.scannerDestDir}' 0770 ${cfg.scannerUser} ${cfg.scannerGroup}"
     ];
 
     # Set up the systemd service that will copy files from the FTP directory to
@@ -117,8 +127,8 @@ in {
         CacheDirectoryMode = "0770";
         ConfigurationDirectory = "rclone";
         ConfigurationDirectoryMode = "0770";
-        User = cfg.scannerUser;
-        Group = "rclone";
+        User = cfg.uploadUser;
+        Group = cfg.uploadGroup;
         ExecStart = pkgs.writeCheckedShellScript {
           name = "ftp-to-onedrive.sh";
           runtimeEnv = {
