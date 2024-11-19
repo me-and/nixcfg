@@ -19,6 +19,16 @@ in {
     deviceTree.filter = "*rpi-4-*.dtb";
   };
 
+  # Allow working with all LVM features I sometimes use.
+  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
+
+  # Mild I/O and disk lifetime improvements
+  # https://nixos.wiki/wiki/Storage_optimization#Moving_the_store
+  #
+  # TODO Can I make this common configuration but only for systems where
+  # fileSystems."/nix" is already defined elsewhere?
+  fileSystems."/nix".options = ["noatime"];
+
   system.stateVersion = "24.05";
   system.isPi4 = true;
   networking.hostName = "lucy";
@@ -50,6 +60,7 @@ in {
 
   #networking.accessPD = true;
 
+  filesystems."/home/adam/.cache/mail".options = ["noexec"];
   services.snapper.configs.mail = {
     SUBVOLUME = "/home/adam/.cache/mail";
     ALLOW_USERS = [config.users.me];

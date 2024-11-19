@@ -8,8 +8,8 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "uas" ];
-  boot.initrd.kernelModules = [ "dm-snapshot" "dm-raid" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "usbhid" ];
+  boot.initrd.kernelModules = [ "dm-snapshot" ];
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
@@ -27,14 +27,12 @@
   fileSystems."/home/adam/.cache/mail" =
     { device = "/dev/disk/by-uuid/3c029ca6-21be-43a2-b147-25368bc98336";
       fsType = "btrfs";
-      options = [ "subvol=@mail" "noexec" ];
+      options = [ "subvol=@mail" ];
     };
 
   fileSystems."/nix" =
     { device = "/dev/disk/by-uuid/59047bd6-2d91-46f5-9353-dc7f64a19169";
       fsType = "ext4";
-      neededForBoot= true;
-      options = ["noatime"];
     };
 
   swapDevices =
