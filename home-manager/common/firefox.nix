@@ -43,7 +43,24 @@
           };
         };
       };
+
+      # TODO
+      # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.firefox.profiles._name_.extensions
+      # extensions = ...
+      # settings.extensions.autoDisableScopes = 0;
+
+      # TODO
+      # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.firefox.profiles._name_.extensions
+      # search = ...
+
+      # TODO
+      # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.firefox.profiles._name_.settings
+      # settings = ...
     };
+
+    # TODO
+    # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.firefox.policies
+    # policies = ...
   };
 
   languagePacks = ["en-GB"];
