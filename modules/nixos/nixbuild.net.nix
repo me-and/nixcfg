@@ -36,10 +36,12 @@ in {
           substituter (normally cache.nixos.org) when multiple are available.
 
           Set to `null` to disable any ordering and leave it to the NixOS
-          builder.  Set to ${builtins.toString defaultAfter} (the default) to
-          list the nixbuild.net substituter after any unordered substituters.
-          Set to ${builtins.toString defaultBefore} to list the nixbuild.net
-          substituter before any unordered substituters.
+          builder.  Set to ${builtins.toString defaultAfter} (the default,
+          equivalent to using `lib.mkAfter`) to list the nixbuild.net
+          substituter after any unordered substituters.  Set to
+          ${builtins.toString defaultBefore} (equivalent to using
+          `lib.mkBefore`) to list the nixbuild.net substituter before any
+          unordered substituters.
         '';
       };
     sshKeyPath = lib.mkOption {
@@ -50,33 +52,27 @@ in {
       '';
       apply = builtins.toString;
     };
-
-    enable = lib.mkOption {
-      type = lib.types.nullOr lib.types.bool;
-      default = null;
-      description = ''
-        Whether to enable using nixbuild.net as a builder.
-
-        This option has been deprecated in favour of specifying the specific
-        build systems that should be used, using
-        nix.nixBuildDotNet.enableBuildSystems.
-      '';
-    };
   };
 
+  imports = [
+    (
+      lib.mkChangedOptionModule
+      ["nix" "nixBuildDotNet" "enable"]
+      ["nix" "nixBuildDotNet" "enableBuildSystems"]
+      (
+        config:
+          if config.nix.nixBuildDotNet.enable
+          then lib.mkDefault buildSystems
+          else []
+      )
+    )
+  ];
+
   config = let
-    deprecationConfig = lib.mkIf (cfg.enable != null) {
-      warnings = [
-        ''
-          You have set nix.nixBuildDotNet.enable.  This has been deprecated in favour of
-          nix.nixBuildDotNet.enableBuildSystems.
-        ''
-      ];
-
-      nix.nixBuildDotNet.enableBuildSystems = lib.mkIf cfg.enable buildSystems;
-    };
-
     sharedConfig = lib.mkIf ((cfg.enableBuildSystems != []) || cfg.enableSubstituter) {
+      # TODO find a way to get this config to work for the Nix build daemon
+      # and/or root user *only* rather than also applying to user accounts that
+      # shouldn't have access to this SSH key.
       programs.ssh.extraConfig = ''
         Host eu.nixbuild.net
             PubkeyAcceptedKeyTypes ssh-ed25519
@@ -122,5 +118,5 @@ in {
       };
     };
   in
-    lib.mkMerge [deprecationConfig sharedConfig builderConfig substituterConfig];
+    lib.mkMerge [sharedConfig builderConfig substituterConfig];
 }
