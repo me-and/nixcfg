@@ -29,6 +29,7 @@ in {
       ./root.nix
       ./systemd.nix
       ./user.nix
+      ./vim.nix
     ]
     # I want to avoid using local-config.nix if I can, but sometimes using it
     # is the quickest and easiest option.
@@ -60,9 +61,6 @@ in {
     services.xserver.xkb.layout = "gb";
     services.xserver.xkb.variant = "dvorak";
     console.useXkbConfig = true;
-
-    # Always want Vim to be my editor.
-    programs.vim.defaultEditor = true;
 
     # Always want a /mnt directory.
     system.activationScripts.mnt = "mkdir -m 755 -p /mnt";
