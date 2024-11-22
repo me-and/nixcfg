@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  defaultPriority = (lib.mkOptionDefault {}).priority;
+  defaultPrio = (lib.mkOptionDefault null).priority;
 
   # Avoid using lib for this, so it can be safely used with imports.
   fileIfExtant = file:
@@ -36,18 +36,9 @@ in {
     ++ fileIfExtant ../../local-config.nix;
 
   config = {
-    warnings = let
-      # Emulate the nicer-in-my-opinion interface provided by the assertions
-      # configuration.
-      toWarningList = warning: lib.optional (!warning.assertion) warning.message;
-      toWarningsList = builtins.concatMap toWarningList;
-    in
-      toWarningsList [
-        {
-          assertion = options.networking.hostName.highestPrio != defaultPriority;
-          message = "System hostname left at default.  Consider setting networking.hostName";
-        }
-      ];
+    warnings = lib.mkIf (options.networking.hostName.highestPrio >= defaultPrio) [
+      "System hostname hasn't been set.  Consider setting networking.hostName."
+    ];
 
     # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
     # Nix builds -- notably install images -- from being able to complete.

@@ -2,10 +2,20 @@
 {
   home-manager.users.root = {
     lib,
+    options,
     osConfig,
     ...
-  }: {
+  }: let
+    defaultPrio = (lib.mkOptionDefault null).priority;
+  in {
     home.stateVersion = osConfig.system.stateVersion;
+
+    warnings = lib.mkIf (options.programs.git.userEmail.highestPrio >= defaultPrio) [
+      ''
+        Root user Git email address hasn't been set.  Consider setting
+        home-manager.users.root.programs.git.userEmail.
+      ''
+    ];
 
     programs.git = {
       enable = true;
@@ -26,7 +36,6 @@
       };
 
       userName = "Adam Dinwoodie";
-      userEmail = lib.mkDefault (throw "Set home-manager.users.root.programs.git.userEmail in local-config.nix");
 
       extraConfig = {
         pull.rebase = false;
