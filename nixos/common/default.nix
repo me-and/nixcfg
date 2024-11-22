@@ -77,6 +77,7 @@ in {
     environment.systemPackages = with pkgs; [
       file
       home-manager
+      usbutils
     ];
 
     # Normally want SSHD.
