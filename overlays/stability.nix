@@ -8,7 +8,24 @@ final: prev: let
     )
   );
   channelData = rawChannelData.data.result;
-  channelInfo = excludeOverlays:
+  channelInfo = excludeOverlays: config: let
+    # <nixpkgs/pkgs/top-level/impure.nix>
+    homeDir = builtins.getEnv "HOME";
+    configFile = builtins.getEnv "NIXPKGS_CONFIG";
+    configFile2 = homeDir + "/.config/nixpkgs/config.nix";
+    configFile3 = homeDir + "/.nixpkgs/config.nix";
+    config' =
+      if config == null
+      then
+        if configFile != "" && builtins.pathExists configFile
+        then import configFile
+        else if homeDir != "" && builtins.pathExists configFile2
+        then import configFile2
+        else if homeDir != "" && builtins.pathExists configFile3
+        then import configFile3
+        else {}
+      else config;
+  in
     map (data: rec {
       name = data.metric.channel;
       status =
@@ -41,14 +58,17 @@ final: prev: let
           (builtins.attrNames content);
           overlays = map (n: import (path + ("/" + n))) overlayFiles;
         in
-          import (builtins.fetchTarball url) {inherit overlays;};
+          import (builtins.fetchTarball url) {
+            inherit overlays;
+            config = config';
+          };
     })
     channelData;
 
-  allowedChannels = excludeOverlays:
+  allowedChannels = excludeOverlays: config:
     builtins.filter
     (c: c.status != "unmaintained" && c.variant != "darwin")
-    (channelInfo excludeOverlays);
+    (channelInfo excludeOverlays config);
 
   # More stable = lower = at the front of the sorted list.
   #
@@ -83,13 +103,13 @@ final: prev: let
       else a.variant == "small"
     else throw "Cannot sort channels ${a.name} and ${b.name} in stability order";
 
-  channelsByStability = excludeOverlays:
-    builtins.sort stabilityCmp (allowedChannels excludeOverlays);
+  channelsByStability = excludeOverlays: config:
+    builtins.sort stabilityCmp (allowedChannels excludeOverlays config);
 
   packageFromChannel = name: channel:
     final.lib.attrByPath (final.lib.splitString "." name) null channel.pkgs;
-  packagesByStability = excludeOverlays: name:
-    map (packageFromChannel name) (channelsByStability excludeOverlays);
+  packagesByStability = excludeOverlays: config: name:
+    map (packageFromChannel name) (channelsByStability excludeOverlays config);
 in {
   lib = prev.lib.attrsets.recursiveUpdate prev.lib {
     channels = {
@@ -98,6 +118,7 @@ in {
         pred,
         default,
         excludeOverlays ? null,
+        config ? null,
         # If calling from an overlay, can add prev.package in case the local
         # package already satisfies the predicate.
         testFirst ? [],
@@ -105,15 +126,16 @@ in {
         pred' = p: p != null && pred p;
       in
         final.lib.findFirst pred' default
-        (testFirst ++ packagesByStability excludeOverlays name);
+        (testFirst ++ packagesByStability excludeOverlays config name);
 
       mostStablePackage = {
         name,
         excludeOverlays ? null,
+        config ? null,
         default ? throw "No ${name} package available.",
       }:
         final.lib.channels.mostStablePackageWith {
-          inherit name excludeOverlays default;
+          inherit name excludeOverlays config default;
           pred = final.lib.trivial.const true;
         };
 
@@ -121,11 +143,12 @@ in {
         name,
         version,
         excludeOverlays ? null,
+        config ? null,
         testFirst ? [],
         default ? throw "No ${name} package with version at least ${version} available",
       }:
         final.lib.channels.mostStablePackageWith {
-          inherit name excludeOverlays testFirst default;
+          inherit name excludeOverlays testFirst config default;
           pred = p: final.lib.versionAtLeast p.version version;
         };
     };
