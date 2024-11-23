@@ -26,8 +26,10 @@
   services.hardware.bolt.enable = true;
   services.colord.enable = true;
   services.samba.enable = true;
-  services.printing.enable = true;
   services.displayManager.sddm.autoNumlock = true;
+
+  services.printing.enable = true;
+  services.printing.drivers = [pkgs.cups-kyocera-3500-4500];
 
   programs.mosh.enable = true;
 
