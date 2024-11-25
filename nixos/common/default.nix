@@ -54,7 +54,7 @@ in {
     console.useXkbConfig = true;
 
     # Always want a /mnt directory.
-    system.activationScripts.mnt = "mkdir -m 755 -p /mnt";
+    systemd.tmpfiles.rules = ["d /mnt"];
 
     # Always want screen.  Including this here looks like it also sets up some
     # PAM configuration, which is presumably relevant...
