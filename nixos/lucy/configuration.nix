@@ -49,6 +49,7 @@
 
   services.openssh.ports = [22 44035];
 
+  # TODO This isn't working; can I fix it?
   systemd.watchdog = {
     runtimeTime = "15s";
     rebootTime = "5m";
