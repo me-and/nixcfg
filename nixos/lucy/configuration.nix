@@ -118,7 +118,7 @@
   };
 
   nix.nixBuildDotNet = {
-    enable = true;
+    enableBuildSystems = ["aarch64-linux"];
     enableSubstituter = true;
     sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
   };
