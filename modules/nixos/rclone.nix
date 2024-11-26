@@ -84,6 +84,11 @@
         type = lib.types.strMatching "[0-7]{3,4}";
         default = "0640";
       };
+      mountUmask = lib.mkOption {
+        description = "Umask for the mount";
+        type = lib.types.strMatching "[0-7]{3,4}";
+        default = "002";
+      };
       readOnly = lib.mkOption {
         description = "Whether the mount should provide read-only access";
         default = false;
@@ -156,6 +161,7 @@
           "--default-permissions"
           "--dir-perms=${lib.escapeShellArg config.mountDirPerms}"
           "--file-perms=${lib.escapeShellArg config.mountFilePerms}"
+          "--umask=${lib.escapeShellArg config.mountUmask}"
           "--uid=\"\$uid\""
           "--gid=\"\$gid\""
         ]
