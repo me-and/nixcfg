@@ -4,6 +4,7 @@ final: prev: let
   stable = "stable";
   beta = "beta";
   rolling = "rolling";
+  deprecated = "deprecated";
   unmaintained = "unmaintained";
   primary = "primary";
   small = "small";
@@ -39,7 +40,7 @@ final: prev: let
     map (data: rec {
       name = data.metric.channel;
       status =
-        if builtins.elem data.metric.status [stable beta rolling unmaintained]
+        if builtins.elem data.metric.status [stable beta rolling deprecated unmaintained]
         then data.metric.status
         else throw "Unexpected channel status ${data.metric.status} for channel ${name}";
       variant = let
@@ -85,6 +86,7 @@ final: prev: let
   # Order by:
   # - status:
   #   - stable
+  #   - deprecated
   #   - beta
   #   - rolling
   # - variant:
@@ -102,6 +104,10 @@ final: prev: let
       if a.status == stable
       then true
       else if b.status == stable
+      then false
+      else if a.status == deprecated
+      then true
+      else if b.status == deprecated
       then false
       else a.status == beta
     else if a.variant != b.variant
