@@ -29,6 +29,7 @@ in {
     homeDirectory = lib.mkDefault "/home/adam";
 
     packages = with pkgs; [
+      aaisp-quota
       alejandra
       ascii
       bintools
