@@ -1,4 +1,14 @@
 final: prev: let
+  # Strings are defined as variables just so accidental typos show up as errors
+  # rather than silent string matching failures.
+  stable = "stable";
+  beta = "beta";
+  rolling = "rolling";
+  unmaintained = "unmaintained";
+  primary = "primary";
+  small = "small";
+  darwin = "darwin";
+
   # Get information about the channels that are currently supported and
   # maintained.
   rawChannelData = builtins.fromJSON (
@@ -29,13 +39,13 @@ final: prev: let
     map (data: rec {
       name = data.metric.channel;
       status =
-        if builtins.elem data.metric.status ["stable" "beta" "rolling" "unmaintained"]
+        if builtins.elem data.metric.status [stable beta rolling unmaintained]
         then data.metric.status
         else throw "Unexpected channel status ${data.metric.status} for channel ${name}";
       variant = let
         v = data.metric.variant or null;
       in
-        if builtins.elem v ["primary" "small" "darwin" null]
+        if builtins.elem v [primary small darwin null]
         then v
         else throw "Unexpected channel variant ${v} for channel ${name}";
       url = "https://channels.nixos.org/${name}/nixexprs.tar.xz";
@@ -67,7 +77,7 @@ final: prev: let
 
   allowedChannels = excludeOverlays: config:
     builtins.filter
-    (c: c.status != "unmaintained" && c.variant != "darwin")
+    (c: c.status != unmaintained && c.variant != darwin)
     (channelInfo excludeOverlays config);
 
   # More stable = lower = at the front of the sorted list.
@@ -89,18 +99,18 @@ final: prev: let
   stabilityCmp = a: b:
     if a.status != b.status
     then
-      if a.status == "stable"
+      if a.status == stable
       then true
-      else if b.status == "stable"
+      else if b.status == stable
       then false
-      else a.status == "beta"
+      else a.status == beta
     else if a.variant != b.variant
     then
-      if a.variant == "primary"
+      if a.variant == primary
       then true
-      else if b.variant == "primary"
+      else if b.variant == primary
       then false
-      else a.variant == "small"
+      else a.variant == small
     else throw "Cannot sort channels ${a.name} and ${b.name} in stability order";
 
   channelsByStability = excludeOverlays: config:
