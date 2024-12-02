@@ -3,7 +3,7 @@
   coreutils,
   mtimewait,
   toil,
-  taskwarrior,
+  taskwarrior2,
   ncurses,
   jq,
   writeCheckedShellApplication,
@@ -14,7 +14,7 @@ writeCheckedShellApplication {
     bashInteractive
     coreutils
     mtimewait
-    taskwarrior
+    taskwarrior2
     toil
     jq
     ncurses

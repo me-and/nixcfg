@@ -57,7 +57,7 @@ in {
       pv
       python
       silver-searcher
-      taskwarrior
+      taskwarrior2
       taskloop
       tmux
       tmux-taskloop
