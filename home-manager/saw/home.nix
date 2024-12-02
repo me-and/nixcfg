@@ -74,19 +74,6 @@ in {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
   };
 
-  # Configure programs.taskwarrior.sync.credentials in local-config.nix.  Not
-  # sure this is necessary, but I'd rather have it private than not.
-  programs.taskwarrior = {
-    enable = true;
-    sync = {
-      enable = true;
-      address = "taskwarrior.dinwoodie.org";
-      port = 50340;
-      certPath = "${config.xdg.configHome}/task/adam.cert.pem";
-      keyPath = "${config.xdg.configHome}/home-manager/secrets/adam.key.pem";
-    };
-  };
-
   # Configure accounts.email.accounts.*.address in local-config.nix.
   accounts.email.accounts.main = {
     flavor = "gmail.com";

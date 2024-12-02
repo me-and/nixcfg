@@ -19,6 +19,7 @@ in {
     [
       ./firefox.nix
       ./keepassxc.nix
+      ./taskwarrior.nix
       ../../modules/home-manager
       ../../modules/shared
     ]
@@ -57,7 +58,6 @@ in {
       pv
       python
       silver-searcher
-      taskwarrior2
       taskloop
       tmux
       tmux-taskloop
