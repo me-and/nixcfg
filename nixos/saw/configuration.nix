@@ -29,4 +29,9 @@
   };
 
   system.stateVersion = "24.05";
+
+  nix.nixBuildDotNet = {
+    enableSubstituter = true;
+    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
+  };
 }
