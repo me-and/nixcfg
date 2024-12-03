@@ -51,6 +51,9 @@ in {
     discord
     gnucash
     gnome.gnome-calculator # Prefer this to the KDE options
+    hunspell
+    hunspellDicts.en-gb-ise
+    libreoffice
     signal-desktop
     telegram-desktop
     whatsapp-for-linux
