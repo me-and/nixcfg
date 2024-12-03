@@ -71,14 +71,18 @@
   languageConfig =
     if homeManagerHasLanguagePackOption
     then {
-      warnings = [
-        ''
-          Redundant handling of programs.firefox.languagePacks present in
-          ${builtins.toString ./.}/firefox.nix.  You can significantly simplify
-          that file if you're sure this configuration will no longer be used
-          anywhere that doesn't support programs.firefox.languagePacks config.
-        ''
-      ];
+      warnings =
+        lib.mkIf
+        ((lib ? oldestSupportedReleaseIsAtLeast)
+          && lib.oldestSupportedReleaseIsAtLeast 2411)
+        [
+          ''
+            Redundant handling of programs.firefox.languagePacks present in
+            ${builtins.toString ./.}/firefox.nix.  You can significantly simplify
+            that file if you're sure this configuration will no longer be used
+            anywhere that doesn't support programs.firefox.languagePacks config.
+          ''
+        ];
 
       programs.firefox.languagePacks = languagePacks;
     }

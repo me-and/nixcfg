@@ -30,6 +30,10 @@ in {
     username = lib.mkDefault "adam";
     homeDirectory = lib.mkDefault "/home/adam";
 
+    # We *don't* add home-manager here, nor use home-manager.enable, because we
+    # want to use the system home-manager installation.  In particular, that
+    # avoids inconsistent Home Manager and NixOS installation versions when
+    # there's a new NixOS release.
     packages = with pkgs; [
       aaisp-quota
       alejandra
@@ -65,10 +69,6 @@ in {
       tmux-taskloop
       toil
       unzip
-
-      # This is in place of setting programs.home-manager.enable, since that
-      # doesn't pick up my overlay.
-      home-manager
 
       # Use the Git version possibly configured in local-config.nix.  This is
       # handled here rather than with config.programs.git.enable because that
