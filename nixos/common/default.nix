@@ -63,8 +63,8 @@ in {
     # Check the channel list is as expected.
     nix.checkChannels = true;
     nix.channels = {
-      home-manager = "https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz";
-      nixos = "https://nixos.org/channels/nixos-24.05";
+      home-manager = "https://github.com/nix-community/home-manager/archive/release-24.11.tar.gz";
+      nixos = "https://nixos.org/channels/nixos-24.11";
     };
 
     # Always want locate running.
