@@ -35,18 +35,5 @@ in {
     (systemdWants "taskwarrior-sync.timer" "timers.target")
   ];
 
-  # Configure programs.taskwarrior.sync.credentials in local-config.nix.  Not
-  # sure this is necessary, but I'd rather have it private than not.
-  programs.taskwarrior = {
-    enable = true;
-    sync = {
-      enable = true;
-      address = "taskwarrior.dinwoodie.org";
-      port = 50340;
-      certPath = "${config.xdg.configHome}/task/adam.cert.pem";
-      keyPath = "${config.xdg.configHome}/task/adam.key.pem";
-    };
-  };
-
   accounts.email.forwardLocal.enable = true;
 }
