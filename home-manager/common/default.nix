@@ -7,6 +7,8 @@
   python = pkgs.python3.withPackages (pp: [
     # dateutil needed for asmodeus
     pp.dateutil
+    # requests needed for petition signing script
+    pp.requests
   ]);
 
   # Avoid using lib for this, so it can be safely used with imports.
