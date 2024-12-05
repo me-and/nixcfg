@@ -12,17 +12,12 @@ in
       packagePath = lib.strings.splitString "." pkgname;
       p = lib.attrsets.attrByPath packagePath null pkgs;
 
-      indentAfterFirst = s: let
+      indent = s: let
         lines = lib.strings.splitString "\n" s;
       in
-        lib.strings.concatImapStringsSep "\n"
-        (line: s:
-          if line == 1
-          then s
-          else "    " + s)
-        lines;
+        lib.concatStrings (map (s: "\n    " + s) lines);
       noTrailingNewline = lib.strings.removeSuffix "\n";
-      formatLong = s: indentAfterFirst (noTrailingNewline s);
+      formatLong = s: indent (noTrailingNewline s);
 
       boolToYN = b:
         if b
