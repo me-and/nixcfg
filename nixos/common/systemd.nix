@@ -89,6 +89,7 @@
       ];
 
     systemd.enableStrictShellChecks = true;
+    systemd.services.cups.enableStrictShellChecks = false; # TODO fix
   };
 in
   lib.mkMerge [

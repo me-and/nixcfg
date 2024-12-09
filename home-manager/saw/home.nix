@@ -59,12 +59,6 @@ in {
     whatsapp-for-linux
   ];
 
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [
-      "discord"
-      "zoom"
-    ];
-
   programs.firefox.enable = true;
 
   # Enable all the systemd units I want running.  These are mostly coming from
