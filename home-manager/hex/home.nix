@@ -58,6 +58,7 @@ in {
     libreoffice
     netflix
     qalculate-gtk
+    scribus
     signal-desktop
     telegram-desktop
     vlc
