@@ -51,7 +51,7 @@ in {
     android-tools # adb
     discord
     gnucash
-    gnome.gnome-calculator # Prefer this to the KDE options
+    gnome-calculator # Prefer this to the KDE options
     jellyfin-via-google-chrome
     hunspell
     hunspellDicts.en-gb-ise

@@ -50,7 +50,7 @@ in {
   home.packages = with pkgs; [
     discord
     gnucash
-    gnome.gnome-calculator # Prefer this to the KDE options
+    gnome-calculator # Prefer this to the KDE options
     hunspell
     hunspellDicts.en-gb-ise
     libreoffice
