@@ -18,6 +18,7 @@ in {
       <home-manager/nixos>
       ../../modules/nixos
       ../../modules/shared
+      ../../common
       ./jellyfin.nix
       ./garbage.nix
       ./gnome.nix
@@ -138,12 +139,5 @@ in {
       "time-sync.target"
       "time-set.target"
     ];
-
-    nixpkgs.config.allowUnfreePredicate = pkg:
-      builtins.elem (lib.getName pkg) [
-        "steam"
-        "steam-original"
-        "steam-run"
-      ];
   };
 }

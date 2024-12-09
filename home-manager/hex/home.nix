@@ -65,15 +65,6 @@ in {
     zoom-us
   ];
 
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [
-      "discord"
-      "google-chrome"
-      "netflix-icon"
-      "netflix-via-google-chrome"
-      "zoom"
-    ];
-
   programs.firefox.enable = true;
 
   # Enable all the systemd units I want running.  These are mostly coming from

@@ -19,6 +19,7 @@
 in {
   imports =
     [
+      ../../common
       ./firefox.nix
       ./keepassxc.nix
       ./taskwarrior.nix
