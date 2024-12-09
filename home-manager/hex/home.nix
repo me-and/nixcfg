@@ -102,4 +102,6 @@ in {
   accounts.email.forwardLocal.enable = true;
 
   programs.keepassxc.enable = true;
+
+  pd.enable = true;
 }
