@@ -1,6 +1,6 @@
 {lib, ...}: {
   nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName) [
+    builtins.elem (lib.getName pkg) [
       "cups-kyocera-3500-4500"
       "discord"
       "google-chrome"
