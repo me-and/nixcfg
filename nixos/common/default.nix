@@ -78,6 +78,7 @@ in {
     environment.systemPackages = with pkgs; [
       file
       home-manager
+      nethogs
       usbutils
     ];
 
