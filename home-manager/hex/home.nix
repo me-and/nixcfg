@@ -49,6 +49,7 @@ in {
 
   home.packages = with pkgs; [
     android-tools # adb
+    cardimpose
     discord
     gnucash
     gnome-calculator # Prefer this to the KDE options
