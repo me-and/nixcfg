@@ -43,7 +43,10 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [../common];
+  imports = [
+    ../common
+    ./fonts.nix
+  ];
 
   home.stateVersion = "24.05";
 
