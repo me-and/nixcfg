@@ -1,3 +1,4 @@
+# https://github.com/NixOS/nixpkgs/pull/363750
 {
   lib,
   python3Packages,
@@ -13,7 +14,7 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-7GyLTUzWd9cZ8/k+0FfzKW3H2rKZ3NHqkZkNmiQ+Tec=";
   };
 
-  built-system = [python3Packages.setuptools];
+  build-system = [python3Packages.setuptools];
 
-  dependencies = [python3Packages.pymupdf python3Packages.setuptools];
+  dependencies = [python3Packages.pymupdf];
 }
