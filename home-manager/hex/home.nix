@@ -43,12 +43,16 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [../common];
+  imports = [
+    ../common
+    ./fonts.nix
+  ];
 
   home.stateVersion = "24.05";
 
   home.packages = with pkgs; [
     android-tools # adb
+    cardimpose
     discord
     gnucash
     gnome-calculator # Prefer this to the KDE options
@@ -57,6 +61,7 @@ in {
     hunspellDicts.en-gb-ise
     libreoffice
     netflix
+    poppler_utils
     qalculate-gtk
     scribus
     signal-desktop
@@ -101,4 +106,6 @@ in {
   accounts.email.forwardLocal.enable = true;
 
   programs.keepassxc.enable = true;
+
+  pd.enable = true;
 }
