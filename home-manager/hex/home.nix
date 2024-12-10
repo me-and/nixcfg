@@ -61,6 +61,7 @@ in {
     hunspellDicts.en-gb-ise
     libreoffice
     netflix
+    poppler_utils
     qalculate-gtk
     scribus
     signal-desktop
