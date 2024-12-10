@@ -18,5 +18,12 @@ final: prev: let
     filterAttrs
     (_: value: pathExists value)
     possiblePackageFiles;
+  hiddenPackageWarning = pkgName: ''
+    Package ${pkgName} exists in nixpkgs but is being overwritten by a local
+    package.
+  '';
+  fileAttrToPackage = name: value:
+    prev.lib.warnIf (builtins.hasAttr name prev) (hiddenPackageWarning name)
+    final.callPackage value {};
 in
-  mapAttrs (name: value: final.callPackage value {}) packageFiles
+  mapAttrs fileAttrToPackage packageFiles
