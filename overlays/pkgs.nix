@@ -23,7 +23,12 @@ final: prev: let
     package.
   '';
   fileAttrToPackage = name: value:
-    prev.lib.warnIf (builtins.hasAttr name prev) (hiddenPackageWarning name)
-    final.callPackage value {};
+    prev.lib.warnIf
+    (
+      (builtins.hasAttr name prev)
+      && (builtins.tryEval prev."${name}").success
+    )
+    (hiddenPackageWarning name)
+    (final.callPackage value {});
 in
   mapAttrs fileAttrToPackage packageFiles
