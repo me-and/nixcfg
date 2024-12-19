@@ -1,4 +1,5 @@
 {
+  lib,
   requireFile,
   runCommandLocal,
 }: let
@@ -11,7 +12,12 @@
     sha1 = "3f9d0a8ffd2b0627f9c2279fcc8f7146a64997a5";
   };
 in
-  runCommandLocal "albertus-fonts" {} ''
+  runCommandLocal "albertus-fonts"
+  {
+    meta.license = lib.licenses.unfree;
+    meta.githubBuildPlatforms = [];
+  }
+  ''
     mkdir -p "$TMPDIR"/unpack
     cd "$TMPDIR"/unpack
     unpackFile ${fontTarball}
