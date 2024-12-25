@@ -127,10 +127,8 @@ in {
     };
 
     # Keep intermediate build stages around to speed up subsequent builds.
-    nix.extraOptions = ''
-      keep-outputs = true
-      keep-derivations = true
-    '';
+    nix.settings.keep-outputs = true;
+    nix.settings.keep-derivations = true;
 
     # I've seen issues with time synchronisation that may or may not be related
     # to these units not being automatically included in the NixOS systemd
