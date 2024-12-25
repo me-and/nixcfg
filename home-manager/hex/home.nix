@@ -59,6 +59,7 @@ in {
     jellyfin-via-google-chrome
     hunspell
     hunspellDicts.en-gb-ise
+    inkscape
     libreoffice
     netflix
     poppler_utils
