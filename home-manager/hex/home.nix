@@ -62,6 +62,7 @@ in {
     libreoffice
     netflix
     poppler_utils
+    prusa-slicer
     qalculate-gtk
     scribus
     signal-desktop
