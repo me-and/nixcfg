@@ -20,7 +20,6 @@
     ./sudo.nix
     ./syncthing.nix
     ./taskserver
-    ./time-sync.nix
     ./user.nix
     ./wsl.nix
   ];
