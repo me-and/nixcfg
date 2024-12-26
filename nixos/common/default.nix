@@ -18,6 +18,7 @@ in {
       <home-manager/nixos>
       ../../modules/nixos
       ../../modules/shared
+      ../../common
       ./jellyfin.nix
       ./garbage.nix
       ./gnome.nix
@@ -77,6 +78,7 @@ in {
     environment.systemPackages = with pkgs; [
       file
       home-manager
+      nethogs
       usbutils
     ];
 
@@ -142,12 +144,5 @@ in {
       "time-set.target"
       "systemd-time-wait-sync.service"
     ];
-
-    nixpkgs.config.allowUnfreePredicate = pkg:
-      builtins.elem (lib.getName pkg) [
-        "steam"
-        "steam-original"
-        "steam-run"
-      ];
   };
 }

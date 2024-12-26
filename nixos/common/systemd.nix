@@ -1,5 +1,6 @@
 {
   lib,
+  options,
   pkgs,
   ...
 }: let
@@ -74,8 +75,26 @@
       in "${reportScript} %i %u %l %H";
     };
   };
+
+  shellcheckConfig = lib.optionalAttrs (options.systemd ? enableStrictShellChecks) {
+    warnings =
+      lib.mkIf
+      ((lib ? oldestSupportedReleaseIsAtLeast) && lib.oldestSupportedReleaseIsAtLeast 2411)
+      [
+        ''
+          Version handling in ${builtins.toString ./.}/systemd.nix of
+          systemd.enableStrictShellChecks, introduced in NixOS 24.11, can be
+          safely removed.
+        ''
+      ];
+
+    systemd.enableStrictShellChecks = true;
+    systemd.services.linger-users.enableStrictShellChecks = false; # https://github.com/NixOS/nixpkgs/pull/363209
+    systemd.services.cups.enableStrictShellChecks = false; # TODO fix
+  };
 in
   lib.mkMerge [
     loopDeviceConfig
     mailStateConfig
+    shellcheckConfig
   ]

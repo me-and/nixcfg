@@ -43,36 +43,35 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [../common];
+  imports = [
+    ../common
+    ./fonts.nix
+  ];
 
   home.stateVersion = "24.05";
 
   home.packages = with pkgs; [
     android-tools # adb
+    cardimpose
     discord
     gnucash
-    gnome.gnome-calculator # Prefer this to the KDE options
+    gnome-calculator # Prefer this to the KDE options
     jellyfin-via-google-chrome
     hunspell
     hunspellDicts.en-gb-ise
+    inkscape
     libreoffice
     netflix
+    poppler_utils
+    prusa-slicer
     qalculate-gtk
+    scribus
     signal-desktop
     telegram-desktop
     vlc
     whatsapp-for-linux
     zoom-us
   ];
-
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [
-      "discord"
-      "google-chrome"
-      "netflix-icon"
-      "netflix-via-google-chrome"
-      "zoom"
-    ];
 
   programs.firefox.enable = true;
 
@@ -109,4 +108,6 @@ in {
   accounts.email.forwardLocal.enable = true;
 
   programs.keepassxc.enable = true;
+
+  pd.enable = true;
 }

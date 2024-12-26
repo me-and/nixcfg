@@ -50,7 +50,7 @@ in {
   home.packages = with pkgs; [
     discord
     gnucash
-    gnome.gnome-calculator # Prefer this to the KDE options
+    gnome-calculator # Prefer this to the KDE options
     hunspell
     hunspellDicts.en-gb-ise
     libreoffice
@@ -58,12 +58,6 @@ in {
     telegram-desktop
     whatsapp-for-linux
   ];
-
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [
-      "discord"
-      "zoom"
-    ];
 
   programs.firefox.enable = true;
 
