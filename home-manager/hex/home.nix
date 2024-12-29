@@ -62,6 +62,7 @@ in {
     inkscape
     libreoffice
     netflix
+    openscad
     poppler_utils
     prusa-slicer
     qalculate-gtk
