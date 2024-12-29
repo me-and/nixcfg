@@ -47,6 +47,7 @@ in {
       fzf
       gh
       git-filter-repo
+      gnumake
       htop
       jq
       lesspipe
