@@ -8,8 +8,7 @@ final: prev: let
       excludeOverlays = ["rclone.nix"];
     };
   in
-    final.lib.warnIf
-    (rcloneBase == prev.rclone)
+    final.lib.warnIf (final.lib.oldestSupportedReleaseIsAtLeast 2411)
     "unnecessary version check in rclone.nix overlay"
     rcloneBase;
 
