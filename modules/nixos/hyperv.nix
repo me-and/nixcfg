@@ -20,7 +20,6 @@ in {
           virtualisation.hypervGuest.videoMode.
         ''
       ];
-    boot.kernelParams = ["nomodeset"];
     services.xserver.modules = [pkgs.xorg.xf86videofbdev];
     services.xserver.videoDrivers = ["hyperv_fb"];
     users.groups.video.members = ["gdm"] ++ normalUserNames;
