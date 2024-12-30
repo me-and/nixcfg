@@ -35,6 +35,11 @@
     sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
   };
 
+  nix.settings = {
+    max-jobs = 4;
+    cores = 10;
+  };
+
   # Allow working with all the LVM features I sometimes use.
   boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
 }
