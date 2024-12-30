@@ -78,8 +78,7 @@
 
   shellcheckConfig = lib.optionalAttrs (options.systemd ? enableStrictShellChecks) {
     warnings =
-      lib.mkIf
-      ((lib ? oldestSupportedReleaseIsAtLeast) && lib.oldestSupportedReleaseIsAtLeast 2411)
+      lib.mkIf (lib.oldestSupportedReleaseIsAtLeast 2411)
       [
         ''
           Version handling in ${builtins.toString ./.}/systemd.nix of

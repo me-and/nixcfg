@@ -72,9 +72,7 @@
     if homeManagerHasLanguagePackOption
     then {
       warnings =
-        lib.mkIf
-        ((lib ? oldestSupportedReleaseIsAtLeast)
-          && lib.oldestSupportedReleaseIsAtLeast 2411)
+        lib.mkIf (lib.oldestSupportedReleaseIsAtLeast 2411)
         [
           ''
             Redundant handling of programs.firefox.languagePacks present in
