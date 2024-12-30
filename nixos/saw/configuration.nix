@@ -34,4 +34,7 @@
     enableSubstituter = true;
     sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
   };
+
+  # Allow working with all the LVM features I sometimes use.
+  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
 }
