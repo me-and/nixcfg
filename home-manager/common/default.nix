@@ -19,6 +19,7 @@
 in {
   imports =
     [
+      ../../common
       ./firefox.nix
       ./keepassxc.nix
       ./taskwarrior.nix
@@ -46,6 +47,7 @@ in {
       fzf
       gh
       git-filter-repo
+      gnumake
       htop
       jq
       lesspipe

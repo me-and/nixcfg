@@ -33,11 +33,6 @@
 
   programs.mosh.enable = true;
 
-  # This setting seems to be necessary to have both the speakers and mics work
-  # on my Bluetooth headsets.
-  # https://atish3604.medium.com/solved-bluetooth-headset-mic-not-working-detected-in-ubuntu-20-04-86a5236444d0
-  services.pipewire.pulse.enable = true;
-
   services.postfix = {
     enable = true;
     relayHost = "smtp.tastycake.net";
@@ -75,4 +70,14 @@
     enableSubstituter = true;
     sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
   };
+
+  # Need at least kernel 6.10 for framework-tool to work.  6.10 is out of
+  # support, so use 6.11 for now.
+  #
+  # https://github.com/FrameworkComputer/framework-system/issues/43
+  # https://github.com/NixOS/nixpkgs/issues/365709
+  boot.kernelPackages =
+    if pkgs.linuxPackages.kernelAtLeast "6.10"
+    then pkgs.linuxPackages
+    else pkgs.linuxKernel.packages.linux_6_11;
 }

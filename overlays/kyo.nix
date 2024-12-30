@@ -1,18 +1,19 @@
 # https://github.com/NixOS/nixpkgs/pull/358536
 final: prev: let
   thisFile = "${builtins.toString ./.}/kyo.nix";
+  name = "cups-kyocera-3500-4500";
 in {
-  cups-kyocera-3500-4500 =
-    if prev ? cups-kyocera-3500-4500
+  "${name}" =
+    if prev ? "${name}"
     then
       final.lib.warn "Unnecessary use of mostStablePackage in ${thisFile}."
-      prev.cups-kyocera-3500-4500
+      prev."${name}"
     else
       final.lib.channels.mostStablePackage {
-        name = "cups-kyocera-3500-4500";
+        inherit name;
         excludeOverlays = ["kyo.nix"];
         config = {
-          allowUnfreePredicate = pkg: (final.lib.getName pkg) == "cups-kyocera-3500-4500";
+          allowUnfreePredicate = pkg: (final.lib.getName pkg) == name;
         };
       };
 }
