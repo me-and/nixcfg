@@ -22,9 +22,7 @@ in
 
     # As well as enabling Nautilus, enable the indexing tools it uses.
     services.gnome =
-      lib.warnIf
-      ((lib ? oldestSupportedReleaseIsAtLeast)
-        && lib.oldestSupportedReleaseIsAtLeast 2411)
+      lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2411)
       ''
         Version handling in ${builtins.toString ./.}/plasma.nix of
         services.gnome renames, introduced in NixOS 24.11, can be safely

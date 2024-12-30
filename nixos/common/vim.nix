@@ -10,8 +10,7 @@
 
   uplevelConfig = lib.optionalAttrs (options.programs.vim ? enable) {
     warnings =
-      lib.mkIf
-      ((lib ? oldestSupportedReleaseIsAtLeast) && lib.oldestSupportedReleaseIsAtLeast 2411)
+      lib.mkIf (lib.oldestSupportedReleaseIsAtLeast 2411)
       [
         ''
           Version handling in ${builtins.toString ./.}/vim.nix of

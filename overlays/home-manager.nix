@@ -38,9 +38,7 @@ final: prev: {
         systemdTemplatesPatchNeeded =
           final.lib.versionOlder prevAttrs.version "0-unstable-2024-06-26";
         systemdTemplatesPatchWarning =
-          final.lib.warnIf
-          ((final.lib ? oldestSupportedReleaseIsAtLeast)
-            && final.lib.oldestSupportedReleaseIsAtLeast 2411)
+          final.lib.warnIf (final.lib.oldestSupportedReleaseIsAtLeast 2411)
           ''
             home-manager patch for systemd template files in
             ${builtins.toString ./.}/home-manager.nix can safely be removed.
