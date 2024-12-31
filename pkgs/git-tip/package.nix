@@ -61,18 +61,17 @@ in let
       export HOME
       git config --global safe.directory $out
 
-      # Generate an imitation of the version file in official releases.
-      ./GIT-VERSION-GEN
-      version_file_contents="$(<GIT-VERSION-FILE)"
-      version="''${version_file_contents#GIT_VERSION = }"
-      printf '%s\n' "$version" >version
+      # Generate GIT-VERSION-FILE for use in version calculations.
+      ${gnumake}/bin/make GIT-VERSION-FILE
     '';
 
   gitOverridden = git.override {inherit doInstallCheck;};
 in
   gitOverridden.overrideAttrs (oldAttrs: rec {
     inherit src;
-    version = lib.fileContents "${src}/version";
+    version =
+      lib.strings.removePrefix "GIT_VERSION="
+      (lib.fileContents "${src}/GIT-VERSION-FILE");
 
     nativeBuildInputs = [autoconf] ++ oldAttrs.nativeBuildInputs;
 

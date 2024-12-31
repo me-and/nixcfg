@@ -59,9 +59,12 @@ in {
     jellyfin-via-google-chrome
     hunspell
     hunspellDicts.en-gb-ise
+    inkscape
     libreoffice
     netflix
+    openscad
     poppler_utils
+    prusa-slicer
     qalculate-gtk
     scribus
     signal-desktop

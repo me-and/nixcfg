@@ -30,6 +30,7 @@ in {
       ./plasma.nix
       ./root.nix
       ./systemd.nix
+      ./taskserver.nix
       ./user.nix
       ./vim.nix
     ]
@@ -131,13 +132,17 @@ in {
     nix.settings.keep-outputs = true;
     nix.settings.keep-derivations = true;
 
-    # I've seen issues with time synchronisation that may or may not be related
-    # to these units not being automatically included in the NixOS systemd
-    # config.  Including them seems like it will do very little harm and might
-    # help.
-    boot.initrd.systemd.additionalUpstreamUnits = [
-      "time-sync.target"
+    # Make sure all the systemd units for time wrangling that I care about get
+    # included.
+    systemd.additionalUpstreamSystemUnits = [
+      # TODO including this causes problems because it's also included by the
+      # default NixOS configuration, which can't cope with duplicates.  I want
+      # to make it cope with duplicates so I can have the config here to be
+      # able to rely on the file existing even if the reason for it existing
+      # in NixOS disappears.
+      # "time-sync.target"
       "time-set.target"
+      "systemd-time-wait-sync.service"
     ];
   };
 }
