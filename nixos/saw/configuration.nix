@@ -14,8 +14,6 @@
 
   networking.networkmanager.enable = true;
 
-  networking.accessPD = true;
-
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
