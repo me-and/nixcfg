@@ -7,6 +7,7 @@
     ./mailutils.nix
     ./mosh.nix
     ./nginx.nix
+    ./nix-builder.nix
     ./nix-cache.nix
     ./nixbuild.net.nix
     ./openvpn.nix

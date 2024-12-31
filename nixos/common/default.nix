@@ -25,6 +25,7 @@ in {
       ./gui-common.nix
       ./mail.nix
       ./nginx.nix
+      ./nix-builder.nix
       ./nix-index.nix
       ./plasma.nix
       ./root.nix

@@ -80,4 +80,6 @@
     if pkgs.linuxPackages.kernelAtLeast "6.10"
     then pkgs.linuxPackages
     else pkgs.linuxKernel.packages.linux_6_11;
+
+  nix.localBuildServer.enable = true;
 }
