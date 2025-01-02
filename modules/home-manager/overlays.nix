@@ -1,32 +1,19 @@
 {
   config,
   lib,
+  options,
   ...
-}: {
+}: let
+  placeholderDefault = "_myModuleRename";
+in {
   options.nix = {
     extraNixPaths = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      description = ''
-        Extra path entries to add to the NIX_PATH variable when initialising
-        Home Manager session environment variables.  These paths will be added
-        before any paths that are set by the parent environment or using the
-        nix.nixPaths configuration.
-      '';
-      example = ["nixpkgs-overlays=\${config.home.homeDirectory}/my-overlays"];
-      default = [];
+      visible = false;
+      default = placeholderDefault;
     };
     nixPaths = lib.mkOption {
-      type = lib.types.nullOr (lib.types.listOf lib.types.str);
-      description = ''
-        Paths to set in the NIX_PATH variable when initialising Home Manager
-        session environment variables.  These paths will be added after any
-        paths configured using nix.extraNixPaths, and will overwrite any
-        environment variables set in the parent environment.
-
-        Set to to `null` to inherit the parent environment's NIX_PATH, or to
-        `[]` to set the path to the empty string.
-      '';
-      default = null;
+      visible = false;
+      default = placeholderDefault;
     };
   };
 
@@ -41,22 +28,32 @@
     myConfig = let
       overlayInfo = import ../../lib/overlays.nix {inherit lib;};
     in {
-      nix.extraNixPaths = ["nixpkgs-overlays=${overlayInfo.storeOverlayDir}"];
+      nix.nixPath = ["nixpkgs-overlays=${overlayInfo.storeOverlayDir}"];
     };
 
+    # This based reasonably heavily on the mkMergedOptionModule function in
+    # nixpkgs' lib/modules.nix.
     optionImplementation = let
       cfg = config.nix;
     in {
-      home.sessionVariables =
-        if cfg.nixPaths == null && cfg.extraNixPaths == []
-        then {}
-        else if cfg.nixPaths == null
-        then {
-          NIX_PATH = "${lib.strings.concatStringsSep ":" cfg.extraNixPaths}\${NIX_PATH:+:$NIX_PATH}";
-        }
-        else {
-          NIX_PATH = lib.strings.concatStringsSep ":" (cfg.extraNixPaths ++ cfg.nixPaths);
-        };
+      warnings = builtins.filter (x: x != "") (map (f: let
+        val = lib.getAttrFromPath f config;
+        opt = lib.getAttrFromPath f options;
+      in
+        lib.optionalString (val != placeholderDefault) ''
+          The option ${lib.options.showOption f} defined in
+          ${lib.options.showFiles opt.files} has been superseded by the Home
+          Manager options nix.nixPath and nix.keepOldNixPath.  Please read the
+          documentation for those options and update your configuration
+          accordingly.
+        '') [["nix" "extraNixPaths"] ["nix" "nixPaths"]]);
+
+      nix.nixPath =
+        (lib.optionals (cfg.extraNixPaths != placeholderDefault) cfg.extraNixPaths)
+        ++ (lib.optionals (cfg.nixPaths != placeholderDefault) cfg.nixPaths);
+
+      nix.keepOldNixPath =
+        lib.mkIf (cfg.nixPaths != placeholderDefault) (cfg.nixPaths != null);
     };
   in
     lib.mkMerge [

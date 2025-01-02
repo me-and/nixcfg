@@ -44,6 +44,7 @@ in {
       coldiff
       dig.dnsutils
       dos2unix
+      file-age
       fzf
       gh
       git-filter-repo

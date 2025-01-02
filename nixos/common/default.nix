@@ -25,6 +25,7 @@ in {
       ./gui-common.nix
       ./mail.nix
       ./nginx.nix
+      ./nix-builder.nix
       ./nix-index.nix
       ./plasma.nix
       ./root.nix
@@ -128,10 +129,8 @@ in {
     };
 
     # Keep intermediate build stages around to speed up subsequent builds.
-    nix.extraOptions = ''
-      keep-outputs = true
-      keep-derivations = true
-    '';
+    nix.settings.keep-outputs = true;
+    nix.settings.keep-derivations = true;
 
     # Make sure all the systemd units for time wrangling that I care about get
     # included.
