@@ -5,6 +5,7 @@
   rev ? null,
   ref ? "next",
   tag ? false,
+  srcPath ? null,
   keepSrc ? true,
   doInstallCheck ? true,
   cacert,
@@ -51,38 +52,42 @@ in let
   # repos in the store, to speed up the fetch stage.
   srcUuid = "2ab053e6-dcf9-4b0d-aef2-c0d4f78bfc09";
   srcSrc =
-    runCommand "git-src-${srcUuid}" {
-      # Allow access outside the chroot jail to fetch the Git repository.
-      __noChroot = true;
+    if srcPath != null
+    then srcPath
+    else
+      runCommand "git-src-${srcUuid}" {
+        # Allow access outside the chroot jail to speed up fetching the Git
+        # repository based on previous fetches.
+        __noChroot = true;
 
-      # Provide a git command to be able to do the clone.
-      nativeBuildInputs = [gitMinimal cacert];
-    }
-    ''
-      set -euo pipefail
-
-      # Avoid spurious "detached head" warnings.
-      git () {
-          command git -c advice.detachedHead=false "$@"
+        # Provide a git command to be able to do the clone.
+        nativeBuildInputs = [gitMinimal cacert];
       }
+      ''
+        set -euo pipefail
 
-      reference_args=()
-      for repo in /nix/store/*-git-src-${srcUuid}/; do
-          reference_args+=(--reference-if-able "$repo")
-      done
+        # Avoid spurious "detached head" warnings.
+        git () {
+            command git -c advice.detachedHead=false "$@"
+        }
 
-      git clone --branch ${lib.escapeShellArg ref} \
-          --single-branch \
-          "''${reference_args[@]}" \
-          --dissociate \
-          --recurse-submodules \
-          https://github.com/${lib.escapeShellArg gitHubRepo} "$out"
+        reference_args=()
+        for repo in /nix/store/*-git-src-${srcUuid}/; do
+            reference_args+=(--reference-if-able "$repo")
+        done
 
-      # This step is frequently unnecessary, but it means we always have a
-      # reference to the commit hash, so the derivation will inherently change
-      # if and when the branch points to a different target.
-      git -C "$out" switch --detach --recurse-submodules ${lib.escapeShellArg rev}
-    '';
+        git clone --branch ${lib.escapeShellArg ref} \
+            --single-branch \
+            "''${reference_args[@]}" \
+            --dissociate \
+            --recurse-submodules \
+            https://github.com/${lib.escapeShellArg gitHubRepo} "$out"
+
+        # This step is frequently unnecessary, but it means we always have a
+        # reference to the commit hash, so the derivation will inherently change
+        # if and when the branch points to a different target.
+        git -C "$out" switch --detach --recurse-submodules ${lib.escapeShellArg rev}
+      '';
 
   # Stage two of two in preparing the source code: create a distribution
   # tarball.  This creates a tarball more-or-less identical to the one that's
@@ -136,7 +141,7 @@ in let
 
   gitOverridden = git.override {inherit doInstallCheck;};
 in
-  gitOverridden.overrideAttrs (oldAttrs: rec {
+  gitOverridden.overrideAttrs (oldAttrs: {
     inherit src;
     version = lib.fileContents src.ver;
 
@@ -148,7 +153,6 @@ in
         builtins.replaceStrings
         ["patchShebangs t/*.sh"] ["# patchShebangs t/*.sh"]
         oldAttrs.postPatch;
-
 
     # If we want to keep the source in the store rather than allowing it to be
     # garbage collected (useful as it means the next fetch doesn't need to
