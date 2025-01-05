@@ -22,20 +22,32 @@ jobs:
           nix-instantiate --eval --json -E 'import ./lib/github-testable-packages.nix {}'
           printf '%s\n' "$delim"
 
+  get-channels:
+    name: Get channel list
+    runs-on: ubuntu-latest
+    outputs:
+      channels: ${{ steps.channels.outputs.channels }}
+    steps:
+      - name: Work out channel list
+        id: channels
+        run: |
+          delim="$(uuidgen)"
+          exec >"$GITHUB_OUTPUT"
+          printf 'channels<<%s\n' "$delim"
+          curl 'https://prometheus.nixos.org/api/v1/query?query=channel_revision' |
+              jq -c '.data.result | map(.metric | select(.variant != "darwin") | .channel) + [null]'
+          printf '%s\n' "$delim"
+
   build-packages:
     name: Build packages
-    needs: get-packages
+    needs:
+      - get-packages
+      - get-channels
     runs-on: ubuntu-latest
     strategy:
       matrix:
         package: ${{ fromJSON(needs.get-packages.outputs.packages) }}
-        channel:
-          - nixos-24.05
-          - nixos-24.05-small
-          - nixos-unstable
-          - nixos-unstable-small
-          - nixpkgs-unstable
-          - null
+        channel: ${{ fromJSON(needs.get-channels.outputs.channels) }}
     env:
       NIXPKGS_ALLOW_UNFREE: "1"
     steps:
