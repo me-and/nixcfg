@@ -209,4 +209,17 @@ in
       + lib.optionalString keepSrc ''
         ln -s ${src.srcsrc} $out/src
       '';
+
+    meta =
+      oldAttrs.meta
+      // {
+        # Building flagsArray works differently on 24.05.
+        buildOnGitHub =
+          lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2411) ''
+            Version handling in ${builtins.toString ./.}/package.nix of changes
+            to flag array construction in NixOS 24.11 can be safely removed.
+          ''
+          lib.versionAtLeast
+          lib.version "24.11";
+      };
   })
