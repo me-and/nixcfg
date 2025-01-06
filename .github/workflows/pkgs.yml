@@ -41,12 +41,10 @@ jobs:
   build-packages:
     name: Build packages
     needs:
-      - get-packages
       - get-channels
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: ${{ fromJSON(needs.get-packages.outputs.packages) }}
         channel: ${{ fromJSON(needs.get-channels.outputs.channels) }}
     env:
       NIXPKGS_ALLOW_UNFREE: "1"
@@ -65,10 +63,23 @@ jobs:
           CHANNEL: ${{ matrix.channel }}
         run: |
           printf 'NIX_PATH=nixpkgs=channel:%s\n' "$CHANNEL" >>$GITHUB_ENV
-      - name: Build ${{ matrix.package }}
-        env:
-          PACKAGE: ${{ matrix.package }}
+      - name: Build packages
         run: |
-          nix-instantiate --eval --json -E '(import <nixpkgs> {}).lib.version' |
+          nix-instantiate \
+                  --eval \
+                  --json
+                  -E 'import ./lib/github-testable-packages.nix {}' |
+              jq -r '.[]' >package-list.txt
+          mapfile -t packages <package-list.txt
+          package_args=()
+          for p in "${packages[@]}"; do
+              package_args+=(-A "$p")
+          done
+
+          nix-instantiate \
+                  --eval \
+                  --json \
+                  -E '(import <nixpkgs> {}).lib.version' |
               jq -r '"Nixpkgs version: \(.)"' >&2
-          nix-build pkgs -A "$PACKAGE"
+
+          nix-build pkgs "${package_args[@]}"
