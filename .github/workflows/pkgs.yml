@@ -14,7 +14,14 @@ jobs:
           exec >"$GITHUB_OUTPUT"
           printf 'channels<<%s\n' "$delim"
           curl 'https://prometheus.nixos.org/api/v1/query?query=channel_revision' |
-              jq -c '.data.result | map(.metric | select(.variant != "darwin") | .channel) + [null]'
+              jq -c '.data.result
+                     | map(
+                         .metric
+                         | select(.variant != "darwin")
+                         | select(.status != "unmaintained")
+                         | .channel
+                     )
+                     + [null]'
           printf '%s\n' "$delim"
 
   build-packages:
