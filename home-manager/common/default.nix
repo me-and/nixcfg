@@ -66,6 +66,7 @@ in {
       psmisc
       pv
       python
+      shellcheck
       silver-searcher
       taskloop
       tmux

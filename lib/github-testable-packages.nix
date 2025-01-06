@@ -1,8 +1,7 @@
 # Filter the list of packages to only provide the names of ones that can be
 # built as part of GitHub actions.  Assume a package can be built unless (a)
-# meta.githubBuildPlatforms is defined and doesn't include the build platform,
-# or (b) meta.githubBuildPlatforms is not defined but meta.platforms is and
-# doesn't include the build platform.
+# meta.buildOnGitHub is defined and false, or (b) meta.githubBuildPlatforms is
+# not defined but meta.platforms is and doesn't include the build platform.
 #
 # This emulates the meta.hydraPlatforms interface used by the Nixpkgs repository.
 let
@@ -20,8 +19,8 @@ in
     buildPackage = package:
       if package ? meta
       then
-        if package.meta ? githubBuildPlatforms
-        then builtins.elem builtins.currentSystem package.meta.githubBuildPlatforms
+        if package.meta ? buildOnGitHub
+        then package.meta.buildOnGitHub
         else if package.meta ? platforms
         then builtins.elem builtins.currentSystem package.meta.platforms
         else true

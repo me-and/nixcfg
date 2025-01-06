@@ -141,12 +141,12 @@ in let
 
   gitOverridden = git.override {inherit doInstallCheck;};
 in
-  gitOverridden.overrideAttrs (oldAttrs: {
+  gitOverridden.overrideAttrs (finalAttrs: oldAttrs: {
     inherit src;
     version = lib.fileContents src.ver;
 
     postPatch =
-      if oldAttrs.doInstallCheck
+      if finalAttrs.doInstallCheck
       then oldAttrs.postPatch
       # No need to patch shebangs if we're not running the tests.
       else
@@ -154,13 +154,72 @@ in
         ["patchShebangs t/*.sh"] ["# patchShebangs t/*.sh"]
         oldAttrs.postPatch;
 
-    # If we want to keep the source in the store rather than allowing it to be
-    # garbage collected (useful as it means the next fetch doesn't need to
-    # download the entire Git source repository), add a symlink to the source
-    # in the Nix store from the output.
+    # The below for https://github.com/NixOS/nixpkgs/pull/370888, except where
+    # commented...
+    enableParallelInstalling = true;
+    postBuild =
+      ''
+        local flagsArray=(
+            ''${enableParallelBuilding:+-j''${NIX_BUILD_CORES}}
+            SHELL="$SHELL"
+        )
+        concatTo flagsArray makeFlags makeFlagsArray buildFlags buildFlagsArray
+        if [[ "$(type -t make)" != file ]]; then
+            echo "make isn't a file to be executed!" >&2
+            type make
+            exit 1
+        fi
+        make () {
+            command make "''${flagsArray[@]}" "$@"
+        }
+        make -C Documentation
+        make -C contrib/subtree all doc
+      ''
+      + (oldAttrs.postBuild or "")
+      + ''
+        unset flagsArray
+        unset -f make
+      '';
+
     postInstall =
-      (oldAttrs.postInstall or "")
+      ''
+        local flagsArray=(
+            ''${enableParallelBuilding:+-j''${NIX_BUILD_CORES}}
+            SHELL="$SHELL"
+        )
+        concatTo flagsArray makeFlags makeFlagsArray installFlags installFlagsArray
+        if [[ "$(type -t make)" != file ]]; then
+            echo "make isn't a file to be executed!" >&2
+            type make
+            exit 1
+        fi
+        make () {
+            command make "''${flagsArray[@]}" "$@"
+        }
+      ''
+      + (oldAttrs.postInstall or "")
+      + ''
+        unset flagsArray
+        unset -f make
+      ''
+      # If we want to keep the source in the store rather than allowing it to
+      # be garbage collected (useful as it means the next fetch doesn't need to
+      # download the entire Git source repository), add a symlink to the source
+      # in the Nix store from the output.
       + lib.optionalString keepSrc ''
         ln -s ${src.srcsrc} $out/src
       '';
+
+    meta =
+      oldAttrs.meta
+      // {
+        # Building flagsArray works differently on 24.05.
+        buildOnGitHub =
+          lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2411) ''
+            Version handling in ${builtins.toString ./.}/package.nix of changes
+            to flag array construction in NixOS 24.11 can be safely removed.
+          ''
+          lib.versionAtLeast
+          lib.version "24.11";
+      };
   })
