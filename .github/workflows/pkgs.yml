@@ -1,27 +1,6 @@
 name: Check package builds
 on: [push, pull_request]
 jobs:
-  get-packages:
-    name: Get package names
-    runs-on: ubuntu-latest
-    outputs:
-      packages: ${{ steps.packages.outputs.packages }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v12
-      - name: Set up Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v7
-      - name: Work out package list
-        id: packages
-        run: |
-          delim="$(uuidgen)"
-          exec >"$GITHUB_OUTPUT"
-          printf 'packages<<%s\n' "$delim"
-          nix-instantiate --eval --json -E 'import ./lib/github-testable-packages.nix {}'
-          printf '%s\n' "$delim"
-
   get-channels:
     name: Get channel list
     runs-on: ubuntu-latest
@@ -67,7 +46,7 @@ jobs:
         run: |
           nix-instantiate \
                   --eval \
-                  --json
+                  --json \
                   -E 'import ./lib/github-testable-packages.nix {}' |
               jq -r '.[]' >package-list.txt
           mapfile -t packages <package-list.txt
