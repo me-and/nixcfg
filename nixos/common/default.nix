@@ -19,6 +19,7 @@ in {
       ../../modules/nixos
       ../../modules/shared
       ../../common
+      ./avahi.nix
       ./jellyfin.nix
       ./garbage.nix
       ./gnome.nix
