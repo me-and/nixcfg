@@ -63,6 +63,7 @@ in {
       nix-diff
       nix-locate-bin
       nixos-generators
+      nixpkgs-review
       psmisc
       pv
       python
