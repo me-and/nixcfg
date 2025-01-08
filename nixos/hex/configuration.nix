@@ -87,4 +87,6 @@
     max-jobs = 4;
     cores = 8;
   };
+
+  programs.winapps.enable = true;
 }
