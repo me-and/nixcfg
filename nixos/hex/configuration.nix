@@ -82,4 +82,9 @@
     else pkgs.linuxKernel.packages.linux_6_11;
 
   nix.localBuildServer.enable = true;
+
+  nix.settings = {
+    max-jobs = 4;
+    cores = 8;
+  };
 }
