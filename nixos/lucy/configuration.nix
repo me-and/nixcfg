@@ -27,7 +27,7 @@
   # fileSystems."/nix" is already defined elsewhere?
   fileSystems."/nix".options = ["noatime"];
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "24.11";
   system.isPi4 = true;
   networking.hostName = "lucy";
   networking.domain = "dinwoodie.org";
