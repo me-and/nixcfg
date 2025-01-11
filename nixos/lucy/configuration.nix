@@ -117,9 +117,8 @@
     authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
   };
 
-  nix.nixBuildDotNet = {
-    enableBuildSystems = ["aarch64-linux"];
-    enableSubstituter = true;
-    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
+  nix.nixBuildDotNet.builds = {
+    enable = true;
+    systems = ["aarch64-linux"];
   };
 }

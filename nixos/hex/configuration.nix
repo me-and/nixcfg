@@ -65,12 +65,6 @@
 
   hardware.frameworkBluetoothWorkaround = true;
 
-  nix.nixBuildDotNet = {
-    enableBuildSystems = ["aarch64-linux"];
-    enableSubstituter = true;
-    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
-  };
-
   # Need at least kernel 6.10 for framework-tool to work.  6.10 is out of
   # support, so use 6.11 for now.
   #
