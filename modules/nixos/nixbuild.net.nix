@@ -125,8 +125,8 @@ in {
     substituterConfig = let
       storeUrl =
         if cfg.substituter.priority == null
-        then "ssh://eu.nixbuild.net"
-        else "ssh://eu.nixbuild.net?priority=${toString cfg.substituter.priority}";
+        then "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}"
+        else "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}&priority=${toString cfg.substituter.priority}";
     in
       lib.mkIf cfg.substituter.enable {
         nix.settings = {
