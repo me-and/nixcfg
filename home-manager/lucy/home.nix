@@ -56,7 +56,7 @@
 in {
   imports = [../common];
 
-  home.stateVersion = "24.05";
+  home.stateVersion = "24.11";
 
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
