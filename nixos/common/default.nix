@@ -19,6 +19,7 @@ in {
       ../../modules/nixos
       ../../modules/shared
       ../../common
+      ./avahi.nix
       ./jellyfin.nix
       ./garbage.nix
       ./gnome.nix
@@ -144,5 +145,13 @@ in {
       "time-set.target"
       "systemd-time-wait-sync.service"
     ];
+
+    nix.nixBuildDotNet = {
+      substituter = {
+        enable = lib.mkDefault true;
+        priority = 10;
+      };
+      sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
+    };
   };
 }

@@ -22,6 +22,7 @@
     ./syncthing.nix
     ./taskserver
     ./user.nix
+    ./winapps.nix
     ./wsl.nix
   ];
 }

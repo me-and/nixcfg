@@ -59,7 +59,6 @@ in {
 
     # Don't want mDNS services, as I can get them from Windows.
     services.avahi.enable = lib.mkForce false;
-    services.avahi.nssmdns4 = lib.mkForce false;
 
     # Don't want to connect over SSH; there's no need for that.
     services.openssh.enable = false;

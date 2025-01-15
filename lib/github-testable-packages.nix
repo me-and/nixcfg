@@ -1,7 +1,7 @@
 # Filter the list of packages to only provide the names of ones that can be
 # built as part of GitHub actions.  Assume a package can be built unless (a)
-# meta.buildOnGitHub is defined and false, or (b) meta.githubBuildPlatforms is
-# not defined but meta.platforms is and doesn't include the build platform.
+# meta.buildOnGitHub is defined and false, or (b) meta.buildOnGitHub is not
+# defined but meta.platforms is and doesn't include the build platform.
 #
 # This emulates the meta.hydraPlatforms interface used by the Nixpkgs repository.
 let
