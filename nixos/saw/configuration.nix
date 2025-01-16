@@ -27,11 +27,6 @@
 
   system.stateVersion = "24.05";
 
-  nix.nixBuildDotNet = {
-    enableSubstituter = true;
-    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
-  };
-
   nix.settings = {
     max-jobs = 4;
     cores = 10;

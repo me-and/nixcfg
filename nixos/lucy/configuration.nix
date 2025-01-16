@@ -27,7 +27,7 @@
   # fileSystems."/nix" is already defined elsewhere?
   fileSystems."/nix".options = ["noatime"];
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "24.11";
   system.isPi4 = true;
   networking.hostName = "lucy";
   networking.domain = "dinwoodie.org";
@@ -117,9 +117,8 @@
     authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
   };
 
-  nix.nixBuildDotNet = {
-    enableBuildSystems = ["aarch64-linux"];
-    enableSubstituter = true;
-    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
+  nix.nixBuildDotNet.builds = {
+    enable = true;
+    systems = ["aarch64-linux"];
   };
 }
