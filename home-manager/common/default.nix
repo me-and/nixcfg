@@ -62,6 +62,7 @@ in {
       nix-dangling-roots
       nix-diff
       nix-locate-bin
+      nix-output-monitor
       nixos-generators
       nixpkgs-review
       psmisc
