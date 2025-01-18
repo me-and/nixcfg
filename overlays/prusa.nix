@@ -3,7 +3,7 @@ final: prev: let
   prusa-slicer-base = final.lib.channels.mostStablePackageVersionAtLeast {
     name = "prusa-slicer";
     version = "2.9.0";
-    excludeOverlays = ["prusa"];
+    excludeOverlays = ["prusa.nix"];
     testFirst = [prev.prusa-slicer];
   };
   patch = final.fetchpatch {
