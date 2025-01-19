@@ -73,6 +73,7 @@ in {
       taskloop
       tmux
       tmux-taskloop
+      tmux-xpanes
       toil
       unzip
 
