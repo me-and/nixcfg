@@ -140,9 +140,17 @@ in {
         testFirst ? [],
       }: let
         pred' = p: p != null && pred p;
+
+        # Could just construct a list with the testFirst options followed by
+        # the packages ordered by stability, but that will cause Nix to
+        # always calculate the full list.  Given calculating the full list
+        # involves at least downloading and parsing the channel list, it'd be
+        # nice to avoid that where possible.
+        testFirstResult = final.lib.findFirst pred' "__noTestFirstMatch" testFirst;
       in
-        final.lib.findFirst pred' default
-        (testFirst ++ packagesByStability excludeOverlays config name);
+        if testFirstResult == "__noTestFirstMatch"
+        then final.lib.findFirst pred' default (packagesByStability excludeOverlays config name)
+        else testFirstResult;
 
       mostStablePackage = {
         name,
