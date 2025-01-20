@@ -91,6 +91,7 @@ in {
         connect_from_port_20=YES
         pasv_min_port=${toString cfg.ftpPasvPortRange.from}
         pasv_max_port=${toString cfg.ftpPasvPortRange.to}
+        local_umask=007
       '';
     };
 
@@ -162,6 +163,7 @@ in {
         ConfigurationDirectoryMode = "0770";
         User = cfg.uploadUser;
         Group = cfg.uploadGroup;
+        SupplementaryGroups = cfg.scannerGroup;
         ExecStart = pkgs.writeCheckedShellScript {
           name = "ftp-to-onedrive.sh";
           runtimeEnv = {
