@@ -90,6 +90,7 @@
     systemd.enableStrictShellChecks = true;
     systemd.services.linger-users.enableStrictShellChecks = false; # https://github.com/NixOS/nixpkgs/pull/363209
     systemd.services.cups.enableStrictShellChecks = false; # TODO fix
+    systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
   };
 in
   lib.mkMerge [
