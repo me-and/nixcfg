@@ -20,6 +20,11 @@
     private = true;
     hash = "sha256-EngUPXUdUvQSwPXUH8vC6qKDNnFAjgNgjT4x9d38tcM=";
   in
+    lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2505)
+    ''
+      Unnecessary working around GitHub API and fetchFromGitHub limitations in
+      ${./.}/systemd.nix
+    ''
     pkgs.fetchzip ({
         inherit name hash;
         url =
