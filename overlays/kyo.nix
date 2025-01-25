@@ -4,16 +4,17 @@ final: prev: let
   name = "cups-kyocera-3500-4500";
 in {
   "${name}" =
-    if prev ? "${name}"
-    then
-      final.lib.warn "Unnecessary use of mostStablePackage in ${thisFile}."
-      prev."${name}"
-    else
-      final.lib.channels.mostStablePackage {
+    final.lib.warnIf (final.lib.oldestSupportedReleaseIsAtLeast 2411)
+    "Unnecessary use of mostStablePackage in ${thisFile}."
+    (
+      if prev ? name
+      then prev."${name}"
+      else final.lib.channels.mostStablePackage {
         inherit name;
         excludeOverlays = ["kyo.nix"];
         config = {
           allowUnfreePredicate = pkg: (final.lib.getName pkg) == name;
         };
-      };
+      }
+    );
 }
