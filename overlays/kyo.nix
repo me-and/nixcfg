@@ -9,12 +9,13 @@ in {
     (
       if prev ? name
       then prev."${name}"
-      else final.lib.channels.mostStablePackage {
-        inherit name;
-        excludeOverlays = ["kyo.nix"];
-        config = {
-          allowUnfreePredicate = pkg: (final.lib.getName pkg) == name;
-        };
-      }
+      else
+        final.lib.channels.mostStablePackage {
+          inherit name;
+          excludeOverlays = ["kyo.nix"];
+          config = {
+            allowUnfreePredicate = pkg: (final.lib.getName pkg) == name;
+          };
+        }
     );
 }
