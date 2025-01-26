@@ -15,6 +15,7 @@
   zlib,
   curl,
   stdenv,
+  substitute,
 }: let
   rev' = rev;
 in let
@@ -140,6 +141,19 @@ in let
   };
 
   gitOverridden = git.override {inherit doInstallCheck;};
+
+  fixPatches = patchFile:
+    if (builtins.baseNameOf patchFile) == "git-send-email-honor-PATH.patch"
+    then
+      substitute {
+        src = patchFile;
+        substitutions = [
+          "--replace-fail"
+          "/Documentation/git-send-email.txt"
+          "/Documentation/git-send-email.adoc"
+        ];
+      }
+    else patchFile;
 in
   gitOverridden.overrideAttrs (finalAttrs: oldAttrs: {
     inherit src;
@@ -153,6 +167,8 @@ in
         builtins.replaceStrings
         ["patchShebangs t/*.sh"] ["# patchShebangs t/*.sh"]
         oldAttrs.postPatch;
+
+    patches = map fixPatches oldAttrs.patches;
 
     # The below for https://github.com/NixOS/nixpkgs/pull/370888, except where
     # commented...
