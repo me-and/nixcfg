@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   options,
   pkgs,
   ...
@@ -90,7 +91,29 @@
     systemd.enableStrictShellChecks = true;
     systemd.services.linger-users.enableStrictShellChecks = false; # https://github.com/NixOS/nixpkgs/pull/363209
     systemd.services.cups.enableStrictShellChecks = false; # TODO fix
-    systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
+  };
+
+  # Gate this on whether wireless networking is enabled at all, as otherwise
+  # this config would create a wpa_supplicant.service systemd unit that
+  # wouldn't otherwise exist.
+  shellcheckWpaSupplicantConfig =
+    lib.optionalAttrs
+    (
+      options.systemd ? enableStrictShellChecks
+      && config.networking.wireless.enable
+    )
+    {
+      warnings =
+        lib.mkIf (lib.oldestSupportedReleaseIsAtLeast 2411)
+        [
+          ''
+            Version handling in ${builtins.toString ./.}/systemd.nix of
+            systemd.enableStrictShellChecks, introduced in NixOS 24.11, can be
+            safely removed.
+          ''
+        ];
+
+      systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
   };
 in
   lib.mkMerge [
