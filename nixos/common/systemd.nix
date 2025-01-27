@@ -99,7 +99,7 @@
   shellcheckWpaSupplicantConfig =
     lib.optionalAttrs
     (
-      options.systemd ? enableStrictShellChecks
+      (options.systemd ? enableStrictShellChecks)
       && config.networking.wireless.enable
     )
     {
@@ -114,7 +114,7 @@
         ];
 
       systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
-  };
+    };
 in
   lib.mkMerge [
     loopDeviceConfig
