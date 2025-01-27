@@ -54,6 +54,7 @@ in {
     android-tools # adb
     cardimpose
     discord
+    freecad
     gh-random-pr
     gnucash
     gnome-calculator # Prefer this to the KDE options

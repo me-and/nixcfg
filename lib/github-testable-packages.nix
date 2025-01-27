@@ -16,15 +16,15 @@ in
   }: let
     packages = import ../pkgs {inherit pkgsPath pkgs lib;};
 
-    buildPackage = package:
-      if package ? meta
-      then
-        if package.meta ? buildOnGitHub
-        then package.meta.buildOnGitHub
-        else if package.meta ? platforms
-        then builtins.elem builtins.currentSystem package.meta.platforms
-        else true
-      else true;
+    # Build only if (a) the list of supported platforms includes this system
+    # (or is unspecified, so all systems is implied), and (b) buildOnGitHub is
+    # true or unset.
+    buildPackage = package: let
+      platforms = package.meta.platforms or [builtins.currentSystem];
+      buildsOnThisPlatform = builtins.elem builtins.currentSystem platforms;
+      buildOnGitHub = package.meta.buildOnGitHub or true;
+    in
+      buildsOnThisPlatform && buildOnGitHub;
 
     buildablePackages = lib.filterAttrs (n: v: buildPackage v) packages;
   in
