@@ -7,14 +7,11 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  virtualisation.hypervGuest.videoMode = "1920x1080";
-
   networking.hostName = "saw";
   networking.domain = "dinwoodie.org";
 
   networking.networkmanager.enable = true;
 
-  services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
   services.samba.enable = true;
@@ -25,7 +22,7 @@
     relayPort = 587;
   };
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "24.11";
 
   nix.settings = {
     max-jobs = 4;
