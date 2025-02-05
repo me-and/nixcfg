@@ -89,7 +89,7 @@
 
       waitingfor = {
         description = "Tasks where I'm waiting on others";
-        filter = "+waitingfor status:pending -BLOCKED";
+        filter = "+waitingfor status:pending -BLOCKED -inbox";
         columns = ["id" "project" "due.relative" "until.remaining" "description.count"];
         labels = ["ID" "Proj" "Due" "Until" "Description"];
         context = false;
