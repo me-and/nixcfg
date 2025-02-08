@@ -15,7 +15,7 @@
     services.reboot = {
       unitConfig.DefaultDependencies = false;
       serviceConfig = {
-        type = "oneshot";
+        Type = "oneshot";
         ExecStart = "systemctl reboot";
       };
       after = ["emergency.service"];
