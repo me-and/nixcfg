@@ -97,7 +97,7 @@
   # this config would create a wpa_supplicant.service systemd unit that
   # wouldn't otherwise exist.
   shellcheckWpaSupplicantConfig =
-    lib.optionalAttrs
+    lib.mkIf
     (
       (options.systemd ? enableStrictShellChecks)
       && config.networking.wireless.enable
@@ -120,4 +120,5 @@ in
     loopDeviceConfig
     mailStateConfig
     shellcheckConfig
+    shellcheckWpaSupplicantConfig
   ]
