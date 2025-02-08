@@ -198,7 +198,7 @@
       work = {
         # Prioritise things that can only be done at work or in business
         # hours.
-        read = readFilter "-southport -dadford -multivac -allotment -nsfw -alex";
+        read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex";
         rc.urgency.user.tag = {
           work.coefficient = 6;
           business.coefficient = 4;
@@ -216,11 +216,11 @@
         read = readFilter "-allotment -enfield -dadford -home -work -office";
         rc.urgency.user.tag.southport.coefficient = 20;
       };
-      bike.read = readFilter "-home -southport -dadford -enfield -work -office -car -multivac -cornwall -phone";
-      bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -office -pc -multivac -audio -business -alex -car -cornwall -phone -surface";
+      bike.read = readFilter "-home -southport -dadford -enfield -work -office -car -multivac -hex -cornwall -phone";
+      bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -office -pc -multivac -hex -audio -business -alex -car -cornwall -phone -surface";
       office = {
         # Prioritise things that can only be done in the office.
-        read = readFilter "-southport -dadford -multivac -allotment -nsfw -alex -home -car";
+        read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex -home -car";
         rc.urgency.user.tag = {
           business.coefficient = 2;
           work.coefficient = 6;
