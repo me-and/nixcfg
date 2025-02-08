@@ -246,7 +246,7 @@ in {
     # TODO This doesn't belong here!
     systemd.mounts = [
       {
-        what = "/dev/mapper/pi-rclone--cache";
+        what = "/dev/mapper/pi-rclonecache";
         where = "/var/cache/rclone";
       }
     ];
