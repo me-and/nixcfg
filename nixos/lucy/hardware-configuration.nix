@@ -35,6 +35,12 @@
       fsType = "btrfs";
     };
 
+  fileSystems."/usr/local/share/archives" =
+    { device = "/dev/disk/by-uuid/a26954eb-74b3-4d60-a386-c6985563475f";
+      fsType = "btrfs";
+      options = [ "noexec" ];
+    };
+
   swapDevices =
     [ { device = "/dev/disk/by-uuid/ed11c315-4a0a-4176-89aa-2d69ef8f4268"; }
     ];
