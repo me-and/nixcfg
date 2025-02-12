@@ -133,7 +133,8 @@ for arg in "${positional_args[@]}"; do
 done
 
 [[ "$report" ]] || report=next
-tmpdir="$(mktemp -dt "taskloop.$report.$EPOCHSECONDS.$$.XXXXX")"
+tmpdir="$TMUX_TASKLOOP_TMPDIR/$report.$$"
+mkdir -p "$tmpdir"
 [[ "$have_reserved_lines" ]] || config+=(reserved.lines=0)
 [[ "$have_verbose" ]] || config+=('verbose=blank,header,footnote,label,affected,context')
 [[ "$have_gc" ]] || config+=(gc=0)

@@ -52,7 +52,14 @@ stdenvNoCC.mkDerivation {
             "source-file $out/lib/tmux-taskloop.conf" \
         --replace-fail \
             '@@TMUX@@' \
-            '${tmux}/bin/tmux'
+            '${tmux}/bin/tmux' \
+        --replace-fail \
+            '@@RM@@' \
+            '${coreutils}/bin/rm' \
+        --replace-fail \
+            '@@MKTEMP@@' \
+            '${coreutils}/bin/mktemp'
+
 
     cp *.conf $out/lib
     substituteInPlace $out/lib/tmux-taskloop.conf \
