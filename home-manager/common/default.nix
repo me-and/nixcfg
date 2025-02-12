@@ -70,7 +70,6 @@ in {
       python
       shellcheck
       silver-searcher
-      taskloop
       tmux
       tmux-taskloop
       tmux-xpanes

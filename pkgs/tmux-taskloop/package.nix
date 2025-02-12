@@ -1,8 +1,14 @@
+# TODO Run shellcheck over the Bash scripts
 {
   lib,
   bashInteractive,
+  coreutils,
+  jq,
+  mtimewait,
+  ncurses,
+  taskwarrior2,
   tmux,
-  taskloop,
+  toil,
   stdenvNoCC,
   makeBinaryWrapper,
 }:
@@ -15,22 +21,47 @@ stdenvNoCC.mkDerivation {
     makeBinaryWrapper
   ];
   preferLocalBuild = true;
-  installPhase = ''
-    mkdir -p $out/bin $out/lib
+  installPhase = let
+    taskloopPath = lib.makeBinPath [
+      bashInteractive
+      coreutils
+      mtimewait
+      taskwarrior2
+      toil
+      jq
+      ncurses
+    ];
+  in ''
+    mkdir -p $out/bin $out/lib $out/libexec
+
+    cp tasklooprc $out/lib
+
+    cp taskloop $out/libexec
+    substituteInPlace $out/libexec/taskloop \
+        --replace-fail \
+            '@@TASKLOOPRC_PATH@@' \
+            "$out/lib/tasklooprc" \
+        --replace-fail \
+            '@@PATH@@' \
+            ${lib.escapeShellArg taskloopPath}
 
     cp tmux-taskloop $out/bin
     substituteInPlace $out/bin/tmux-taskloop \
         --replace-fail \
             'source-file tmux-taskloop.conf' \
-            "source-file $out/lib/tmux-taskloop.conf"
-    wrapProgram $out/bin/tmux-taskloop \
-        --prefix PATH : ${lib.makeBinPath [taskloop tmux]}
+            "source-file $out/lib/tmux-taskloop.conf" \
+        --replace-fail \
+            '@@TMUX@@' \
+            '${tmux}/bin/tmux'
 
     cp *.conf $out/lib
     substituteInPlace $out/lib/tmux-taskloop.conf \
         --replace-fail /usr/bin/bash ${bashInteractive}/bin/bash \
         --replace-fail \
             'source-file tmux-taskloop-resize.conf' \
-            "source-file $out/lib/tmux-taskloop-resize.conf"
+            "source-file $out/lib/tmux-taskloop-resize.conf" \
+        --replace-fail \
+            '@@TASKLOOP@@' \
+            "$out/libexec/taskloop"
   '';
 }

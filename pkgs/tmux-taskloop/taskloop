@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# TODO Make this more pure?
+export PATH="$PATH":@@PATH@@
+
 umask 0077
 
 toil_pid=
@@ -212,7 +218,7 @@ while :; do
 			tmpdir="$tmpdir" \
 			watch_sigwinch="$watch_sigwinch" \
 			n="$n" \
-			bash --rcfile __TASKLOOPRC_PATH__ -i \
+			bash --rcfile @@TASKLOOPRC_PATH@@ -i \
 			<&0 &
 		bash_pid="$!"
 		read_pid=

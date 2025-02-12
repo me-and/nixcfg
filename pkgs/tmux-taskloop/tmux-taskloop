@@ -48,7 +48,7 @@ done
 
 export TMUX_TASKLOOP_FILTER="${filter[*]}"
 
-exec tmux \
+exec @@TMUX@@ \
 	-L tmux-taskloop-$$ \
 	"${tmux_control_mode_args[@]}" \
 	start-server \; \
