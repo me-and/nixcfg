@@ -3,7 +3,7 @@ final: prev: let
   lib = final.lib;
 in {
   azuredatastudio =
-    lib.warnIf (lib.oldestSuppportedReleaseIsAtLeast 2505)
+    lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2505)
     ''
       Unnecessary patching of azuredatastudio package in
       ${./.}/azuredatastudio.nix

@@ -1,6 +1,6 @@
 # https://github.com/NixOS/nixpkgs/pull/363750
 final: prev:
-final.lib.warnIf (final.lib.oldestSupportedReleaseIsAtLeast 2505)
+prev.lib.warnIf (prev.lib.oldestSupportedReleaseIsAtLeast 2505)
 ''
   Unnecessary definition of cardimpose package in
   ${./.}/cardimpose.nix
