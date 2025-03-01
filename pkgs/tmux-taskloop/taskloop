@@ -72,7 +72,8 @@ while (( $# > 0 )); do
 		-n*|-d*|-s*|-c*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
-		--)	positional_args+=("$@")
+		--)	shift
+			positional_args+=("$@")
 			break
 			;;
 		*)	positional_args+=("$1")
