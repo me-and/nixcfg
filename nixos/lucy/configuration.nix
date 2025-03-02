@@ -20,13 +20,6 @@
   # Allow working with all LVM features I sometimes use.
   boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
 
-  # Mild I/O and disk lifetime improvements
-  # https://nixos.wiki/wiki/Storage_optimization#Moving_the_store
-  #
-  # TODO Can I make this common configuration but only for systems where
-  # fileSystems."/nix" is already defined elsewhere?
-  fileSystems."/nix".options = ["noatime"];
-
   system.stateVersion = "24.11";
   system.isPi4 = true;
   networking.hostName = "lucy";
@@ -121,4 +114,6 @@
     enable = true;
     systems = ["aarch64-linux"];
   };
+
+  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 20;  # 20GB
 }
