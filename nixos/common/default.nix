@@ -146,7 +146,7 @@ in {
     nix.nixBuildDotNet = {
       substituter = {
         enable = lib.mkDefault true;
-        priority = 10;
+        priority = 50;
       };
       sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
     };
