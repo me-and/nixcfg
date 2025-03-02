@@ -41,7 +41,7 @@ in {
     warnings =
       lib.optional
       ((config.nix.settings.keep-outputs or false)
-       && (config.nix.settings.keep-derivations or true))
+        && (config.nix.settings.keep-derivations or true))
       ''
         You have nix.settings.keep-outputs and nix.settings.keep-derivations,
         as well as nix.nhgc.enable.  Nix Heuristic GC doesn't cope well with

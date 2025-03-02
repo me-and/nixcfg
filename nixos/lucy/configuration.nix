@@ -115,5 +115,5 @@
     systems = ["aarch64-linux"];
   };
 
-  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 20;  # 20GB
+  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 20; # 20GB
 }
