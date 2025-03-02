@@ -1,5 +1,5 @@
 # Configuration for the root user.
-{
+{config, ...}: {
   users.users.root.hashedPasswordFile = "/etc/nixos/secrets/root";
 
   home-manager.users.root = {
@@ -119,6 +119,34 @@
 
         remove_legacy_git_config
       '';
+    };
+  };
+
+  # Delete old Nix profiles for root automatically, since I'll not be logging
+  # in regularly to check for them.
+  systemd.services.nix-remove-old-root-profiles = {
+    description = "Delete old Nix profiles for root";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      for p in /nix/var/nix/profiles/per-user/root/*; do
+          if [[ "$p" =~ (.*)-[0-9]+-link ]] &&
+              [[ -e "''${BASH_REMATCH[1]}" ]]
+          then
+              # This is a version of a profile, so ignore it
+              :
+          else
+              ${config.nix.package.out}/bin/nix-env --delete-generations 28d -p "$p"
+          fi
+      done
+    '';
+  };
+  systemd.timers.nix-remove-old-root-profiles = {
+    description = "Delete old Nix profiles for root weekly";
+    timerConfig = {
+      # Randomly picked.
+      OnCalendar = "Wed 05:39:15";
+      AccuracySec = "24h";
+      Persistent = true;
     };
   };
 }

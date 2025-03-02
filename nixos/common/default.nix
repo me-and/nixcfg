@@ -130,10 +130,6 @@ in {
       };
     };
 
-    # Keep intermediate build stages around to speed up subsequent builds.
-    nix.settings.keep-outputs = true;
-    nix.settings.keep-derivations = true;
-
     # Make sure all the systemd units for time wrangling that I care about get
     # included.
     systemd.additionalUpstreamSystemUnits = [
