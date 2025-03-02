@@ -48,7 +48,17 @@ done
 
 export TMUX_TASKLOOP_FILTER="${filter[*]}"
 
-exec tmux \
+cleanup () {
+	if [[ -v TMUX_TASKLOOP_TMPDIR ]]; then
+		@@RM@@ -rf "$TMUX_TASKLOOP_TMPDIR"
+	fi
+}
+trap cleanup EXIT
+
+TMUX_TASKLOOP_TMPDIR="$(@@MKTEMP@@ -dt "taskloop.$EPOCHSECONDS.$$.XXXXX")"
+export TMUX_TASKLOOP_TMPDIR
+
+exec @@TMUX@@ \
 	-L tmux-taskloop-$$ \
 	"${tmux_control_mode_args[@]}" \
 	start-server \; \

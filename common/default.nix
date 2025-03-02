@@ -2,6 +2,7 @@
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [
       "albertus-fonts"
+      "azuredatastudio"
       "cups-kyocera-3500-4500"
       "discord"
       "google-chrome"

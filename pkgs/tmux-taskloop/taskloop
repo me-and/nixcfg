@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# TODO Make this more pure?
+export PATH="$PATH":@@PATH@@
+
 umask 0077
 
 toil_pid=
@@ -66,7 +72,8 @@ while (( $# > 0 )); do
 		-n*|-d*|-s*|-c*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
-		--)	positional_args+=("$@")
+		--)	shift
+			positional_args+=("$@")
 			break
 			;;
 		*)	positional_args+=("$1")
@@ -127,7 +134,8 @@ for arg in "${positional_args[@]}"; do
 done
 
 [[ "$report" ]] || report=next
-tmpdir="$(mktemp -dt "taskloop.$report.$EPOCHSECONDS.$$.XXXXX")"
+tmpdir="$TMUX_TASKLOOP_TMPDIR/$report.$$"
+mkdir -p "$tmpdir"
 [[ "$have_reserved_lines" ]] || config+=(reserved.lines=0)
 [[ "$have_verbose" ]] || config+=('verbose=blank,header,footnote,label,affected,context')
 [[ "$have_gc" ]] || config+=(gc=0)
@@ -212,7 +220,7 @@ while :; do
 			tmpdir="$tmpdir" \
 			watch_sigwinch="$watch_sigwinch" \
 			n="$n" \
-			bash --rcfile __TASKLOOPRC_PATH__ -i \
+			bash --rcfile @@TASKLOOPRC_PATH@@ -i \
 			<&0 &
 		bash_pid="$!"
 		read_pid=

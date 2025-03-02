@@ -52,6 +52,7 @@ in {
 
   home.packages = with pkgs; [
     android-tools # adb
+    azuredatastudio
     cardimpose
     discord
     freecad

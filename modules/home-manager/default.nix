@@ -4,7 +4,6 @@
     ./forward.nix
     ./homeshick.nix
     ./keepassxc.nix
-    ./overlays.nix
     ./pd.nix
     ./rclone.nix
     ./systemd.nix
