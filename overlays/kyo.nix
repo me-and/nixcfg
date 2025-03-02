@@ -7,7 +7,7 @@ in {
     final.lib.warnIf (final.lib.oldestSupportedReleaseIsAtLeast 2411)
     "Unnecessary use of mostStablePackage in ${thisFile}."
     (
-      if prev ? name
+      if prev ? "${name}"
       then prev."${name}"
       else
         final.lib.channels.mostStablePackage {
