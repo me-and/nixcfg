@@ -114,7 +114,7 @@ in {
           {
             hostName = "eu.nixbuild.net";
             systems = cfg.builds.systems;
-            supportedFeatures = ["benchmark" "big-parallel"];
+            supportedFeatures = ["benchmark" "big-parallel" "kvm" "nixos-test"];
             sshKey = cfg.sshKeyPath;
             maxJobs = 1000;
           }
