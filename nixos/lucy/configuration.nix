@@ -110,6 +110,11 @@
     authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
   };
 
+  nix.settings = {
+    max-jobs = 2;
+    cores = 4;
+  };
+
   nix.nixBuildDotNet.builds = {
     enable = true;
     systems = ["aarch64-linux"];
