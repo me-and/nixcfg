@@ -1,0 +1,1 @@
+nixos/lucy/configuration.nix
