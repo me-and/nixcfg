@@ -14,25 +14,20 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/44444444-4444-4444-8888-888888888888";
-      fsType = "ext4";
+    { device = "/dev/disk/by-uuid/fc265809-6c29-4b94-9228-4e31ace0fbfa";
+      fsType = "btrfs";
+      options = [ "subvol=@" ];
     };
 
-  fileSystems."/boot/firmware" =
-    { device = "/dev/disk/by-uuid/2178-694E";
-      fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/b434324e-f6ac-4554-a8ef-4b53696c6b6c";
+      fsType = "ext4";
     };
 
   fileSystems."/home/adam/.cache/mail" =
     { device = "/dev/disk/by-uuid/3c029ca6-21be-43a2-b147-25368bc98336";
       fsType = "btrfs";
       options = [ "subvol=@mail" "noexec" ];
-    };
-
-  fileSystems."/nix" =
-    { device = "/dev/disk/by-uuid/fc265809-6c29-4b94-9228-4e31ace0fbfa";
-      fsType = "btrfs";
     };
 
   fileSystems."/usr/local/share/archives" =
