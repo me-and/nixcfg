@@ -10,6 +10,9 @@
     ./media.nix
   ];
 
+  boot.initrd.systemd.enable = true;
+  boot.initrd.systemd.enableTpm2 = false;
+
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   hardware = {
     raspberry-pi."4".apply-overlays-dtmerge.enable = true;
