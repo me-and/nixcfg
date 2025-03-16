@@ -21,7 +21,7 @@
   };
 
   # Allow working with all LVM features I sometimes use.
-  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
+  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror" "dm-cache"];
 
   system.stateVersion = "24.11";
   system.isPi4 = true;
