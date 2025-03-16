@@ -100,7 +100,7 @@ config=()
 have_reserved_lines=
 have_verbose=
 have_gc=
-have_limit=
+limit=
 report=
 for arg in "${positional_args[@]}"; do
 	case "$arg" in
@@ -120,8 +120,7 @@ for arg in "${positional_args[@]}"; do
 			config+=("${arg#rc.}")
 			;;
 		limit:*)
-			have_limit=Yes
-			filter+=("$arg")
+			limit="$arg"
 			;;
 		*)
 			if [[ "$report" ]]; then
@@ -139,7 +138,19 @@ mkdir -p "$tmpdir"
 [[ "$have_reserved_lines" ]] || config+=(reserved.lines=0)
 [[ "$have_verbose" ]] || config+=('verbose=blank,header,footnote,label,affected,context')
 [[ "$have_gc" ]] || config+=(gc=0)
-[[ "$have_limit" ]] || filter=(limit:page "${filter[@]}")
+if (( ${#filter[*]} > 1 )); then
+	# Automatically bracket the filter so later additions to the filter
+	# don't get confusing, e.g. if the initial filter is `+alpha or +beta`,
+	# and the user adds `-gamma` to the filter, the expected behaviour is
+	# probably `(+alpha or +beta) -gamma`, whereas without this bracketing,
+	# the behaviour would be `+alpha or (+beta -gamma)`.
+	filter=(\( "${filter[@]}" \))
+fi
+if [[ "$limit" ]]; then
+	filter=("$limit" "${filter[@]}")
+else
+	filter=(limit:page "${filter[@]}")
+fi
 
 task_config_file="$tmpdir"/config
 task_filter_file="$tmpdir"/filter
