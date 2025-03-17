@@ -16,17 +16,13 @@
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/fe1f0848-44cc-490c-b843-57936d300eda";
       fsType = "btrfs";
+      options = [ "subvol=/@root" ];
     };
 
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/2C82-A0B6";
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
-    };
-
-  fileSystems."/nix" =
-    { device = "/dev/disk/by-uuid/eae7e074-dadb-40ac-800b-0d7f96d7682e";
-      fsType = "btrfs";
     };
 
   swapDevices = [ ];

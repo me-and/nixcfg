@@ -12,6 +12,9 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Allow working with all LVM features I sometimes use.
+  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
+
   networking.hostName = "hex";
   networking.domain = "dinwoodie.org";
 
