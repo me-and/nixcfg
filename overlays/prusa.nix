@@ -12,6 +12,11 @@ final: prev: let
   };
 in {
   prusa-slicer = prusa-slicer-base.overrideAttrs (prevAttrs: {
-    patches = (prevAttrs.patches or []) ++ [patch];
+    patches = let
+      prevPatches = prevAttrs.patches or [];
+    in
+      if final.lib.lists.any (d: d.name == "cdc3db58f9002778a0ca74517865527f50ade4c3.patch") prevPatches
+      then prevPatches
+      else prevPatches ++ [patch];
   });
 }
