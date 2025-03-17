@@ -10,6 +10,9 @@
     ./media.nix
   ];
 
+  boot.initrd.systemd.enable = true;
+  boot.initrd.systemd.enableTpm2 = false;
+
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   hardware = {
     raspberry-pi."4".apply-overlays-dtmerge.enable = true;
@@ -18,7 +21,7 @@
   };
 
   # Allow working with all LVM features I sometimes use.
-  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
+  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror" "dm-cache"];
 
   system.stateVersion = "24.11";
   system.isPi4 = true;
@@ -108,6 +111,11 @@
       acmeRoot = null;
     };
     authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
+  };
+
+  nix.settings = {
+    max-jobs = 2;
+    cores = 4;
   };
 
   nix.nixBuildDotNet.builds = {
