@@ -109,7 +109,7 @@ in {
     nix.settings = {
       trusted-users = ["@wheel"];
       sandbox = "relaxed";
-      experimental-features = ["nix-command"];
+      experimental-features = ["nix-command" "flakes"];
     };
 
     # Prioritize non-build work.
