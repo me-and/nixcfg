@@ -11,7 +11,7 @@
   ];
 
   boot.initrd.systemd.enable = true;
-  boot.initrd.systemd.enableTpm2 = false;
+  boot.initrd.systemd.tpm2.enable = false;
 
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   hardware = {
