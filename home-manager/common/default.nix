@@ -50,6 +50,7 @@ in {
       fzf
       gh
       git-filter-repo
+      git-report
       gnumake
       htop
       jq
