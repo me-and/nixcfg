@@ -1,6 +1,5 @@
 {
   lib,
-  substitute,
   runtimeShell,
   coreutils,
   substCheckedShellApplication,
