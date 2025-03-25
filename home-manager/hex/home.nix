@@ -114,4 +114,6 @@ in {
   programs.keepassxc.enable = true;
 
   pd.enable = true;
+
+  programs.mypy.enable = true;
 }

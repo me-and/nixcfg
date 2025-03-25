@@ -133,4 +133,6 @@ in {
       (dontLink "https://github.com/magicmonty/bash-git-prompt")
     ];
   };
+
+  programs.mypy.config.mypy.cache_dir = "${config.xdg.cacheHome}/mypy";
 }
