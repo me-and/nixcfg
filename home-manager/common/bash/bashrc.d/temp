@@ -1,0 +1,43 @@
+_prompt_temperature () {
+	local -i temp max_temp
+	local f
+
+	for f in /sys/class/thermal/*/temp; do
+		[[ -e "$f" ]] || continue
+		temp="$(<"$f")"
+		if [[ ! -v max_temp ]] || (( temp > max_temp )); then
+			max_temp="$temp"
+		fi
+	done
+
+	if [[ -v max_temp ]]; then
+		local -i temp_int
+		local temp_colour
+		# Add 500 before dividing by 1000, so integer division results
+		# in proper rounding.
+		temp_int="$(((max_temp+500) / 1000))"
+		if (( temp_int >= 65 )); then
+			temp_colour="$Red"
+		elif (( temp_int >= 55 )); then
+			temp_colour="$Yellow"
+		else
+			temp_colour="$White"
+		fi
+		PS1="${PS1/_TEMP_PLACEHOLDER_/"${temp_colour}${temp_int}°C "}"
+	else
+		PS1="${PS1/_TEMP_PLACEHOLDER_}"
+	fi
+}
+
+__have_prompt=
+for __cmd in "${PROMPT_COMMAND[@]}"; do
+	if [[ "$__cmd" = _prompt_temperature ]]; then
+		__have_prompt=Yes
+		break
+	fi
+done
+if [[ -z "$__have_prompt" ]]; then
+	PROMPT_COMMAND+=(_prompt_temperature)
+fi
+
+# vim: ft=bash ts=8 noet

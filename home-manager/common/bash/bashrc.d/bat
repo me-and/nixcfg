@@ -1,0 +1,41 @@
+_prompt_battery () {
+	local -i cap min_cap
+	local f
+
+	for f in /sys/class/power_supply/*/capacity; do
+		[[ -e "$f" ]] || continue
+		cap="$(<"$f")"
+		if [[ ! -v min_cap ]] || (( cap < min_cap )); then
+			min_cap="$cap"
+		fi
+	done
+
+	if [[ -v min_cap ]]; then
+		local cap_colour
+		if (( min_cap < 25 )); then
+			cap_colour="$BoldRed"
+		elif (( min_cap < 50 )); then
+			cap_colour="$Red"
+		elif (( min_cap < 75 )); then
+			cap_colour="$Yellow"
+		else
+			cap_colour="$Green"
+		fi
+		PS1="${PS1/_BATTERY_PLACEHOLDER_/"${cap_colour}${min_cap}% "}"
+	else
+		PS1="${PS1/_BATTERY_PLACEHOLDER_}"
+	fi
+}
+
+__have_prompt=
+for __cmd in "${PROMPT_COMMAND[@]}"; do
+	if [[ "$__cmd" = _prompt_battery ]]; then
+		__have_prompt=Yes
+		break
+	fi
+done
+if [[ -z "$__have_prompt" ]]; then
+	PROMPT_COMMAND+=(_prompt_battery)
+fi
+
+# vim: ft=bash ts=8 noet

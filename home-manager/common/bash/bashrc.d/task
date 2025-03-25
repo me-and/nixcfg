@@ -1,0 +1,256 @@
+_task_quick_quiet () {
+	command task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 "$@"
+}
+
+# Function to enable `task <filter> (done-replace|del-replace) <new-task>`,
+# which marks one task as done or deleted and creates a new task that has the
+# same properties (including both blocked and blocking tasks) as the previous
+# one.
+#
+# I'd prefer this to be a script with a Taskwarrior alias pointing to it, but
+# that approach doesn't allow using the normal Taskwarrior interface of having
+# filter arguments before the command and command arguments after it.
+_task_done_replace () {
+	local -i n
+	[[ -v inside_task_done_replace ]] && return 0
+	for (( n=1; n<=$#; n++ )); do
+		if [[ "${!n}" = done-replace || "${!n}" = del-replace ]]; then
+			local inside_task_done_replace=Yes
+			local source_set= modified_set=
+			local old_uuid blocks arg name
+			local -a filter_args description_args params column_names
+
+			# Always want to reset the rtype on any new task.
+			params=(rtype:)
+
+			filter_args=("${@:1:n-1}")
+			old_uuid="$(_task_quick_quiet "${filter_args[@]}" _unique uuid)" || return "$?"
+			if [[ -z "$old_uuid" ]]; then
+				wrap_message <<<"No task matching filter ${filter_args[*]@Q}" >&2
+				return 1
+			elif [[ "$old_uuid" != ????????-????-????-????-???????????? ]]; then
+				wrap_message <<<"More than one task matching filter ${filter_args[*]@Q}" >&2
+				return 1
+			fi
+
+			# New task needs to block the same tasks as the
+			# previous one.
+			blocks="$(_task_quick_quiet depends.has:"$old_uuid" -COMPLETED -DELETED _unique uuid)" || return "$?" # Newline separated
+			blocks="${blocks//$'\n'/,}"  # Now it's comma separated
+			params+=(blocks:"$blocks")
+
+			# Left to its own devices, Taskwarrior will treat
+			# arguments that aren't setting parameters as being
+			# annotation text, where I'd rather they be treated as
+			# the task description, similar to `task add`.  Work
+			# out which arguments are task parameters and which
+			# aren't.
+			column_names=($(_task_quick_quiet _columns)) || return "$?"
+			for arg in "${@:n+1}"; do
+				for name in "${column_names[@]}"; do
+					if [[ "$arg" = "$name":* || "$arg" = '-'* || "$arg" = '+'* ]]; then
+						case "$arg" in
+						source:*)
+							source_set=Yes;;
+						modified:*)
+							modified_set=Yes;;
+						esac
+						params+=("$arg")
+						continue 2
+					fi
+				done
+				description_args+=("$arg")
+			done
+
+			# If the new task doesn't have an explicit source, the
+			# old one is likely incorrect, so clear it.
+			if [[ ! "$source_set" ]]; then
+				params+=(source:)
+			fi
+
+			# If the new task doesn't have an explicit modified
+			# time, set it to now, since that's clearly correct
+			# even if Taskwarrior doesn't set it itself.
+			if [[ ! "$modified_set" ]]; then
+				params+=(modified:now)
+			fi
+
+			if (( "${#description_args[*]}" > 0 )); then
+				# Description has been specified, so record it.
+				# If there's no description, and it hasn't been
+				# included with an explicit `description:...`
+				# setting caught by the previous argument
+				# processing, Taskwarrior will just use the old
+				# description on the new task.
+				params+=(description:"${description_args[*]}")
+			fi
+
+			task "$old_uuid" duplicate "${params[@]}" || return "$?"
+
+			if [[ "${!n}" = done-replace ]]; then
+				task "$old_uuid" done || return "$?"
+			else
+				task "$old_uuid" delete || return "$?"
+			fi
+			did_done_replace=Yes
+			return 0
+		fi
+	done
+}
+
+bashwrap task '
+	local did_done_replace
+	_task_done_replace "$@" || return "$?"
+	[[ "$did_done_replace" ]] && return 0
+	'
+
+# Wrapper to allow the filter "project.sub:x" to be converted to
+# "( project.is:x or project:x. )", i.e. excluding tasks with a project like
+# "xx" which a simple "project:x" would pick up, and a similar rule for
+# "project.nsub:".
+if [[ -v tmpcmd ]]; then
+	wrap_message <<<'variable tmpcmd already set' >&2
+	return 1
+fi
+tmpcmd='
+	local -a newargs
+	local arg val
+	for arg; do
+		if [[ "$arg" = project.sub:* ]]; then
+			val="${arg#project.sub:}"
+			newargs+=(\( project.is:"$val" or project:"$val". \))
+		elif [[ "$arg" = project.nsub:* ]]; then
+			val="${arg#project.nsub:}"
+			newargs+=(\( project.isnt:"$val" project.not:"$val". \))
+		else
+			newargs+=("$arg")
+		fi
+	done
+	set -- "${newargs[@]}"
+	'
+bashwrap task "$tmpcmd"
+bashwrap taskloop "$tmpcmd"
+unset tmpcmd
+
+bashwrap task '
+	local arg command_is_projects= list_all_projects_set=
+	for arg; do
+		case "$arg" in
+			projects)
+				command_is_projects=Yes
+				;;
+			rc.list.all.projects[:=]*)
+				list_all_projects_set=Yes
+				;;
+		esac
+	done
+	if [[ "$command_is_projects" && -z "$list_all_projects_set" ]]; then
+		set -- rc.list.all.projects=1 -COMPLETED -DELETED "$@"
+	fi
+	'
+
+# Wrapper to add `task <filter> add-before ...` and `task <filter> add-after
+# ...` commands that add tasks that are blocked by or blocking some other task.
+bashwrap task '
+	local -i n
+	for (( n=1; n<=$#; n++ )); do
+		if [[ "${!n}" = add-before || "${!n}" = add-after ]]; then
+			local orig_uuid orig_project
+			local -a filter_args=("${@:1:n-1}")
+			if (( ${#filter_args[*]} == 0 )); then
+				wrap_message <<<"No filter specified for ${!n}" >&2
+				return 1
+			fi
+
+			orig_uuid="$(_task_quick_quiet "${filter_args[@]}" _unique uuid)" || return "$?"
+			if [[ -z "$orig_uuid" ]]; then
+				wrap_message <<<"No task matching filter ${filter_args[*]@Q}" >&2
+				return 1
+			elif [[ "$orig_uuid" != ????????-????-????-????-???????????? ]]; then
+				wrap_message <<<"More than one task matching filter ${filter_args[*]@Q}" >&2
+				return 1
+			fi
+
+			# Copy the project from the previous task.  If the user
+			# command is overriding it, that'\''ll still work
+			# provided the user'\''s project argument comes after
+			# the one added here.
+			orig_project="$(_task_quick_quiet uuid:"$orig_uuid" _unique project)"
+
+			if [[ "${!n}" = add-before ]]; then
+				set -- add blocks:"$orig_uuid" project:"$orig_project" "${@:n+1}"
+			else
+				set -- add depends:"$orig_uuid" project:"$orig_project" "${@:n+1}"
+			fi
+			break
+		fi
+	done
+	'
+
+if [[ -v TMUX_TASKLOOP_TMPDIR ]]; then
+	tlf () {
+		trap 'trap - ERR RETURN; return' ERR RETURN
+		local f
+		local -a files
+
+		files=("$TMUX_TASKLOOP_TMPDIR"/*/filter)
+
+		if (( $# == 0 )); then
+			echo 'No filter specified' >&2
+			return 1
+		fi
+
+		for f in "${files[@]}"; do
+			printf '%s\n' "$@" >>"$f"
+		done
+	}
+
+	tlo () {
+		trap 'trap - RETURN ERR; return' RETURN ERR
+		local -a uuids
+
+		if (( $# == 0 )); then
+			echo 'No filter specified' >&2
+			return 1
+		fi
+		uuids=($(_task_quick_quiet "$@" _unique uuid))
+		if (( ${#uuids[*]} == 0 )); then
+			echo 'No matched tasks' >&2
+			return 1
+		fi
+
+		tlf "${uuids[@]/#/uuid.not:}"
+	}
+
+	tlef () {
+		editor "$TMUX_TASKLOOP_TMPDIR"/*/filter
+	}
+
+	tlec () {
+		editor "$TMUX_TASKLOOP_TMPDIR"/*/config
+	}
+fi
+
+taskpage () {
+	local -
+	set -o pipefail
+
+	local -a rc_args=('rc._forcecolor=1')
+	if [[ -v COLUMNS ]]; then
+		rc_args+=("rc.defaultwidth=$COLUMNS")
+	fi
+
+	# For each configuration override set within this function, add a grep
+	# command to filter it from the output, since they're not useful
+	# warnings to the user.
+	local rc_arg
+	local -a grep_args=('--invert-match' '--line-regexp' '--color=never')
+	for rc_arg in "${rc_args[@]}"; do
+		grep_args+=($'--regexp=\e\\[38;5;3mConfiguration override '"${rc_arg//['\[.$^*']/\\&}"$'\e\\[0m')
+	done
+	grep_args+=('-')
+
+	task "${rc_args[@]}" "$@" |& grep "${grep_args[@]}" | less -R
+}
+
+# vim: ft=bash noet ts=8

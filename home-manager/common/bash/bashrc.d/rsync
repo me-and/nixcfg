@@ -1,0 +1,2 @@
+export RSYNC_PARTIAL_DIR=.rsync-partial
+export RSYNC_PROTECT_ARGS=1

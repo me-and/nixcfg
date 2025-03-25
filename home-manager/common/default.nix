@@ -20,6 +20,7 @@ in {
   imports =
     [
       ../../common
+      ./bash
       ./firefox.nix
       ./keepassxc.nix
       ./taskwarrior.nix
@@ -89,11 +90,32 @@ in {
       # set up correctly -- but this is the quick solution while there are
       # plenty of things I care about that aren't yet integrated into Home
       # Manager.
-      PYTHONPATH = "${python}/${python.sitePackages}";
-    };
+      #
+      # TODO Move to using sessionSearchVariables once
+      # https://github.com/nix-community/home-manager/commit/277eea1cc7a5c37ea0b9aa8198cd1f2db3d6715c
+      # exists
+      PYTHONPATH = "$HOME/.local/lib/python3/my-packages:${python}/${python.sitePackages}\${PYTHONPATH:+:$PYTHONPATH}";
 
-    # Get Bash to check for local mail.
-    sessionVariables.MAILPATH = "/var/spool/mail/${config.home.username}";
+      # TODO Move to using sessionPath once sessionSearchVariables is available
+      # and therefore paths are prepended rather than appended.
+      # TODO Surely adding .nix-profile/bin ought to be handled somewhere else
+      # and not need explicit configuration!?
+      PATH = "$HOME/.local/bin:$HOME/.nix-profile/bin\${PATH:+:$PATH}";
+
+      EDITOR = "vim";
+      VISUAL = "vim";
+
+      LANG = "en_GB.UTF-8";
+      LANGUAGE = "en_GB:en";
+      TIME_STYLE = "+%a %_d %b  %Y\n%a %_d %b %R";
+
+      # Don't use -S automatically when calling `less` from systemctl commands; I
+      # find it annoying more often than I find it helpful.
+      SYSTEMD_LESS = "FRXMK";
+
+      # Get Bash to check for local mail.
+      MAILPATH = "/var/spool/mail/${config.home.username}";
+    };
   };
 
   homeshick = let
