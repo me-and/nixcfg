@@ -46,6 +46,7 @@ in {
       dig.dnsutils
       dos2unix
       file-age
+      final-eol
       fzf
       gh
       git-filter-repo
