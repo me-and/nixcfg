@@ -104,34 +104,6 @@ bashwrap task '
 	[[ "$did_done_replace" ]] && return 0
 	'
 
-# Wrapper to allow the filter "project.sub:x" to be converted to
-# "( project.is:x or project:x. )", i.e. excluding tasks with a project like
-# "xx" which a simple "project:x" would pick up, and a similar rule for
-# "project.nsub:".
-if [[ -v tmpcmd ]]; then
-	wrap_message <<<'variable tmpcmd already set' >&2
-	return 1
-fi
-tmpcmd='
-	local -a newargs
-	local arg val
-	for arg; do
-		if [[ "$arg" = project.sub:* ]]; then
-			val="${arg#project.sub:}"
-			newargs+=(\( project.is:"$val" or project:"$val". \))
-		elif [[ "$arg" = project.nsub:* ]]; then
-			val="${arg#project.nsub:}"
-			newargs+=(\( project.isnt:"$val" project.not:"$val". \))
-		else
-			newargs+=("$arg")
-		fi
-	done
-	set -- "${newargs[@]}"
-	'
-bashwrap task "$tmpcmd"
-bashwrap taskloop "$tmpcmd"
-unset tmpcmd
-
 bashwrap task '
 	local arg command_is_projects= list_all_projects_set=
 	for arg; do
@@ -252,5 +224,37 @@ taskpage () {
 
 	task "${rc_args[@]}" "$@" |& grep "${grep_args[@]}" | less -R
 }
+
+# Wrapper to allow the filter "project.sub:x" to be converted to
+# "( project.is:x or project:x. )", i.e. excluding tasks with a project like
+# "xx" which a simple "project:x" would pick up, and a similar rule for
+# "project.nsub:".
+if [[ -v tmpcmd ]]; then
+	wrap_message <<<'variable tmpcmd already set' >&2
+	return 1
+fi
+tmpcmd='
+	local -a newargs
+	local arg val
+	for arg; do
+		if [[ "$arg" = project.sub:* ]]; then
+			val="${arg#project.sub:}"
+			newargs+=(\( project.is:"$val" or project:"$val". \))
+		elif [[ "$arg" = project.nsub:* ]]; then
+			val="${arg#project.nsub:}"
+			newargs+=(\( project.isnt:"$val" project.not:"$val". \))
+		else
+			newargs+=("$arg")
+		fi
+	done
+	set -- "${newargs[@]}"
+	'
+bashwrap task "$tmpcmd"
+bashwrap tmux-taskloop "$tmpcmd"
+bashwrap taskpage "$tmpcmd"
+if [[ -v TMUX_TASKLOOP_TMPDIR ]]; then
+	bashwrap tlf "$tmpcmd"
+fi
+unset tmpcmd
 
 # vim: ft=bash noet ts=8
