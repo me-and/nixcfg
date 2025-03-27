@@ -118,33 +118,7 @@ in {
       wants = ["network-online.target"];
       after = ["network-online.target"];
       serviceConfig.Type = "oneshot";
-      serviceConfig.ExecStart = let
-        waitForHost = pkgs.writeCheckedShellScript {
-          name = "wait-for-host";
-          runtimeInputs = [pkgs.dig.host pkgs.coreutils];
-          purePath = true;
-          text = ''
-            waitforhost () {
-                for (( n=0; n<10; n++ )); do
-                    if host -t A "$1"; then
-                        return 0
-                    else
-                        echo "Cannot find $1, waiting for $(( 2 ** n )) seconds"
-                        sleep "$(( 2 ** n ))"
-                    fi
-                done
-                # Last chance: return code is from this call
-                host -t A "$1"
-            }
-
-            # Check localhost first, as it's sometimes not resolvable at start of
-            # day, and nothing else is going to resolve before localhost does.
-            for host in localhost "$@"; do
-                waitforhost "$host" || exit "$?"
-            done
-          '';
-        };
-      in "${waitForHost} %I";
+      serviceConfig.ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
     };
 
     # Set up the systemd service that will copy files from the FTP directory to
