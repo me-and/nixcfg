@@ -21,8 +21,6 @@
 
   systemdServiceSymlinks = map systemdWantsService [
     "ssh-agent"
-    "taskwarrior-gc"
-    "taskwarrior-sync"
   ];
   systemdHomeshickReportSymlinks = map homeshickReportWants [
     "bash\\x2dgit\\x2dprompt"
@@ -31,8 +29,6 @@
   systemdTimerSymlinks = map systemdWantsTimer [
     "disk-usage-report"
     "homeshick-report"
-    "taskwarrior-gc"
-    "taskwarrior-sync"
   ];
   systemdPathSymlinks = [];
 

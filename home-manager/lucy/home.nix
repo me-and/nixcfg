@@ -21,8 +21,6 @@
 
   systemdServiceSymlinks = map systemdWantsService [
     "ssh-agent"
-    "taskwarrior-gc"
-    "taskwarrior-sync"
   ];
   systemdHomeshickReportSymlinks = map homeshickReportWants [
     "bash\\x2dgit\\x2dprompt"
@@ -34,11 +32,9 @@
         "disk-usage-report"
         "homeshick-report"
         "report-onedrive-conflicts"
-        "taskwarrior-gc"
         "taskwarrior-inbox"
         "taskwarrior-monthly"
         "taskwarrior-project-check"
-        "taskwarrior-sync"
       ]
     )
     ++ [(systemdWantsInstance "offlineimap-full@.timer" "adam\\x40dinwoodie.org" "timers.target")];

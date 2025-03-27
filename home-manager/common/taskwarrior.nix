@@ -276,24 +276,107 @@
     };
   };
 in {
-  programs.taskwarrior = {
-    enable = true;
-    # Not using taskwarrior3 until its performance is more tolerable for my use
-    # case.
-    package = pkgs.taskwarrior2;
-    sync = lib.mkDefault {
-      # Configure programs.taskwarrior.sync.credentials in local-config.nix.
-      # Not sure this is necessary, but I'd rather have it private than not.
+  options.programs.taskwarrior.autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = true;};
+
+  config = {
+    programs.taskwarrior = {
       enable = true;
-      address = "taskwarrior.dinwoodie.org";
-      port = 50340;
-      certPath = "${config.xdg.configHome}/task/adam.cert.pem";
-      keyPath = "${config.xdg.configHome}/task/adam.key.pem";
+      # Not using taskwarrior3 until its performance is more tolerable for my use
+      # case.
+      package = pkgs.taskwarrior2;
+      sync = lib.mkDefault {
+        # Configure programs.taskwarrior.sync.credentials in local-config.nix.
+        # Not sure this is necessary, but I'd rather have it private than not.
+        enable = true;
+        address = "taskwarrior.dinwoodie.org";
+        port = 50340;
+        certPath = "${config.xdg.configHome}/task/adam.cert.pem";
+        keyPath = "${config.xdg.configHome}/task/adam.key.pem";
+      };
+      config = lib.mkMerge [
+        mainConfig
+        aliasConfig
+        priorityConfig
+      ];
     };
-    config = lib.mkMerge [
-      mainConfig
-      aliasConfig
-      priorityConfig
-    ];
+
+    systemd.user = {
+      services = {
+        "resolve-host-a@" = {
+          Unit = {
+            Description = "Check %I resolves";
+            Wants = ["network.target" "network-online.target"];
+            After = ["network.target" "network-online.target"];
+          };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
+          };
+        };
+
+        taskwarrior-wait-for-stability = {
+          Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
+          };
+        };
+
+        taskwarrior-gc = {
+          Unit.Description = "Perform Taskwarrior garbage collection";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+          };
+          Install.WantedBy = ["default.target"];
+        };
+
+        taskwarrior-gc-stable = {
+          Unit = {
+            Description = "Perform Taskwarrior garbage collection once the undo file is stable";
+            Wants = ["taskwarrior-wait-for-stability.service"];
+            After = ["taskwarrior-wait-for-stability.service"];
+          };
+          Service = config.systemd.user.services.taskwarrior-gc.Service;
+        };
+
+        taskwarrior-sync = {
+          Unit = let
+            domain = config.programs.taskwarrior.sync.address;
+          in {
+            Description = "Sync Taskwarrior data";
+            Wants = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
+            After = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
+            Before = ["taskwarrior-gc.service" "taskwarrior-gc-stable.service"];
+          };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
+          };
+          Install.WantedBy = ["default.target"];
+        };
+      };
+
+      timers = {
+        taskwarrior-gc-stable = {
+          Unit.Description = "Perform Taskwarrior garbage collection overnight";
+          Timer = {
+            OnCalendar = "02:00";
+            AccuracySec = "4h";
+          };
+          Install.WantedBy = ["timers.target"];
+        };
+
+        taskwarrior-sync = {
+          Unit.Description = "Sync Taskwarrior data periodically";
+          Timer = {
+            OnUnitInactiveSec = "15m";
+            RandomizedDelaySec = "15m";
+            AccuracySec = "15m";
+          };
+          Install.WantedBy = ["timers.target"];
+        };
+      };
+    };
   };
 }
