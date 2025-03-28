@@ -1,25 +1,34 @@
-{
-  # TODO Move these files into Home Manager more competently; this directory
-  # was just a lift-and-shift from my Homeshick castle.
-  home.file.".bashrc.d".source = ./bashrc.d;
-
-  # This gets sourced automatically if Bash completion is enabled.
-  # TODO Move this config into Home Manager more competently, or just retire it
-  # because I no longer use Homeshick.
-  home.file.".bash_completion".text = ''
-    if [[ -d ~/.bash_completion.d &&
-          -r ~/.bash_completion.d &&
-          -x ~/.bash_completion.d ]]; then
-        for file in ~/.bash_completion.d/*; do
-            if [[ -f "$file" && -r "$file" ]]; then
-                . "$file"
-            fi
-        done
-    fi
-  '';
-  home.file.".bash_completion.d/homeshick-completion.bash".text = ''
-    . ~/.homesick/repos/homeshick/completions/homeshick-completion.bash
-  '';
+{lib, ...}: {
+  home.file =
+    # TODO Move these files into Home Manager more competently; this directory
+    # was just a lift-and-shift from my Homeshick castle.
+    #
+    # Handle each file separately, rather than just linking the entire
+    # directory, so that it's possible for other Home Manager config to add
+    # files as well.
+    (lib.mapAttrs'
+      (name: value:
+        lib.nameValuePair ".bashrc.d/${name}" {source = ./bashrc.d + "/${name}";})
+      (builtins.readDir ./bashrc.d))
+    // {
+      # This gets sourced automatically if Bash completion is enabled.
+      # TODO Move this config into Home Manager more competently, or just retire it
+      # because I no longer use Homeshick.
+      ".bash_completion".text = ''
+        if [[ -d ~/.bash_completion.d &&
+              -r ~/.bash_completion.d &&
+              -x ~/.bash_completion.d ]]; then
+            for file in ~/.bash_completion.d/*; do
+                if [[ -f "$file" && -r "$file" ]]; then
+                    . "$file"
+                fi
+            done
+        fi
+      '';
+      ".bash_completion.d/homeshick-completion.bash".text = ''
+        . ~/.homesick/repos/homeshick/completions/homeshick-completion.bash
+      '';
+    };
 
   programs.bash = {
     enable = true;
