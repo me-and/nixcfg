@@ -276,7 +276,7 @@
     };
   };
 in {
-  options.programs.taskwarrior.autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = true;};
+  options.programs.taskwarrior.autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = config.programs.taskwarrior.sync.enable;};
 
   config = {
     programs.taskwarrior = {
@@ -353,7 +353,7 @@ in {
             Type = "oneshot";
             ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
           };
-          Install.WantedBy = ["default.target"];
+          Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["default.target"];
         };
       };
 
@@ -374,7 +374,7 @@ in {
             RandomizedDelaySec = "15m";
             AccuracySec = "15m";
           };
-          Install.WantedBy = ["timers.target"];
+          Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
         };
       };
     };
