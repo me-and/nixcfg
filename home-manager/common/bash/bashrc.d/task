@@ -117,7 +117,7 @@ bashwrap task '
 		esac
 	done
 	if [[ "$command_is_projects" && -z "$list_all_projects_set" ]]; then
-		set -- rc.list.all.projects=1 -COMPLETED -DELETED "$@"
+		set -- rc.list.all.projects=1 -COMPLETED -DELETED \( "$@" \)
 	fi
 	'
 
