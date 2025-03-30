@@ -22,7 +22,6 @@ in {
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
   home.file = lib.attrsets.mergeAttrsList [
-    (systemdWants "ssh-agent.service" "default.target")
     (systemdWants "taskwarrior-gc.service" "default.target")
     (systemdWants "taskwarrior-sync.service" "default.target")
 

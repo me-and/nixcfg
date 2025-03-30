@@ -19,9 +19,7 @@
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
-  systemdServiceSymlinks = map systemdWantsService [
-    "ssh-agent"
-  ];
+  systemdServiceSymlinks = map systemdWantsService [];
   systemdHomeshickReportSymlinks = map homeshickReportWants [
     "bash\\x2dgit\\x2dprompt"
     "homeshick"
@@ -55,7 +53,7 @@ in {
     gh-random-pr
     gnucash
     gnome-calculator # Prefer this to the KDE options
-    jellyfin-via-google-chrome
+    jellyfin-media-player
     hunspell
     hunspellDicts.en-gb-ise
     inkscape

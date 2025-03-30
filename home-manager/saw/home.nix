@@ -19,9 +19,7 @@
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
-  systemdServiceSymlinks = map systemdWantsService [
-    "ssh-agent"
-  ];
+  systemdServiceSymlinks = map systemdWantsService [];
   systemdHomeshickReportSymlinks = map homeshickReportWants [
     "bash\\x2dgit\\x2dprompt"
     "homeshick"
