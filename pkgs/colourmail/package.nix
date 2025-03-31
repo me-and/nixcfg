@@ -2,13 +2,15 @@
   lib,
   colorized-logs,
   mailutils,
+  coreutils,
+  system-sendmail,
   perlPackages,
   fetchFromGitHub,
   stdenvNoCC,
   makeWrapper,
 }: let
   version = "1.0.0";
-  runtimeDeps = [perlPackages.mimeConstruct colorized-logs mailutils];
+  runtimeDeps = [perlPackages.mimeConstruct colorized-logs mailutils coreutils system-sendmail];
 in
   stdenvNoCC.mkDerivation {
     pname = "colourmail";
