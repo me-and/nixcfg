@@ -105,7 +105,6 @@ in {
     enable = true;
     calendars = [
       config.accounts.email.accounts.main.address
-      "Birthdays"
       "Adam Dinwoodie's Facebook Events"
     ];
   };
