@@ -26,7 +26,6 @@ in {
     (homeshickReportUnit "homeshick")
 
     (systemdWants "disk-usage-report.timer" "timers.target")
-    (systemdWants "homeshick-report.timer" "timers.target")
   ];
 
   accounts.email.forwardLocal.enable = true;

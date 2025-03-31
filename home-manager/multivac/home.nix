@@ -26,7 +26,6 @@ in {
     (homeshickReportUnit "homeshick")
 
     (systemdWants "disk-usage-report.timer" "timers.target")
-    (systemdWants "homeshick-report.timer" "timers.target")
   ];
 
   #programs.git.package = pkgs.git-tip;

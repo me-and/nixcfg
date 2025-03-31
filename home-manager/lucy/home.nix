@@ -28,7 +28,6 @@
     (
       map systemdWantsTimer [
         "disk-usage-report"
-        "homeshick-report"
         "report-onedrive-conflicts"
         "taskwarrior-inbox"
         "taskwarrior-monthly"

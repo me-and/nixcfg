@@ -26,7 +26,6 @@
   ];
   systemdTimerSymlinks = map systemdWantsTimer [
     "disk-usage-report"
-    "homeshick-report"
   ];
   systemdPathSymlinks = [];
 
