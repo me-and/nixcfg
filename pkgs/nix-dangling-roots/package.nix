@@ -11,17 +11,26 @@
 writeCheckedShellApplication {
   name = "nix-dangling-roots";
   purePath = true;
+  runtimeInputs = [findutils coreutils];
   text = ''
-    exec ${findutils}/bin/find \
-        /nix/var/nix/gcroots/auto \
-        -type l \
-        \! -xtype l \
-        \! -lname '/home/*/.local/state/nix/profiles/*' \
-        \! -lname '/root/.local/state/nix/profiles/*' \
-        \! -lname '/home/*/.local/state/home-manager/gcroots/*' \
-        \! -lname '/root/.local/state/home-manager/gcroots/*' \
-        \! -lname '/nix/var/nix/profiles/*' \
-        -exec \
-            ${coreutils}/bin/ls --color=auto -lvh {} +
+    if (( $# == 1 )) && [[ "$1" = -a ]]; then
+        exclude_args=()
+    elif (( $# == 0 )); then
+        exclude_args=(
+            \! -lname '/home/*/.local/state/nix/profiles/*'
+            \! -lname '/root/.local/state/nix/profiles/*'
+            \! -lname '/home/*/.local/state/home-manager/gcroots/*'
+            \! -lname '/root/.local/state/home-manager/gcroots/*'
+            \! -lname '/nix/var/nix/profiles/*'
+        )
+    else
+        echo 'unrecognised arguments' >&2
+        exit 64 # EX_USAGE
+    fi
+
+    find /nix/var/nix/gcroots/auto -type l \! -xtype l "''${exclude_args[@]}" -printf '%l\t%p\0' |
+        sort -zV |
+        cut -f2- -z |
+        xargs -0 ls --color=auto -lhU
   '';
 }
