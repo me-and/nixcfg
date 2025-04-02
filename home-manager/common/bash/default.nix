@@ -115,16 +115,6 @@
               wrap_message <<<'homeshick unavailable' >&2
       fi
 
-      # Set up PS1.
-      if [[ -f ~/.homesick/repos/bash-git-prompt/gitprompt.sh ]]; then
-              . ~/.homesick/repos/bash-git-prompt/gitprompt.sh
-      elif [[ -f /usr/local/opt/bash-git-prompt/share/gitprompt.sh ]]; then
-              . /usr/local/opt/bash-git-prompt/share/gitprompt.sh
-      else
-              wrap_message <<<'bash-git-prompt unavailable' >&2
-              PS1='\[\e]0;\h:\w\a\]\n\u@\h \w\n\$ '
-      fi
-
       # Utility function to make tracing other Bash functions easier.
       tracewrap () {
               local -
@@ -298,5 +288,10 @@
   programs.dircolors = {
     enable = true;
     enableBashIntegration = true;
+  };
+
+  programs.bash-git-prompt = {
+    enable = true;
+    customThemeFile = ./git-prompt-colors.sh;
   };
 }
