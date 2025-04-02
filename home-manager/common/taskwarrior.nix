@@ -300,6 +300,8 @@ in {
       ];
     };
 
+    home.packages = [pkgs.task-project-report];
+
     systemd.user = {
       services = {
         "resolve-host-a@" = {
