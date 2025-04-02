@@ -57,7 +57,6 @@ in {
     hunspellDicts.en-gb-ise
     inkscape
     libreoffice
-    netflix
     openscad
     poppler_utils
     prusa-slicer
