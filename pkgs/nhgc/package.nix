@@ -15,7 +15,7 @@ python3Packages.buildPythonPackage rec {
     rev = version;
     hash = "sha256-lph+rm8qXoA6h2dJTYeuj9HJAx6PnKZSdsKBElbBUbY=";
   };
-  NIX_SYSTEM = builtins.currentSystem; # TODO Fix for cross-compilation?
+  NIX_SYSTEM = nix.stdenv.hostPlatform.system;
   NIX_CFLAGS_COMPILE = ["-I${lib.getDev nix}/include/nix"];
   buildInputs = [
     boost
