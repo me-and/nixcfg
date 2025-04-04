@@ -60,10 +60,6 @@
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0012", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
   '';
 
-  nix.channels = {
-    nixos-hardware = "https://github.com/NixOS/nixos-hardware/archive/master.tar.gz";
-  };
-
   system.stateVersion = "24.05";
 
   hardware.frameworkBluetoothWorkaround = true;

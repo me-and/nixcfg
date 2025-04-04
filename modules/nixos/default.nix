@@ -1,6 +1,5 @@
 {
   imports = [
-    ./channels.nix
     ./jellyfin.nix
     ./framework-rfkill.nix
     ./mailutils.nix

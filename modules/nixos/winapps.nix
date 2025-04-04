@@ -38,8 +38,6 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nix.channels.winapps = "https://github.com/winapps-org/winapps/archive/main.tar.gz";
-
     virtualisation.podman.enable = true;
     environment.systemPackages = [
       pkgs.podman-compose
