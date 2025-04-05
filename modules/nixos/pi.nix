@@ -8,7 +8,7 @@
   config = lib.mkIf config.system.isPi4 {
     assertions = [
       {
-        assertion = ! config.system.isWsl;
+        assertion = ! config.wsl.enable;
         message = "Cannot be both WSL and a Raspberry Pi!";
       }
     ];

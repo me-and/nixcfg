@@ -13,7 +13,7 @@ in {
   # (e.g. the UIDs get confused, and you can't launch GUI applications as a
   # result).
   users.me =
-    if config.system.isWsl
+    if config.wsl.enable
     then config.wsl.defaultUser
     else "adam";
 
