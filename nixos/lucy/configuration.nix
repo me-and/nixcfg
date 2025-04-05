@@ -4,7 +4,6 @@
   ...
 }: {
   imports = [
-    <nixos-hardware/raspberry-pi/4>
     ../common
     ./hardware-configuration.nix
     ./media.nix

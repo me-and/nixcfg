@@ -15,7 +15,6 @@
 in {
   imports =
     [
-      <home-manager/nixos>
       ../../modules/nixos
       ../../modules/shared
       ../../common
