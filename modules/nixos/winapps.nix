@@ -17,11 +17,10 @@
   config,
   lib,
   pkgs,
+  winapps-pkgs,
   ...
 }: let
   cfg = config.programs.winapps;
-
-  winapps = (import <winapps>).packages."${config.nixpkgs.system}";
 in {
   options.programs.winapps = {
     enable = lib.mkEnableOption "winapps";
@@ -41,8 +40,8 @@ in {
     virtualisation.podman.enable = true;
     environment.systemPackages = [
       pkgs.podman-compose
-      winapps.winapps
-      winapps.winapps-launcher
+      winapps-pkgs.winapps
+      winapps-pkgs.winapps-launcher
     ];
 
     nix.settings = {

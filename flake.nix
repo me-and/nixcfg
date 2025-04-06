@@ -11,6 +11,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     private.url = "github:me-and/nixcfg-private";
+    winapps = {
+      url = "github:winapps-org/winapps";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -20,6 +24,7 @@
     nixos-wsl,
     home-manager,
     private,
+    winapps,
   }: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair;
 
@@ -42,6 +47,9 @@
         name: attrs:
           nixpkgs.lib.nixosSystem {
             inherit (attrs) system;
+            specialArgs = {
+              winapps-pkgs = winapps.packages."${attrs.system}";
+            };
             modules =
               [
                 nixos-wsl.nixosModules.default
