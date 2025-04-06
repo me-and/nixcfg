@@ -4,7 +4,6 @@
   ...
 }: {
   imports = [
-    <nixos-hardware/framework/16-inch/7040-amd>
     ./hardware-configuration.nix
     ../common
   ];

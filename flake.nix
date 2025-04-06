@@ -24,6 +24,12 @@
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair;
 
     boxen = {
+      hex = {
+        system = "x86_64-linux";
+        me = "adam";
+        nixosExtraModules = [nixos-hardware.nixosModules.framework-16-7040-amd];
+      };
+
       lucy = {
         system = "aarch64-linux";
         me = "adam";
