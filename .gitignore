@@ -1,4 +1,3 @@
 /secrets/
-/configuration.nix
-/home.nix
 result
+result-*
