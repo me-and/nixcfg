@@ -6,7 +6,7 @@ in {
     lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2505)
     ''
       Unnecessary patching of azuredatastudio package in
-      ${./.}/azuredatastudio.nix
+      ${toString ./.}/azuredatastudio.nix
     ''
     prev.azuredatastudio.overrideAttrs (
       prevAttrs:

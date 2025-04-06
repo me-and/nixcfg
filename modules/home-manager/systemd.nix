@@ -23,7 +23,7 @@
     lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2505)
     ''
       Unnecessary working around GitHub API and fetchFromGitHub limitations in
-      ${./.}/systemd.nix
+      ${toString ./.}/systemd.nix
     ''
     pkgs.fetchzip ({
         inherit name hash;

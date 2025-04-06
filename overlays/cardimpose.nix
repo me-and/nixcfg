@@ -3,7 +3,7 @@ final: prev:
 prev.lib.warnIf (prev.lib.oldestSupportedReleaseIsAtLeast 2505)
 ''
   Unnecessary definition of cardimpose package in
-  ${./.}/cardimpose.nix
+  ${toString ./.}/cardimpose.nix
 ''
 (
   if builtins.hasAttr "cardimpose" prev
