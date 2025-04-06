@@ -41,9 +41,14 @@
           "file_mode=0600"
           "dir_mode=0700"
           "handlecache"
-          "x-systemd.automount"
-          "x-systemd.mount-timeout=60s"
+          # TODO Work out why, at least on Hex, this seems to get automounted
+          # every boot, which implies something is trying to access that
+          # directory straight away when I'd been hoping the automount would
+          # only trigger when I actually tried to access the system.
+          # "x-systemd.automount"
+          # "x-systemd.mount-timeout=60s"
           "nofail"
+          "noauto"
         ]
         (lib.mkIf (!config.wsl.enable) [
           "x-systemd.requires=openvpn-pdnet.service"
