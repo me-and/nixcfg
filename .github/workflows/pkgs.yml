@@ -43,7 +43,10 @@ jobs:
           extra-conf: sandbox = relaxed
           github-token: ${{ github.token }}
       - name: Check Nix config
-        run: cat /etc/nix/nix.conf
+        run: |
+          set -x
+          cat /etc/nix/nix.conf
+          cat /etc/nix/nix.custom.conf
       - name: Set up Nix cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
       - name: Store Nix channel to use
