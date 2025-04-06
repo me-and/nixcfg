@@ -41,7 +41,6 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v12
         with:
           extra-conf: sandbox = relaxed
-          github-token: ${{ github.token }}
       - name: Check Nix config
         run: |
           set -x
