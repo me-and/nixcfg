@@ -121,4 +121,8 @@ in {
     enable = true;
     timestamp = "-6 months";
   };
+  systemd.user.timers.home-manager-auto-expire.Timer = {
+    AccuracySec = "24 hours";
+    RandomizedDelaySec = "1 hour";
+  };
 }
