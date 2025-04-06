@@ -135,7 +135,7 @@
               # This is a version of a profile, so ignore it
               :
           else
-              ${config.nix.package.out}/bin/nix-env --delete-generations 28d -p "$p"
+              ${config.nix.package.out}/bin/nix-env --delete-generations 180d -p "$p"
           fi
       done
     '';
@@ -147,6 +147,7 @@
       OnCalendar = "Wed 05:39:15";
       AccuracySec = "24h";
       Persistent = true;
+      RandomizedDelaySec = "1h";
     };
   };
 }
