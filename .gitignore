@@ -1,6 +1,4 @@
 /secrets/
-/local-config/
-/local-config.nix
 /configuration.nix
 /home.nix
 result

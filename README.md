@@ -91,13 +91,6 @@ Files in this directory are ones that I want to call explicitly when I need
 them for some specific purpose; there is no requirement that they have a
 standard interface.
 
-### `local-config.nix`
-
-This file is ignored in `.gitignore`.  It is imported by my Home Manager and
-NixOS configurations, and stores private-but-not-secret information: things
-that are fine to be in the Nix store but that I don't want committed to a
-public repository, such as email or IP addresses.
-
 ### `secrets`
 
 This directory should only be readable by root (for NixOS configuration) or the

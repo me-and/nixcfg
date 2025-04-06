@@ -82,7 +82,7 @@ in {
     "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
   };
 
-  # Configure accounts.email.accounts.*.address in local-config.nix.
+  # Configure accounts.email.accounts.*.address in private config flake.
   accounts.email.accounts.main = {
     flavor = "gmail.com";
     folders = {

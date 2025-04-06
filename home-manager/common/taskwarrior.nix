@@ -285,8 +285,9 @@ in {
       # case.
       package = pkgs.taskwarrior2;
       sync = lib.mkDefault {
-        # Configure programs.taskwarrior.sync.credentials in local-config.nix.
-        # Not sure this is necessary, but I'd rather have it private than not.
+        # Configure programs.taskwarrior.sync.credentials in the private config
+        # flake.  Not sure this is necessary, but I'd rather have it private
+        # than not.
         enable = true;
         address = "taskwarrior.dinwoodie.org";
         port = 50340;

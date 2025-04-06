@@ -10,25 +10,17 @@
     # requests needed for petition signing script
     pp.requests
   ]);
-
-  # Avoid using lib for this, so it can be safely used with imports.
-  fileIfExtant = file:
-    if builtins.pathExists file
-    then [file]
-    else [];
 in {
-  imports =
-    [
-      ../../common
-      ./bash
-      ./firefox.nix
-      ./homeshick.nix
-      ./keepassxc.nix
-      ./taskwarrior.nix
-      ../../modules/home-manager
-      ../../modules/shared
-    ]
-    ++ fileIfExtant ../../local-config.nix;
+  imports = [
+    ../../common
+    ./bash
+    ./firefox.nix
+    ./homeshick.nix
+    ./keepassxc.nix
+    ./taskwarrior.nix
+    ../../modules/home-manager
+    ../../modules/shared
+  ];
 
   home = {
     username = lib.mkDefault "adam";
@@ -80,10 +72,10 @@ in {
       toil
       unzip
 
-      # Use the Git version possibly configured in local-config.nix.  This is
-      # handled here rather than with config.programs.git.enable because that
-      # would also result in Home Manager trying to manage my Git config, which
-      # I'm not (yet) ready for.
+      # Use the Git version possibly configured elsewhere.  This is handled
+      # here rather than with config.programs.git.enable because that would
+      # also result in Home Manager trying to manage my Git config, which I'm
+      # not (yet) ready for.
       config.programs.git.package
     ];
 

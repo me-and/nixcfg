@@ -6,38 +6,28 @@
   ...
 }: let
   defaultPrio = (lib.mkOptionDefault null).priority;
-
-  # Avoid using lib for this, so it can be safely used with imports.
-  fileIfExtant = file:
-    if builtins.pathExists file
-    then [file]
-    else [];
 in {
-  imports =
-    [
-      ../../modules/nixos
-      ../../modules/shared
-      ../../common
-      ./avahi.nix
-      ./emergency.nix
-      ./jellyfin.nix
-      ./garbage.nix
-      ./gnome.nix
-      ./gui-common.nix
-      ./mail.nix
-      ./nginx.nix
-      ./nix-builder.nix
-      ./nix-index.nix
-      ./plasma.nix
-      ./root.nix
-      ./systemd.nix
-      ./taskserver.nix
-      ./user.nix
-      ./vim.nix
-    ]
-    # I want to avoid using local-config.nix if I can, but sometimes using it
-    # is the quickest and easiest option.
-    ++ fileIfExtant ../../local-config.nix;
+  imports = [
+    ../../modules/nixos
+    ../../modules/shared
+    ../../common
+    ./avahi.nix
+    ./emergency.nix
+    ./jellyfin.nix
+    ./garbage.nix
+    ./gnome.nix
+    ./gui-common.nix
+    ./mail.nix
+    ./nginx.nix
+    ./nix-builder.nix
+    ./nix-index.nix
+    ./plasma.nix
+    ./root.nix
+    ./systemd.nix
+    ./taskserver.nix
+    ./user.nix
+    ./vim.nix
+  ];
 
   config = {
     warnings = lib.mkIf (options.networking.hostName.highestPrio >= defaultPrio) [
