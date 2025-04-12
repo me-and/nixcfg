@@ -52,7 +52,7 @@
 
   services.nibbleBackup.enable = true;
 
-  #networking.accessPD = true;
+  networking.accessPD = true;
 
   fileSystems."/home/adam/.cache/mail".options = ["noexec"];
   services.snapper.configs.mail = {
