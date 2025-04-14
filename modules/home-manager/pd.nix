@@ -8,7 +8,6 @@
 
   fileServerSync = pkgs.writeCheckedShellApplication {
     name = "pd-sync-with-fileserver";
-    purePath = true;
     runtimeInputs = [pkgs.coreutils];
     text = ''
       UNISON=${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions/.unison-state"}
