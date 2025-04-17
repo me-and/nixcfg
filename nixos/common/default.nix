@@ -6,27 +6,17 @@
   ...
 }: let
   defaultPrio = (lib.mkOptionDefault null).priority;
+
+  thisDir = ./.;
+  thisDirFilenames = builtins.attrNames (builtins.readDir thisDir);
+  toImport = builtins.filter (n: n != "default.nix") thisDirFilenames;
 in {
-  imports = [
-    ../../modules/nixos
-    ../../modules/shared
-    ./avahi.nix
-    ./emergency.nix
-    ./jellyfin.nix
-    ./garbage.nix
-    ./gnome.nix
-    ./gui-common.nix
-    ./mail.nix
-    ./nginx.nix
-    ./nix-builder.nix
-    ./nix-index.nix
-    ./plasma.nix
-    ./root.nix
-    ./systemd.nix
-    ./taskserver.nix
-    ./user.nix
-    ./vim.nix
-  ];
+  imports =
+    (map (n: lib.path.append thisDir n) toImport)
+    ++ [
+      ../../modules/nixos
+      ../../modules/shared
+    ];
 
   config = {
     warnings = lib.mkIf (options.networking.hostName.highestPrio >= defaultPrio) [

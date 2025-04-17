@@ -1,16 +1,7 @@
-{
-  imports = [
-    ./bash-git-prompt.nix
-    ./calendar-emails.nix
-    ./forward.nix
-    ./homeshick.nix
-    ./keepassxc.nix
-    ./mypy.nix
-    ./pd.nix
-    ./rclone.nix
-    ./systemd.nix
-    ./taskwarrior.nix
-    ./vim.nix
-    ./wsl.nix
-  ];
+{lib, ...}: let
+  thisDir = ./.;
+  thisDirFilenames = builtins.attrNames (builtins.readDir thisDir);
+  toImport = builtins.filter (n: n != "default.nix") thisDirFilenames;
+in {
+  imports = map (n: lib.path.append thisDir n) toImport;
 }

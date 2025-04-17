@@ -1,27 +1,7 @@
-{
-  imports = [
-    ./jellyfin.nix
-    ./framework-rfkill.nix
-    ./mailutils.nix
-    ./mosh.nix
-    ./nginx.nix
-    ./nhgc.nix
-    ./nix-builder.nix
-    ./nix-cache.nix
-    ./nixbuild.net.nix
-    ./openvpn.nix
-    ./pd
-    ./phone-backup.nix
-    ./pi.nix
-    ./postfix.nix
-    ./rclone.nix
-    ./scantoonedrive.nix
-    ./servegnucash.nix
-    ./sudo.nix
-    ./syncthing.nix
-    ./taskserver
-    ./user.nix
-    ./winapps.nix
-    ./wsl.nix
-  ];
+{lib, ...}: let
+  thisDir = ./.;
+  thisDirFilenames = builtins.attrNames (builtins.readDir thisDir);
+  toImport = builtins.filter (n: n != "default.nix") thisDirFilenames;
+in {
+  imports = map (n: lib.path.append thisDir n) toImport;
 }

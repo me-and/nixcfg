@@ -35,8 +35,14 @@
     ++ systemdTimerSymlinks
     ++ systemdPathSymlinks
   );
+
+  thisDir = ./.;
+  thisDirFilenames = builtins.attrNames (builtins.readDir thisDir);
+  toImport = builtins.filter (n: n != "home.nix") thisDirFilenames;
 in {
-  imports = [../common];
+  imports =
+    (map (n: lib.path.append thisDir n) toImport)
+    ++ [../common];
 
   home.stateVersion = "24.05";
 

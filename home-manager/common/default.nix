@@ -10,16 +10,17 @@
     # requests needed for petition signing script
     pp.requests
   ]);
+
+  thisDir = ./.;
+  thisDirFilenames = builtins.attrNames (builtins.readDir thisDir);
+  toImport = builtins.filter (n: n != "default.nix") thisDirFilenames;
 in {
-  imports = [
-    ./bash
-    ./firefox.nix
-    ./homeshick.nix
-    ./keepassxc.nix
-    ./taskwarrior.nix
-    ../../modules/home-manager
-    ../../modules/shared
-  ];
+  imports =
+    (map (n: lib.path.append thisDir n) toImport)
+    ++ [
+      ../../modules/home-manager
+      ../../modules/shared
+    ];
 
   home = {
     username = lib.mkDefault "adam";
