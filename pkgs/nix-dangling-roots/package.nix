@@ -20,6 +20,7 @@ writeCheckedShellApplication {
             \! -lname '/home/*/.local/state/nix/profiles/*'
             \! -lname '/root/.local/state/nix/profiles/*'
             \! -lname '/home/*/.local/state/home-manager/gcroots/*'
+            \! -lname '/home/*/.cache/nix/flake-registry.json'
             \! -lname '/root/.local/state/home-manager/gcroots/*'
             \! -lname '/nix/var/nix/profiles/*'
         )
