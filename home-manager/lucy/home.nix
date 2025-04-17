@@ -109,6 +109,8 @@ in {
     ];
   };
 
+  pd.enable = true;
+
   # TODO Fix my email config.
   home.packages = [pkgs.offlineimap];
   programs.neomutt.enable = true;
