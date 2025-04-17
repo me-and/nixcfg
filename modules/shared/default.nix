@@ -1,3 +1,6 @@
 {
-  imports = [./overlays.nix];
+  imports = [
+    ./overlays.nix
+    ./unfree.nix
+  ];
 }

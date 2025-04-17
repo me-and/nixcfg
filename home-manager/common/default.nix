@@ -12,7 +12,6 @@
   ]);
 in {
   imports = [
-    ../../common
     ./bash
     ./firefox.nix
     ./homeshick.nix

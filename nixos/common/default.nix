@@ -10,7 +10,6 @@ in {
   imports = [
     ../../modules/nixos
     ../../modules/shared
-    ../../common
     ./avahi.nix
     ./emergency.nix
     ./jellyfin.nix
