@@ -27,6 +27,7 @@
     winapps,
   }: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair;
+    inherit (nixpkgs.lib.strings) removeSuffix;
 
     boxen = {
       hex = {
@@ -79,5 +80,16 @@
           )
       )
       boxen;
+
+    overlays = let
+      overlayPaths = builtins.readDir ./overlays;
+    in
+      mapAttrs' (
+        name: value:
+          nameValuePair
+          (removeSuffix ".nix" name)
+          (import (./overlays + "/${name}"))
+      )
+      overlayPaths;
   };
 }
