@@ -21,7 +21,8 @@
     pkgs.runCommandLocal "username" {__noChroot = true;}
     ''
       /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c '$env:UserName' |
-          ${pkgs.coreutils}/bin/tr -d '\r\n' >$out
+          ${pkgs.coreutils}/bin/tr -d '\r\n' |
+          ${pkgs.coreutils}/bin/tr '[:upper:]' '[:lower:]' >$out
     ''
   );
 
