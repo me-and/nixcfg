@@ -9,15 +9,7 @@ final: prev: let
   inherit (prev.lib) path;
   inherit (builtins) readDir pathExists;
 
-  pkgDir = ../pkgs;
-  possiblePackageFiles =
-    mapAttrs
-    (name: _: path.append pkgDir "${name}/package.nix")
-    (readDir pkgDir);
-  packageFiles =
-    filterAttrs
-    (_: value: pathExists value)
-    possiblePackageFiles;
+  packageFiles = (import ../lib/subdirfiles.nix) prev.lib ../pkgs "package.nix";
   hiddenPackageWarning = pkgName: ''
     Package ${pkgName} exists in nixpkgs but is being overwritten by a local
     package.
