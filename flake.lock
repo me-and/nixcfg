@@ -48,6 +48,24 @@
         "type": "github"
       }
     },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_2"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -66,6 +84,24 @@
         "owner": "nix-community",
         "ref": "release-24.11",
         "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixcfgOverlays": {
+      "flake": false,
+      "locked": {
+        "dir": "overlays",
+        "lastModified": 1746099293,
+        "narHash": "sha256-+TjBI2WunOCn5eu0OxN+xZjBozkfJFeD2U523yw5S54=",
+        "owner": "me-and",
+        "repo": "nixcfg",
+        "rev": "fd3cf3c2146482704d3f145e7c961a1d80b73b5b",
+        "type": "github"
+      },
+      "original": {
+        "dir": "overlays",
+        "owner": "me-and",
+        "repo": "nixcfg",
         "type": "github"
       }
     },
@@ -143,10 +179,26 @@
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
         "private": "private",
-        "winapps": "winapps"
+        "winapps": "winapps",
+        "workCfg": "workCfg"
       }
     },
     "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
@@ -181,6 +233,28 @@
         "owner": "winapps-org",
         "repo": "winapps",
         "type": "github"
+      }
+    },
+    "workCfg": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixcfgOverlays": "nixcfgOverlays",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1746180820,
+        "narHash": "sha256-0BDdyKQ+eiicnbxprLSAb8ZD04GGOyW0cE656hUbx8E=",
+        "ref": "refs/heads/main",
+        "rev": "bcf7547d1b6a60d6fdeade21e5345a6de9384471",
+        "revCount": 956,
+        "type": "git",
+        "url": "ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git"
       }
     }
   },

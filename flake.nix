@@ -10,9 +10,14 @@
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    private.url = "github:me-and/nixcfg-private";
     winapps = {
       url = "github:winapps-org/winapps";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    private.url = "github:me-and/nixcfg-private";
+    workCfg = {
+      url = "git+ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -23,8 +28,9 @@
     nixos-hardware,
     nixos-wsl,
     home-manager,
-    private,
     winapps,
+    private,
+    workCfg,
   }: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
     inherit (nixpkgs.lib.lists) optional optionals;
@@ -45,6 +51,14 @@
         me = "adam";
         nixosExtraModules = [nixos-hardware.nixosModules.raspberry-pi-4];
       };
+
+      desktop-4d6hh84-nixos = {
+        system = "x86_64-linux";
+        me = "adamdinwoodie";
+        work = true;
+        wsl = true;
+        includePrivate = false;
+      };
     };
   in {
     nixosConfigurations =
@@ -53,6 +67,7 @@
           system,
           wsl ? false,
           winapps ? false,
+          work ? false,
           includeHomeManager ? true,
           includePrivate ? true,
           nixosExtraModules ? [],
@@ -73,6 +88,7 @@
               ++ allModules self
               ++ optional includeHomeManager home-manager.nixosModules.default
               ++ optional wsl nixos-wsl.nixosModules.default
+              ++ optionals work (allModules workCfg)
               ++ optionals includePrivate (allModules private);
           }
       )
@@ -83,6 +99,7 @@
         name: {
           system,
           me,
+          work ? false,
           includePrivate ? true,
           hmExtraModules ? [],
           ...
@@ -101,6 +118,7 @@
               in
                 hmExtraModules
                 ++ allModules self
+                ++ optionals work (allModules workCfg)
                 ++ optionals includePrivate (allModules private);
             }
           )
