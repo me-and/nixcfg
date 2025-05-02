@@ -32,6 +32,6 @@ writeCheckedShellApplication {
     find /nix/var/nix/gcroots/auto -type l \! -xtype l "''${exclude_args[@]}" -printf '%l\t%p\0' |
         sort -zV |
         cut -f2- -z |
-        xargs -0 ls --color=auto -lhU
+        xargs -r0 ls --color=auto -lhU
   '';
 }
