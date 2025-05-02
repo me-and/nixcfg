@@ -23,8 +23,7 @@ in {
   ];
 
   home = {
-    username = lib.mkDefault "adam";
-    homeDirectory = lib.mkDefault "/home/adam";
+    homeDirectory = lib.mkDefault "/home/${config.home.username}";
 
     # We *don't* add home-manager here, nor use home-manager.enable, because we
     # want to use the system home-manager installation.  In particular, that

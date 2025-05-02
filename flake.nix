@@ -116,7 +116,8 @@
                   (source.hmModules."${me}@${name}" or {})
                 ];
               in
-                hmExtraModules
+                [{home.username = me;}]
+                ++ hmExtraModules
                 ++ allModules self
                 ++ optionals work (allModules workCfg)
                 ++ optionals includePrivate (allModules private);
