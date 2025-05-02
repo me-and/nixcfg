@@ -57,6 +57,7 @@
         me = "adamdinwoodie";
         work = true;
         wsl = true;
+        winUsername = "AdamDinwoodie";
         includePrivate = false;
       };
     };
@@ -99,11 +100,14 @@
         name: {
           system,
           me,
+          wsl ? false,
+          winUsername ? null,
           work ? false,
           includePrivate ? true,
           hmExtraModules ? [],
           ...
         }:
+          assert nixpkgs.lib.assertMsg ((winUsername != null) -> wsl) "Windows username cannot be set if wsl is not true";
           nameValuePair "${me}@${name}"
           (
             home-manager.lib.homeManagerConfiguration {
@@ -115,10 +119,16 @@
                   (source.hmModules."${name}" or {})
                   (source.hmModules."${me}@${name}" or {})
                 ];
+
+                windowsConfig = {
+                  home.wsl.enable = true;
+                  home.wsl.windowsUsername = nixpkgs.lib.mkIf (winUsername != null) winUsername;
+                };
               in
                 [{home.username = me;}]
                 ++ hmExtraModules
                 ++ allModules self
+                ++ optional wsl windowsConfig
                 ++ optionals work (allModules workCfg)
                 ++ optionals includePrivate (allModules private);
             }
