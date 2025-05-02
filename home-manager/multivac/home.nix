@@ -14,8 +14,6 @@
 
   homeshickReportUnit = instance: systemdWantsInstance "homeshick-pull@.service" instance "homeshick-report.service";
 in {
-  imports = [../common];
-
   home.stateVersion = "24.05";
 
   # Enable all the systemd units I want running.  These are mostly coming from

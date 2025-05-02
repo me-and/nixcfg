@@ -37,7 +37,6 @@
   );
 in {
   imports = [
-    ../common
     ./fonts.nix
   ];
 

@@ -29,6 +29,8 @@
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair;
     inherit (nixpkgs.lib.strings) removeSuffix;
 
+    subdirfiles = (import ./lib/subdirfiles.nix) nixpkgs.lib;
+
     boxen = {
       hex = {
         system = "x86_64-linux";
@@ -55,15 +57,17 @@
             specialArgs = {
               winapps-pkgs = winapps.packages."${system}";
             };
-            modules =
-              [
-                nixos-wsl.nixosModules.default
-                home-manager.nixosModules.default
-                (./. + "/nixos/${name}/configuration.nix")
-                (private.nixosModules.default or {})
-                (private.nixosModules."${name}" or {})
-              ]
-              ++ nixosExtraModules;
+            modules = let
+              allModules = source: [
+                (source.nixosModules.default or {})
+                (source.nixosModules."${name}" or {})
+              ];
+            in
+              nixosExtraModules
+              ++ allModules self
+              ++ home-manager.nixosModules.default
+              ++ nixos-wsl.nixosModules.default
+              ++ allModules private;
           }
       )
       boxen;
@@ -73,21 +77,50 @@
         name: {
           system,
           me,
+          hmExtraModules ? [],
           ...
         }:
           nameValuePair "${me}@${name}"
           (
             home-manager.lib.homeManagerConfiguration {
               pkgs = nixpkgs.legacyPackages."${system}";
-              modules = [
-                (./. + "/home-manager/${name}/home.nix")
-                (private.hmModules.default or {})
-                (private.hmModules."${me}@${name}" or {})
-              ];
+              modules = let
+                allModules = source: [
+                  (source.hmModules.default or {})
+                  (source.hmModules."${me}" or {})
+                  (source.hmModules."${name}" or {})
+                  (source.hmModules."${me}@${name}" or {})
+                ];
+              in
+                hmExtraModules
+                ++ allModules self
+                ++ allModules private;
             }
           )
       )
       boxen;
+
+    nixosModules =
+      {
+        default.imports = [
+          ./common
+          ./modules/nixos
+          ./modules/shared
+          ./nixos/common
+        ];
+      }
+      // mapAttrs (name: value: import value) (subdirfiles ./nixos "configuration.nix");
+
+    hmModules =
+      {
+        default.imports = [
+          ./common
+          ./modules/home-manager
+          ./modules/shared
+          ./home-manager/common
+        ];
+      }
+      // mapAttrs (name: value: import value) (subdirfiles ./home-manager "home.nix");
 
     overlays = let
       overlayPaths = builtins.readDir ./overlays;
