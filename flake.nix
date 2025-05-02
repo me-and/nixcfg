@@ -66,7 +66,9 @@
       mapAttrs (
         name: {
           system,
+          me,
           wsl ? false,
+          winUsername ? null,
           winapps ? false,
           work ? false,
           includeHomeManager ? true,
@@ -74,6 +76,7 @@
           nixosExtraModules ? [],
           ...
         }:
+          assert nixpkgs.lib.assertMsg ((winUsername != null) -> wsl) "Windows username cannot be set if wsl is not true";
           nixpkgs.lib.nixosSystem {
             inherit system;
             specialArgs = optionalAttrs winapps {
@@ -84,11 +87,18 @@
                 (source.nixosModules.default or {})
                 (source.nixosModules."${name}" or {})
               ];
+
+              windowsConfig = {
+                imports = [nixos-wsl.nixosModules.default];
+                wsl.defaultUser = me;
+                wsl.enable = true;
+              };
             in
-              nixosExtraModules
+              [{users.me = me;}]
+              ++ nixosExtraModules
               ++ allModules self
               ++ optional includeHomeManager home-manager.nixosModules.default
-              ++ optional wsl nixos-wsl.nixosModules.default
+              ++ optional wsl windowsConfig
               ++ optionals work (allModules workCfg)
               ++ optionals includePrivate (allModules private);
           }
