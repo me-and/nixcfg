@@ -45,11 +45,15 @@
   in {
     nixosConfigurations =
       mapAttrs (
-        name: attrs:
+        name: {
+          system,
+          nixosExtraModules ? [],
+          ...
+        }:
           nixpkgs.lib.nixosSystem {
-            inherit (attrs) system;
+            inherit system;
             specialArgs = {
-              winapps-pkgs = winapps.packages."${attrs.system}";
+              winapps-pkgs = winapps.packages."${system}";
             };
             modules =
               [
@@ -59,22 +63,26 @@
                 (private.nixosModules.default or {})
                 (private.nixosModules."${name}" or {})
               ]
-              ++ (attrs.nixosExtraModules or []);
+              ++ nixosExtraModules;
           }
       )
       boxen;
 
     homeConfigurations =
       mapAttrs' (
-        name: attrs:
-          nameValuePair "${attrs.me}@${name}"
+        name: {
+          system,
+          me,
+          ...
+        }:
+          nameValuePair "${me}@${name}"
           (
             home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages."${attrs.system}";
+              pkgs = nixpkgs.legacyPackages."${system}";
               modules = [
                 (./. + "/home-manager/${name}/home.nix")
                 (private.hmModules.default or {})
-                (private.hmModules."${attrs.me}@${name}" or {})
+                (private.hmModules."${me}@${name}" or {})
               ];
             }
           )
