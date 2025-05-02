@@ -26,7 +26,8 @@
     private,
     winapps,
   }: let
-    inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair;
+    inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
+    inherit (nixpkgs.lib.lists) optional optionals;
     inherit (nixpkgs.lib.strings) removeSuffix;
 
     subdirfiles = (import ./lib/subdirfiles.nix) nixpkgs.lib;
@@ -35,6 +36,7 @@
       hex = {
         system = "x86_64-linux";
         me = "adam";
+        winapps = true;
         nixosExtraModules = [nixos-hardware.nixosModules.framework-16-7040-amd];
       };
 
@@ -49,12 +51,16 @@
       mapAttrs (
         name: {
           system,
+          wsl ? false,
+          winapps ? false,
+          includeHomeManager ? true,
+          includePrivate ? true,
           nixosExtraModules ? [],
           ...
         }:
           nixpkgs.lib.nixosSystem {
             inherit system;
-            specialArgs = {
+            specialArgs = optionalAttrs winapps {
               winapps-pkgs = winapps.packages."${system}";
             };
             modules = let
@@ -65,9 +71,9 @@
             in
               nixosExtraModules
               ++ allModules self
-              ++ home-manager.nixosModules.default
-              ++ nixos-wsl.nixosModules.default
-              ++ allModules private;
+              ++ optional includeHomeManager home-manager.nixosModules.default
+              ++ optional wsl nixos-wsl.nixosModules.default
+              ++ optionals includePrivate (allModules private);
           }
       )
       boxen;
@@ -77,6 +83,7 @@
         name: {
           system,
           me,
+          includePrivate ? true,
           hmExtraModules ? [],
           ...
         }:
@@ -94,7 +101,7 @@
               in
                 hmExtraModules
                 ++ allModules self
-                ++ allModules private;
+                ++ optionals includePrivate (allModules private);
             }
           )
       )
