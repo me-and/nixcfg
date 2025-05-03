@@ -37,7 +37,13 @@ for __cmd in "${PROMPT_COMMAND[@]}"; do
 	fi
 done
 if [[ -z "$__have_prompt" ]]; then
-	PROMPT_COMMAND+=(_prompt_temperature)
+	# Store in some arbitrary high index of PROMPT_COMMAND to ensure it
+	# gets run after setGitPrompt fills the placeholder value.
+	if [[ -v PROMPT_COMMAND[200] ]]; then
+		echo 'unexpected value already stored in Bash'\''s PROMPT_COMMAND[200]' >&2
+	else
+		PROMPT_COMMAND[200]=_prompt_temperature
+	fi
 fi
 
 # vim: ft=bash ts=8 noet
