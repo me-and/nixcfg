@@ -22,6 +22,5 @@
     ./taskserver
     ./user.nix
     ./winapps.nix
-    ./wsl.nix
   ];
 }

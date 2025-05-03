@@ -6,9 +6,11 @@
 }: let
   vpnConfigTemplate = builtins.readFile ./pd.ovpn;
 
+  wslEnabled = config.wsl.enable or false;
+
   # Only need VPN config on non-WSL systems; on WSL systems the VPN will be
   # managed by Windows' OpenVPN client.
-  vpnConfig = lib.mkIf (config.networking.accessPD && !config.wsl.enable) {
+  vpnConfig = lib.mkIf (config.networking.accessPD && !wslEnabled) {
     services.openvpn.servers.pdnet = {
       autoStart = false;
       config =
@@ -50,7 +52,7 @@
           "nofail"
           "noauto"
         ]
-        (lib.mkIf (!config.wsl.enable) [
+        (lib.mkIf (!wslEnabled) [
           "x-systemd.requires=openvpn-pdnet.service"
           "x-systemd.after=openvpn-pdnet.service"
         ])

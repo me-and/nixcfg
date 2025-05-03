@@ -89,7 +89,10 @@
               ];
 
               windowsConfig = {
-                imports = [nixos-wsl.nixosModules.default];
+                imports = [
+                  nixos-wsl.nixosModules.default
+                  ./extraModules/nixos/wsl.nix
+                ];
                 wsl.defaultUser = me;
                 wsl.enable = true;
               };
