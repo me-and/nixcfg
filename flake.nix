@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixos-wsl = {
@@ -26,6 +27,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-nixos-unstable,
     flake-utils,
     nixos-hardware,
     nixos-wsl,
@@ -82,7 +84,10 @@
             assert nixpkgs.lib.assertMsg ((winUsername != null) -> wsl) "Windows username cannot be set if wsl is not true";
               nixpkgs.lib.nixosSystem {
                 inherit system;
-                specialArgs = optionalAttrs winapps {
+                specialArgs = {
+                  pkgsNixosUnstable = nixpkgs-nixos-unstable.legacyPackages."${system}";
+                }
+                // optionalAttrs winapps {
                   winapps-pkgs = winapps.packages."${system}";
                 };
                 modules = let
@@ -125,6 +130,9 @@
               (
                 home-manager.lib.homeManagerConfiguration {
                   pkgs = nixpkgs.legacyPackages."${system}";
+                  extraSpecialArgs = {
+                    pkgsNixosUnstable = nixpkgs-nixos-unstable.legacyPackages."${system}";
+                  };
                   modules = let
                     allModules = source: [
                       (source.hmModules.default or {})
@@ -137,6 +145,7 @@
                       home.wsl.enable = true;
                       home.wsl.windowsUsername = nixpkgs.lib.mkIf (winUsername != null) winUsername;
                     };
+
                   in
                     [{home.username = me;}]
                     ++ hmExtraModules

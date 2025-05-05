@@ -175,6 +175,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-nixos-unstable": {
+      "locked": {
+        "lastModified": 1746328495,
+        "narHash": "sha256-uKCfuDs7ZM3QpCE/jnfubTg459CnKnJG/LwqEVEdEiw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "979daf34c8cacebcd917d540070b52a3c2b9b16e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "private": {
       "locked": {
         "lastModified": 1743802980,
@@ -197,6 +213,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-nixos-unstable": "nixpkgs-nixos-unstable",
         "private": "private",
         "winapps": "winapps",
         "workCfg": "workCfg"
