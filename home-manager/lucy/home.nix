@@ -97,8 +97,6 @@ in {
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   accounts.email.forwardLocal.enable = true;
 
-  #programs.git.package = pkgs.git-tip;
-
   services.calendarEmails = {
     enable = true;
     calendars = [
