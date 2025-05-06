@@ -5,7 +5,6 @@
   ...
 }: let
   inherit (config.lib.file) mkOutOfStoreSymlink;
-
 in {
   imports = [(lib.mkRenamedOptionModule ["home" "isWsl"] ["home" "wsl" "enable"])];
 
