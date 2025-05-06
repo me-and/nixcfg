@@ -41,8 +41,6 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v12
         with:
           extra-conf: sandbox = relaxed
-      - name: Set up Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v7
       - name: Store Nix channel to use
         if: matrix.channel != null
         env:

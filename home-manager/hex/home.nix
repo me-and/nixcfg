@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  pkgsNixosUnstable,
   ...
 }: let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
@@ -58,7 +59,7 @@ in {
     libreoffice
     openscad
     poppler_utils
-    prusa-slicer
+    pkgsNixosUnstable.prusa-slicer
     qalculate-gtk
     scribus
     signal-desktop

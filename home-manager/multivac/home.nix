@@ -26,8 +26,6 @@ in {
     (systemdWants "disk-usage-report.timer" "timers.target")
   ];
 
-  #programs.git.package = pkgs.git-tip;
-
   pd.enable = true;
 
   accounts.email.forwardLocal.enable = true;
