@@ -46,7 +46,7 @@
       hex = {
         system = "x86_64-linux";
         me = "adam";
-        winapps = true;
+        includeWinapps = true;
         nixosExtraModules = [nixos-hardware.nixosModules.framework-16-7040-amd];
       };
 
@@ -74,7 +74,7 @@
             me,
             wsl ? false,
             winUsername ? null,
-            winapps ? false,
+            includeWinapps ? false,
             work ? false,
             includeHomeManager ? true,
             includePrivate ? true,
@@ -87,7 +87,7 @@
                 specialArgs = {
                   pkgsNixosUnstable = nixpkgs-nixos-unstable.legacyPackages."${system}";
                 }
-                // optionalAttrs winapps {
+                // optionalAttrs includeWinapps {
                   winapps-pkgs = winapps.packages."${system}";
                 };
                 modules = let
