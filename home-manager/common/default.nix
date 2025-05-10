@@ -114,6 +114,11 @@ in {
 
   programs.mypy.config.mypy.cache_dir = "${config.xdg.cacheHome}/mypy";
 
+  programs.ssh = {
+    enable = true;
+    addKeysToAgent = "yes";
+  };
+
   # Don't expect this to ever clean much up, but it's a backstop against
   # ancient versions hanging around unnecessarily.
   #
