@@ -84,12 +84,13 @@
             assert nixpkgs.lib.assertMsg ((winUsername != null) -> wsl) "Windows username cannot be set if wsl is not true";
               nixpkgs.lib.nixosSystem {
                 inherit system;
-                specialArgs = {
-                  pkgsNixosUnstable = nixpkgs-nixos-unstable.legacyPackages."${system}";
-                }
-                // optionalAttrs includeWinapps {
-                  winapps-pkgs = winapps.packages."${system}";
-                };
+                specialArgs =
+                  {
+                    pkgsNixosUnstable = nixpkgs-nixos-unstable.legacyPackages."${system}";
+                  }
+                  // optionalAttrs includeWinapps {
+                    winapps-pkgs = winapps.packages."${system}";
+                  };
                 modules = let
                   allModules = source: [
                     (source.nixosModules.default or {})
@@ -148,7 +149,6 @@
                       home.wsl.enable = true;
                       home.wsl.windowsUsername = nixpkgs.lib.mkIf (winUsername != null) winUsername;
                     };
-
                   in
                     [{home.username = me;}]
                     ++ hmExtraModules
