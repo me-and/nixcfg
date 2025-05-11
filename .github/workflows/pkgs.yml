@@ -1,5 +1,5 @@
 name: Check package builds
-on: [push, pull_request]
+on: workflow_dispatch
 jobs:
   get-channels:
     name: Get channel list
