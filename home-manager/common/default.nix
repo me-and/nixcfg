@@ -15,6 +15,7 @@ in {
     ../../common
     ./bash
     ./firefox.nix
+    ./git.nix
     ./homeshick.nix
     ./keepassxc.nix
     ./taskwarrior.nix
@@ -70,12 +71,6 @@ in {
       tmux-xpanes
       toil
       unzip
-
-      # Use the Git version possibly configured elsewhere.  This is handled
-      # here rather than with config.programs.git.enable because that would
-      # also result in Home Manager trying to manage my Git config, which I'm
-      # not (yet) ready for.
-      config.programs.git.package
     ];
 
     sessionVariables = {
