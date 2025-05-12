@@ -16,6 +16,7 @@ in {
     ./bash
     ./firefox.nix
     ./git.nix
+    ./jq
     ./homeshick.nix
     ./keepassxc.nix
     ./taskwarrior.nix
