@@ -22,6 +22,7 @@ in {
 
     environment.systemPackages = with pkgs; [
       putty # For psusan
+      start # For start
       wslu # For wslview
     ];
 
