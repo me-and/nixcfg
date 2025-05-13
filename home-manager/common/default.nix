@@ -15,6 +15,8 @@ in {
     ../../common
     ./bash
     ./firefox.nix
+    ./git.nix
+    ./jq
     ./homeshick.nix
     ./keepassxc.nix
     ./taskwarrior.nix
@@ -70,12 +72,6 @@ in {
       tmux-xpanes
       toil
       unzip
-
-      # Use the Git version possibly configured elsewhere.  This is handled
-      # here rather than with config.programs.git.enable because that would
-      # also result in Home Manager trying to manage my Git config, which I'm
-      # not (yet) ready for.
-      config.programs.git.package
     ];
 
     sessionVariables = {
@@ -113,6 +109,11 @@ in {
   };
 
   programs.mypy.config.mypy.cache_dir = "${config.xdg.cacheHome}/mypy";
+
+  programs.ssh = {
+    enable = true;
+    addKeysToAgent = "yes";
+  };
 
   # Don't expect this to ever clean much up, but it's a backstop against
   # ancient versions hanging around unnecessarily.

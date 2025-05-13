@@ -117,8 +117,7 @@
   };
 
   nix.nixBuildDotNet.builds = {
-    enable = true;
-    systems = ["aarch64-linux"];
+    enable = false;
   };
 
   nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 20; # 20GB

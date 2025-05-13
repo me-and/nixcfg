@@ -1,5 +1,5 @@
 name: Check package builds
-on: [push, pull_request]
+on: workflow_dispatch
 jobs:
   get-channels:
     name: Get channel list
@@ -38,7 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v12
+        uses: DeterminateSystems/nix-installer-action@v17
         with:
           extra-conf: sandbox = relaxed
       - name: Store Nix channel to use

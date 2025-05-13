@@ -40,9 +40,6 @@
       ls = "ls --color=auto -hv";
       grep = "grep --color=auto";
 
-      # Find my jq library files.
-      jq = "jq -L ~/.local/lib/jq";
-
       # When calling cscope, I generally want some useful default arguments: -k
       # ignores the standard include directories (I'm rarely interested in those
       # anyway), -R recurses into directories, -q builds a reverse-lookup indices for
