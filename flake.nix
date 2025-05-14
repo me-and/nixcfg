@@ -62,7 +62,7 @@
         work = true;
         wsl = true;
         winUsername = "AdamDinwoodie";
-        includePrivate = false;
+        includePersonal = false;
       };
     };
   in
@@ -77,7 +77,7 @@
             includeWinapps ? false,
             work ? false,
             includeHomeManager ? true,
-            includePrivate ? true,
+            includePersonal ? true,
             nixosExtraModules ? [],
             ...
           }:
@@ -95,6 +95,7 @@
                   allModules = source: [
                     (source.nixosModules.default or {})
                     (source.nixosModules."${name}" or {})
+                    (optionalAttrs includePersonal (source.nixosModules.personal or {}))
                   ];
 
                   windowsConfig = {
@@ -112,7 +113,7 @@
                   ++ optional includeHomeManager home-manager.nixosModules.default
                   ++ optional wsl windowsConfig
                   ++ optionals work (allModules workCfg)
-                  ++ optionals includePrivate (allModules private);
+                  ++ allModules private;
               }
         )
         boxen;
@@ -125,7 +126,7 @@
             wsl ? false,
             winUsername ? null,
             work ? false,
-            includePrivate ? true,
+            includePersonal ? true,
             hmExtraModules ? [],
             ...
           }:
@@ -143,6 +144,7 @@
                       (source.hmModules."${me}" or {})
                       (source.hmModules."${name}" or {})
                       (source.hmModules."${me}@${name}" or {})
+                      (optionalAttrs includePersonal (source.hmModules.personal or {}))
                     ];
 
                     windowsConfig = {
@@ -155,7 +157,7 @@
                     ++ allModules self
                     ++ optional wsl windowsConfig
                     ++ optionals work (allModules workCfg)
-                    ++ optionals includePrivate (allModules private);
+                    ++ allModules private;
                 }
               )
         )
