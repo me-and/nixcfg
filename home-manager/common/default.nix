@@ -4,12 +4,6 @@
   pkgs,
   ...
 }: let
-  python = pkgs.python3.withPackages (pp: [
-    # dateutil needed for asmodeus
-    pp.dateutil
-    # requests needed for petition signing script
-    pp.requests
-  ]);
 in {
   imports = [
     ../../common
@@ -19,6 +13,7 @@ in {
     ./jq
     ./homeshick.nix
     ./keepassxc.nix
+    ./python.nix
     ./taskwarrior.nix
     ../../modules/home-manager
     ../../modules/shared
@@ -64,7 +59,6 @@ in {
       nixpkgs-review
       psmisc
       pv
-      python
       shellcheck
       silver-searcher
       tmux
@@ -75,17 +69,6 @@ in {
     ];
 
     sessionVariables = {
-      # Ideally this wouldn't be handled here but instead by Nix dependency
-      # management -- nothing should rely on the general site environment being
-      # set up correctly -- but this is the quick solution while there are
-      # plenty of things I care about that aren't yet integrated into Home
-      # Manager.
-      #
-      # TODO Move to using sessionSearchVariables once
-      # https://github.com/nix-community/home-manager/commit/277eea1cc7a5c37ea0b9aa8198cd1f2db3d6715c
-      # exists
-      PYTHONPATH = "$HOME/.local/lib/python3/my-packages:${python}/${python.sitePackages}\${PYTHONPATH:+:$PYTHONPATH}";
-
       # TODO Move to using sessionPath once sessionSearchVariables is available
       # and therefore paths are prepended rather than appended.
       # TODO Surely adding .nix-profile/bin ought to be handled somewhere else
@@ -107,8 +90,6 @@ in {
       MAILPATH = "/var/spool/mail/${config.home.username}";
     };
   };
-
-  programs.mypy.config.mypy.cache_dir = "${config.xdg.cacheHome}/mypy";
 
   programs.ssh = {
     enable = true;
