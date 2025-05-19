@@ -22,6 +22,7 @@ writeCheckedShellApplication {
         \! -lname '/nix/var/nix/profiles/*'
     )
     ls_cmd=(ls --color=auto -lhU)
+    mode='ls'
 
     while (( $# > 0 )); do
         case "$1" in
@@ -37,11 +38,18 @@ writeCheckedShellApplication {
                 shift 2
                 ;;
 
+            -t) mode=target
+                shift
+                ;;
+            -T) mode=target0
+                shift
+                ;;
+
             -l*)
                 # Flag that takes an argument: separate and reparse
                 set -- "-''${1: 1:1}" "''${1: 2}" "''${@: 2}"
                 ;;
-            -a*)
+            -a*|-t*|-T*)
                 # Flag that takes no arguments: separate and reparse.
                 set -- "-''${1: 1:1}" "-''${1: 2}" "''${@: 2}"
                 ;;
@@ -52,9 +60,31 @@ writeCheckedShellApplication {
         esac
     done
 
-    find /nix/var/nix/gcroots/auto -type l \! -xtype l "''${exclude_args[@]}" -printf '%l\t%p\0' |
-        sort -zV |
-        cut -f2- -z |
-        xargs -r0 "''${ls_cmd[@]}"
+    find_roots () {
+        local printf="$1"
+        shift
+        find /nix/var/nix/gcroots/auto -type l \! -xtype l \( "''${exclude_args[@]}" \) -printf "$printf"
+    }
+
+    case "$mode" in
+        ls) find_roots '%l\t%p\0' |
+                sort -zV |
+                cut -f2- -z |
+                xargs -r0 "''${ls_cmd[@]}"
+            ;;
+
+        target)
+            find_roots '%l\n'
+            ;;
+
+        target0)
+            find_roots '%l\0'
+            ;;
+
+        *)
+            printf 'unexpected mode %s\n' "$mode" >&2
+            exit 70 # EX_SOFTWARE
+            ;;
+    esac
   '';
 }
