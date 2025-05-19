@@ -21,11 +21,31 @@ writeCheckedShellApplication {
         \! -lname '/root/.local/state/home-manager/gcroots/*'
         \! -lname '/nix/var/nix/profiles/*'
     )
+    ls_cmd=(ls --color=auto -lhU)
+
     while (( $# > 0 )); do
         case "$1" in
             -a) exclude_args=()
                 shift
                 ;;
+
+            -l)
+                # Want user to be able to use backslashes in their ls command
+                # string.
+                # shellcheck disable=2162
+                read -a ls_cmd <<<"$2"
+                shift 2
+                ;;
+
+            -l*)
+                # Flag that takes an argument: separate and reparse
+                set -- "-''${1: 1:1}" "''${1: 2}" "''${@: 2}"
+                ;;
+            -a*)
+                # Flag that takes no arguments: separate and reparse.
+                set -- "-''${1: 1:1}" "-''${1: 2}" "''${@: 2}"
+                ;;
+
             *)  printf 'unrecognised argument %s\n' "$1" >&2
                 exit 64 # EX_USAGE
                 ;;
@@ -35,6 +55,6 @@ writeCheckedShellApplication {
     find /nix/var/nix/gcroots/auto -type l \! -xtype l "''${exclude_args[@]}" -printf '%l\t%p\0' |
         sort -zV |
         cut -f2- -z |
-        xargs -r0 ls --color=auto -lhU
+        xargs -r0 "''${ls_cmd[@]}"
   '';
 }
