@@ -9,6 +9,6 @@ writeShellApplication {
     command="''${command//\`/\`\`}"
     command="''${command//\'/\`\'}"
 
-    powershell.exe -Command "start $command"
+    powershell.exe -Command "start '$command'"
   '';
 }
