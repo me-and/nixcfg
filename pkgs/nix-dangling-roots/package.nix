@@ -13,21 +13,24 @@ writeCheckedShellApplication {
   purePath = true;
   runtimeInputs = [findutils coreutils];
   text = ''
-    if (( $# == 1 )) && [[ "$1" = -a ]]; then
-        exclude_args=()
-    elif (( $# == 0 )); then
-        exclude_args=(
-            \! -lname '/home/*/.local/state/nix/profiles/*'
-            \! -lname '/root/.local/state/nix/profiles/*'
-            \! -lname '/home/*/.local/state/home-manager/gcroots/*'
-            \! -lname '/home/*/.cache/nix/flake-registry.json'
-            \! -lname '/root/.local/state/home-manager/gcroots/*'
-            \! -lname '/nix/var/nix/profiles/*'
-        )
-    else
-        echo 'unrecognised arguments' >&2
-        exit 64 # EX_USAGE
-    fi
+    exclude_args=(
+        \! -lname '/home/*/.local/state/nix/profiles/*'
+        \! -lname '/root/.local/state/nix/profiles/*'
+        \! -lname '/home/*/.local/state/home-manager/gcroots/*'
+        \! -lname '/home/*/.cache/nix/flake-registry.json'
+        \! -lname '/root/.local/state/home-manager/gcroots/*'
+        \! -lname '/nix/var/nix/profiles/*'
+    )
+    while (( $# > 0 )); do
+        case "$1" in
+            -a) exclude_args=()
+                shift
+                ;;
+            *)  printf 'unrecognised argument %s\n' "$1" >&2
+                exit 64 # EX_USAGE
+                ;;
+        esac
+    done
 
     find /nix/var/nix/gcroots/auto -type l \! -xtype l "''${exclude_args[@]}" -printf '%l\t%p\0' |
         sort -zV |
