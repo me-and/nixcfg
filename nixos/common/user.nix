@@ -12,7 +12,7 @@ in {
   users.users."${cfg.me}" = {
     isNormalUser = true;
     description = "Adam Dinwoodie";
-    extraGroups = ["wheel"];
+    extraGroups = ["wheel" "cdrom"];
     linger = true;
     # TODO How do I check this file exists in a way
     # that's compatible with both the file being in
