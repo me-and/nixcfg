@@ -1,5 +1,6 @@
 {
   imports = [
+    ./abcde.nix
     ./bash-git-prompt.nix
     ./calendar-emails.nix
     ./forward.nix
