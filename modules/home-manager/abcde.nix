@@ -66,10 +66,6 @@
 # Paths of programs to use
 
 # Encoders:
-#FAAC=faac
-#NEROAACENC=neroAacEnc
-#FDKAAC=fdkaac
-#TWOLAME=twolame
 # Note that if you use avconv rather than FFmpeg give the
 # path to avconv here (e.g. FFMPEG=/usr/bin/avconv):
 # FFMPEG=ffmpeg
@@ -150,19 +146,9 @@
 # There are now 6 AAC encoders available to abcde, the default being
 # fdkaacenc. Note that the old AACENCOPTS has been rendered obsolete by
 # the following options, new to abcde 2.7:
-#  1. fdkaac: see 'fdkaac --help' and consider using 
-#     '--profile 2 --bitrate-mode 5 --afterburner 1'
-#     for a good quality encode. 
-#FDKAACENCOPTS='--bitrate 192k'
 #  2. FFmpeg: Use the following to use the FFmpeg native encoder, adding
 #     -strict -2 if you have an older FFmpeg:
 #     FFMPEGENCOPTS="-c:a aac -b:a 192k"
-#  3. neroAacEnc: see 'neroAacEnc -help' and
-#     consider using '-q 0.65' for a good quality encode.
-#NEROAACENCOPTS=
-#  4. faac: see 'faac --long-help' and consider
-#     using '-q 250' for a good quality encode.
-#FAACENCOPTS=
 #  5. qaac: simply run 'wine qaac.exe' to see all options and
 #     consider using '--tvbr 100' for a good quality
 #     encode or '--alac' for Apple Lossless Audio Codec
@@ -174,11 +160,6 @@
 # True Audio
 # This is a lossless format so no options of any note available:
 #TTAENCOPTS=
-
-# MP2
-# Currently uses either twolame or ffmpeg, for twolame options look at:
-# 'twolame --help',a highly recommended setting is "--bitrate 320".
-#TWOLAMENCOPTS=
 
 # FFmpeg or avconv can be used for several audio codecs, as well as being
 # the default encoder for the Matroska container mka::
@@ -328,7 +309,7 @@
 }: let
   cfg = config.programs.abcde;
 
-  mkDisableOption = d: (lib.mkEnableOption d) // {default = true;};
+  mkDisableOption = d: (lib.mkEnableOption d) // {default = true; example = false;};
 
   encoders = {
     opusenc = {
@@ -380,8 +361,24 @@
       optionsDefault = "-c4000";
     };
 
-    # Not available in nixpkgs, but users can configure these if they know what
-    # they're doing.
+    fdkaac = {
+      packageName = "fdk-aac-encoder";
+      optionsDescription = ''
+        See 'fdkaac --help' and consider using '--profile 2 --bitrate-mode 5
+        --afterburner 1' for a good quality encode.
+      '';
+      optionsDefault = "--bitrate 192k";
+    };
+
+    twolame = {
+      optionsDescription = ''
+        Look at 'twolame --help', a highly recommended setting is "--bitrate
+        320".
+      '';
+    };
+
+    # The encoders below are not available in nixpkgs, but users can configure
+    # these if they know what they're doing.
     gogo = {};
     bladeenc = {
       optionsDescription = ''
@@ -411,6 +408,19 @@
       optionsDescription = ''
         For the encoder options look at 'mpcenc --longhelp', consider setting
         '--extreme' for a good quality encode.
+      '';
+    };
+    faac = {
+      optionsDescription = ''
+        See 'faac --long-help' and consider using '-q 250' for a good quality
+        encode.
+      '';
+      optsvar = "FAACENCOPTS";
+    };
+    neroAacEnc = {
+      optionsDescription = ''
+        See 'neroAacEnc -help' and consider using '-q 0.65' for a good quality
+        encode.
       '';
     };
   };
@@ -516,7 +526,11 @@ in {
           default = attrs.optionsDefault or "";
         };
         package = lib.mkPackageOption pkgs (attrs.packageName or name) (attrs.packageAttrs or {});
-        executable = attrs.executable or "${cfg.encoders."${name}".package}/bin/${attrs.executableName or name}";
+        executable = lib.mkOption {
+          description = "Path to the encoder executable.";
+          type = lib.types.path;
+          default = attrs.executable or "${cfg.encoders."${name}".package}/bin/${attrs.executableName or name}";
+        };
       };
     in
       lib.attrsets.mapAttrs makeEncoderOptions encoders;
@@ -725,10 +739,10 @@ in {
         else "n";
 
       makeEncoderConfig = name: attrs: let
-        var = attrs.var or lib.strings.toUpper name;
-      in {
+        var = attrs.var or (lib.strings.toUpper name);
+      in lib.optionalAttrs cfg.encoders."${name}".enable {
         "${var}" = cfg.encoders."${name}".executable;
-        "${var}OPTS" = cfg.encoders."${name}".options;
+        "${attrs.optsvar or "${var}OPTS"}" = cfg.encoders."${name}".options;
       };
 
       definitions =
@@ -793,7 +807,7 @@ in {
       {
         assertion = cfg.cddb.offerSubmit -> cfg.cddb.enable;
         message = ''
-          prograbs.abcde.cddb.offerSubmit requires programs.abcde.cddb.enable.
+          programs.abcde.cddb.offerSubmit requires programs.abcde.cddb.enable.
         '';
       }
     ];
