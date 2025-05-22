@@ -1,11 +1,6 @@
 # TODO The following options haven't yet been wrangled here.  This is copied
 # from the upstream abcde.conf file.
 #
-# If NOCDDBQUERY is set to y, then abcde will never even try to access
-# the CDDB server; running abcde will automatically drop you into a
-# blank cddb file to edit at your leisure.  This is the same as the
-# -n option.  NOCDDBQUERY=y implies NOSUBMIT=y.
-#NOCDDBQUERY=n
 
 # Specify the style of encoder to use here -
 # oggenc, vorbize - for OGGENCODERSYNTAX
@@ -58,11 +53,6 @@
 # 'abcde.cue2discid', implemented internaly.
 #CUE2DISCID=abcde.cue2discid
 
-# Define if you want abcde to be non-interactive.
-# Keep in mind that there is no way to deactivate it right now in the command
-# line, so setting this option makes abcde to be always non-interactive.
-#INTERACTIVE=n
-
 # Specify 'nice'ness of the encoder, the CD reader and the distmp3 proc.
 # This is a relative 'nice'ness (that is, if the parent process is at a
 # nice level of 12, and the ENCNICE is set to 3, then the encoder will
@@ -76,19 +66,6 @@
 # Paths of programs to use
 
 # Encoders:
-#LAME=lame
-#GOGO=gogo
-#BLADEENC=bladeenc
-#L3ENC=l3enc
-#XINGMP3ENC=xingmp3enc
-#MP3ENC=mp3enc
-#VORBIZE=vorbize
-#OGGENC=oggenc
-#FLAC=flac
-#SPEEXENC=speexenc
-#MPCENC=mpcenc
-#WVENC=wavpack
-#APENC=mac
 #FAAC=faac
 #NEROAACENC=neroAacEnc
 #FDKAAC=fdkaac
@@ -153,58 +130,15 @@
 # for curl (MacOSX): HTTPGETOPTS="-f -s"
 #HTTPGETOPTS="-q -O -"
 
-# MP3:
-# For the best LAME encoder options have a look at:
-# <http://wiki.hydrogenaudio.org/index.php?title=LAME#Recommended_encoder_settings>
-# A good option is '-V 0' which gives Variable Bitrate Rate (VBR) recording
-# with a target bitrate of ~245 Kbps and a bitrate range of 220...260 Kbps.
-#LAMEOPTS=
-#GOGOOPTS=
-# Bladeenc still works with abcde in 2015, and the last release of bladeenc
-# was in 2001! Settings that will produce a great encode are: '-br 192' 
-#BLADEENCOPTS=
-# L3enc still works with abcde in 2015, pretty amazing when you realise 
-# that the last release of l3enc was in 1997! Settings that will produce 
-# a great encode are: '-br 256000 -hq -crc'
-#L3ENCOPTS=
-#XINGMP3ENCOPTS=
-# And mp3enc also still works with abcde in 2015 with the last release
-# of mp3enc in 1998! Settings that will produce a great encode, albeit
-# a slow one, are: '-v -br 256000 -qual 9 -no-is -bw 16500'
-#MP3ENCOPTS=
-
-# Ogg:
-#VORBIZEOPTS=
-#OGGENCOPTS=
-
 # FLAC:
-# The flac option is a workaround for an error where flac fails
-# to encode with error 'floating point exception'. This is flac 
-# error in get_console_width(), corrected in flac 1.3.1
-#FLACOPTS="--silent"
 # Options passed to MetaFlac for ReplayGain tags:
 #FLACGAINOPTS="--add-replay-gain"
-# Speex:
-#SPEEXENCOPTS=
-
-# MPP/MP+ (Musepack):
-# For the encoder options look at 'mpcenc --longhelp', consider
-# setting '--extreme' for a good quality encode.
-#MPCENCOPTS=
 
 # WavPack:
-# Look at 'wavpack --help' for detailed options, consider using '-hx3' 
-# for a good quality encode
-#WAVENCOPTS=
 # For Wavpack replay gain we set both the default of 'track gain' 
 # as well as this option for 'album gain'. Better media players
 # such as vlc can select either or neither.    
 #WVGAINOPTS='-a'
-
-# Monkey's Audio (ape)
-# Without this set mac chokes unfortunately. Choices
-# are from 1000 to 5000.
-#APENCOPTS='-c4000'
 
 #AIFF
 # These options needed by FFmpeg for tagging and selection of id3v2 version:
@@ -395,12 +329,99 @@
   cfg = config.programs.abcde;
 
   mkDisableOption = d: (lib.mkEnableOption d) // {default = true;};
+
+  encoders = {
+    opusenc = {
+      optionsDescription = "Look at `opusenc -h` for options";
+      packageName = "opusTools";
+    };
+
+    lame = {
+      optionsDescription = ''
+        Look at
+        http://wiki.hydrogenaudio.org/index.php?title=LAME#Recommended_encoder_settings
+        for suggestions.  A good option is `-V 0`, which gives Variable Bitrate
+        Rate (VBR) recording with a target bitrate of ~245 Kbps and a bitrate
+        range of 220...260 Kbps.
+      '';
+    };
+
+    oggenc = {
+      packageName = "vorbis-tools";
+    };
+
+    flac = {
+      optionsDescription = ''
+        The default flac option is a workaround for an error where flac fails
+        to encode with error 'floating point exception'. This is flac error in
+        get_console_width(), corrected in flac 1.3.1.
+      '';
+      optionsDefault = "--silent";
+    };
+
+    wavpack = {
+      # TODO Submit upstream patch to correct the bug in abcde.conf that has
+      # the options variable shown as WAVENCOPTS rather than WVENCOPTS, even
+      # though the latter is used in the abcde script itself.
+      var = "WVENC";
+      optionsDescription = ''
+        Look at 'wavpack --help' for detailed options, consider using '-xh3'
+        for a good quality encode.
+      '';
+    };
+
+    mac = {
+      var = "APENC";
+      packageName = "monkeysAudio";
+      optionsDescription = ''
+        Without setting a -c option, mac chokes unfortunately.  Choices are
+        from 1000 to 5000.
+      '';
+      optionsDefault = "-c4000";
+    };
+
+    # Not available in nixpkgs, but users can configure these if they know what
+    # they're doing.
+    gogo = {};
+    bladeenc = {
+      optionsDescription = ''
+        Bladeenc still works with abcde in 2015, and the last release of
+        bladeenc was in 2001!  Settings that will produce a great encode are:
+        '-br 192'.
+      '';
+    };
+    l3enc = {
+      optionsDescription = ''
+        L3enc still works with abcde in 2015, pretty amazing when you realise
+        that the last release of l3enc was in 1997! Settings that will produce
+        a great encode are: '-br 256000 -hq -crc'
+      '';
+    };
+    xingmp3enc = {};
+    mp3enc = {
+      optionsDescription = ''
+        And mp3enc also still works with abcde in 2015 with the last release of
+        mp3enc in 1998! Settings that will produce a great encode, albeit a
+        slow one, are: '-v -br 256000 -qual 9 -no-is -bw 16500'
+      '';
+    };
+    vorbize = {};
+    speexenc = {};
+    mpcenc = {
+      optionsDescription = ''
+        For the encoder options look at 'mpcenc --longhelp', consider setting
+        '--extreme' for a good quality encode.
+      '';
+    };
+  };
 in {
   options.programs.abcde = {
     enable = lib.mkEnableOption "abcde, A Better CD Extractor";
     package = lib.mkPackageOption pkgs "abcde" {};
 
     cddb = {
+      enable = mkDisableOption "querying a CDDB server";
+
       method = lib.mkOption {
         description = ''
           Choose whether you want to use "cddb", "musicbrainz" and/or "cdtext".
@@ -475,16 +496,30 @@ in {
       };
     };
 
-    encoders = {
-      opus = {
-        enable = lib.mkEnableOption "using the Opus encoder";
-        options = lib.mkOption {
-          description = "Encoder options to use.  Look at `opusenc -h` for options.";
-          type = lib.types.str;
-          default = "";
-        };
-      };
+    allowInteractive = lib.mkOption {
+      default = true;
+      example = false;
+      description = ''
+        Whether to allow using abcde in interactive mode.  There is no way to
+        enable interactive mode right now in the command line, so setting this
+        to `false` makes abcde to be always non-interactive.
+      '';
+      type = lib.types.bool;
     };
+
+    encoders = let
+      makeEncoderOptions = name: attrs: {
+        enable = lib.mkEnableOption "using the ${attrs.niceName or name} encoder";
+        options = lib.mkOption {
+          description = "Encoder options to use." + lib.optionalString (attrs ? optionsDescription) "\n\n${attrs.optionsDescription}";
+          type = lib.types.str;
+          default = attrs.optionsDefault or "";
+        };
+        package = lib.mkPackageOption pkgs (attrs.packageName or name) (attrs.packageAttrs or {});
+        executable = attrs.executable or "${cfg.encoders."${name}".package}/bin/${attrs.executableName or name}";
+      };
+    in
+      lib.attrsets.mapAttrs makeEncoderOptions encoders;
 
     keepWavs = lib.mkEnableOption "keeping the wav files after encoding";
 
@@ -689,6 +724,13 @@ in {
         then "y"
         else "n";
 
+      makeEncoderConfig = name: attrs: let
+        var = attrs.var or lib.strings.toUpper name;
+      in {
+        "${var}" = cfg.encoders."${name}".executable;
+        "${var}OPTS" = cfg.encoders."${name}".options;
+      };
+
       definitions =
         {
           CDDBMETHOD = lib.strings.concatStringsSep "," cfg.cddb.method;
@@ -706,23 +748,22 @@ in {
           OUTPUTTYPE = lib.strings.concatStringsSep "," cfg.outputTypes;
           EJECTCD = yn cfg.autoEject;
           PADTRACKS = yn cfg.padTracks;
-          EXTRAVERBOSE= cfg.verbosity;
+          EXTRAVERBOSE = cfg.verbosity;
+          NOCDDBQUERY = yn (!cfg.cddb.enable);
+          INTERACTIVE = yn cfg.allowInteractive;
         }
         // lib.optionalAttrs (cfg.cddb.helloInfo != null) {
           HELLOINFO = cfg.cddb.helloInfo;
         }
-        // lib.optionalAttrs cfg.encoders.opus.enable {
-          OPUSENC = "${pkgs.opusTools}/bin/opusenc";
-          OPUSENCOPTS = cfg.encoders.opus.options;
-        };
+        // lib.attrsets.concatMapAttrs makeEncoderConfig encoders;
 
-        functionText = lib.concatStrings (lib.attrsets.mapAttrsToList (n: v:
-      lib.optionalString (v != null) ''
+      functionText = lib.concatStrings (lib.attrsets.mapAttrsToList (n: v:
+        lib.optionalString (v != null) ''
           ${lib.strings.toLower n} () {
               ${v}
           }
         '')
-        cfg.hooks);
+      cfg.hooks);
     in
       lib.mkOption {
         description = ''
@@ -747,6 +788,12 @@ in {
         message = ''
           programs.abcde.cddb.useLocal requires
           programs.abcde.cddb.cache.checkRecursive.
+        '';
+      }
+      {
+        assertion = cfg.cddb.offerSubmit -> cfg.cddb.enable;
+        message = ''
+          prograbs.abcde.cddb.offerSubmit requires programs.abcde.cddb.enable.
         '';
       }
     ];
