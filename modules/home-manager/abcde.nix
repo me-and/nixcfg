@@ -1,6 +1,5 @@
 # TODO The following options haven't yet been wrangled here.  This is copied
 # from the upstream abcde.conf file.
-#
 
 # Specify the style of encoder to use here -
 # oggenc, vorbize - for OGGENCODERSYNTAX
@@ -110,9 +109,6 @@
 #WVTAG=wvtag
 #APETAG=apetag
 #GLYRC=glyrc
-#IDENTIFY=identify
-#CONVERT=convert
-#DISPLAYCMD=display
 #WINE=wine
 
 # Options to call programs with:
@@ -285,17 +281,6 @@
 # These options: '--from <provider>' and '--lang <langcode>' might also be useful
 #GLYRCOPTS=
 #ALBUMARTFILE="cover.jpg"
-#ALBUMARTTYPE="JPEG"
-
-# Options for ImageMagick commands used by album art processing when available
-# For example: CONVERTOPTS="-colorspace RGB -resize 600x600>"
-# to make the image RGB and fit inside 600x600 while keeping the aspect ratio
-#IDENTIFYOPTS=
-#CONVERTOPTS=
-#DISPLAYCMDOPTS="-resize 512x512 -title abcde_album_art"
-# By default convert is only called when the image type is different from
-# ALBUMARTTYPE, use ALBUMARTALWAYSCONVERT="y" to always call convert
-#ALBUMARTALWAYSCONVERT="n"
 
 # To encode on the remote machines foo, bar, baz, quux, and qiix, as well as
 # on the local machine (requires distmp3 to be installed on local machine and
@@ -557,6 +542,71 @@ in {
       default = ["ogg"];
     };
 
+    albumArt = {
+      imagemagick = lib.mkPackageOption pkgs "imagemagick" {};
+
+      display = {
+        enable = mkDisableOption "displaying cover art when in a graphical environment";
+        package = lib.mkPackageOption pkgs "imagemagick" {default = cfg.albumArt.imagemagick;};
+        executable = lib.mkOption {
+          description = "Path to the display executable";
+          type = lib.types.path;
+          default = "${cfg.albumArt.display.package}/bin/display";
+        };
+        options = lib.mkOption {
+          description = "Command line arguments to supply to the display command";
+          type = lib.types.str;
+          default = "-resize 512x512 -title abcde_album_art";
+        };
+      };
+
+      convert = {
+        enable = mkDisableOption "converting cover art";
+        always = lib.mkEnableOption "always converting album art, even when the image type is the same as the programs.abcde.convert.type configuration";
+
+        type = lib.mkOption {
+          description = "Image type to convert to"
+          default = "JPEG";
+          example = "PNG";
+          type = lib.types.str;
+        };
+
+        identifyCmd = {
+          package = lib.mkPackageOption pkgs "imagemagick" {default = cfg.albumArt.imagemagick;};
+          executable = lib.mkOption {
+            description = "Path to the identify executable.";
+            type = lib.types.path;
+            default = "${cfg.albumArt.convert.identifyCmd.package}/bin/identify";
+          };
+          options = lib.mkOption {
+            description = ''
+              Command line options for ImageMagick's identify command.
+            '';
+            type = lib.types.str;
+            default = "";
+          };
+        };
+
+        convertCmd = {
+          package = lib.mkPackageOption pkgs "imagemagick" {default = cfg.albumArt.imagemagick;};
+          executable = lib.mkOption {
+            description = "Path to the convert executable.";
+            type = lib.types.path;
+            default = "${cfg.albumArt.convert.convertCmd.package}/bin/convert";
+          };
+          options = lib.mkOption {
+            description = ''
+              Command line options for ImageMagick's convert command.  For
+              example: `-colorspace RGB -resize 600x600>` to make the image RGB
+              and fit inside 600x600 while keeping the aspect ratio.
+            '';
+            type = lib.types.str;
+            default = "";
+          };
+        };
+      };
+    };
+
     actions = lib.mkOption {
       description = ''
         Actions to take.
@@ -768,6 +818,28 @@ in {
         }
         // lib.optionalAttrs (cfg.cddb.helloInfo != null) {
           HELLOINFO = cfg.cddb.helloInfo;
+        }
+        // lib.optionalAttrs cfg.albumArt.convert.enable {
+          IDENTIFY = cfg.albumArt.convert.identifyCmd.executable;
+          IDENTIFYOPTS = cfg.albumArt.convert.identifyCmd.options;
+          CONVERT = cfg.albumArt.convert.convertCmd.executable;
+          CONVERTOPTS = cfg.albumArt.convert.convertCmd.options;
+          ALBUMARTTYPE = cfg.albumArt.convert.type;
+          ALBUMARTALWAYSCONVERT = yn cfg.albumArt.convert.always;
+        }
+        // lib.optionalAttrs (!cfg.albumArt.convert.enable) {
+          # Set IDENTIFY to something that will never be an executable path, so
+          # abcde doesn't try to perform any cover art manipulation.
+          IDENTIFY = "/var/empty/nothing";
+        }
+        // lib.optionalAttrs cfg.albumArt.display.enable {
+          DISPLAYCMD = cfg.albumArt.display.executable;
+          DISPLAYCMDOPTS = cfg.albumArt.display.options;
+        }
+        // lib.optionalAttrs (!cfg.albumArt.display.enable) {
+          # Set DISPLAYCMD to something that will never be an executable path,
+          # so abcde doesn't try to show cover art.
+          DISPLAYCMD = "/var/empty/nothing";
         }
         // lib.attrsets.concatMapAttrs makeEncoderConfig encoders;
 
