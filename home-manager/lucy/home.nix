@@ -60,6 +60,11 @@ in {
       Service.Type = "oneshot";
       Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.recurrence=true ids";
     };
+    taskwarrior-check-active-tasks = {
+      Unit.Description = "Check for Taskwarrior tasks that have been active too long";
+      Service.Type = "oneshot";
+      Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 rc.bulk=0 +ACTIVE -COMPLETED -DELETED modified.before:now-28d modify +inbox";
+    };
   };
   systemd.user.timers = {
     taskwarrior-create-recurring-tasks = {
@@ -67,6 +72,14 @@ in {
       Install.WantedBy = ["timers.target"];
       Timer.OnCalendar = "01:00";
       Timer.AccuracySec = "6h";
+      Timer.Persistent = true;
+    };
+    taskwarrior-check-active-tasks = {
+      Unit.Description = "Daily check for tasks that have been active too long";
+      Install.WantedBy = ["timers.target"];
+      Timer.OnCalendar = "01:00";
+      Timer.AccuracySec = "6h";
+      Timer.RandomizedDelaySec = "1h";
       Timer.Persistent = true;
     };
   };
