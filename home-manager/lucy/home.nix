@@ -63,7 +63,23 @@ in {
     taskwarrior-check-active-tasks = {
       Unit.Description = "Check for Taskwarrior tasks that have been active too long";
       Service.Type = "oneshot";
-      Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 rc.bulk=0 +ACTIVE -COMPLETED -DELETED modified.before:now-28d modify +inbox";
+      Service.ExecStart = pkgs.writeCheckedShellScript {
+        name = "flag-stale-active-tasks.sh";
+        runtimeInputs = [config.programs.taskwarrior.package];
+        text = ''
+          task_quick_quiet () {
+              task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 "$@"
+          }
+
+          filter=(+ACTIVE -COMPLETED -DELETED modified.before:now-28d)
+
+          declare -i stale_active_tasks
+          stale_active_tasks="$(task_quick_quiet "''${filter[@]}" count)"
+          if (( stale_active_tasks > 0 )); then
+              task_quick_quiet rc.bulk=0 "''${filter[@]}" modify +inbox
+          fi
+        '';
+      };
     };
   };
   systemd.user.timers = {
