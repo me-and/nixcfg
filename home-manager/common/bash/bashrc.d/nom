@@ -1,0 +1,15 @@
+bashwrap nom '
+	if (( $# >= 2 )) && [[ "$1" = flake && "$2" = check ]]; then
+		local -a rcs
+		shift 2
+		nix flake check --log-format internal-json -v "$@" |& command nom --json
+		rcs=("${PIPESTATUS[@]}")
+		if (( rcs[0] != 0 )); then
+			return "${rcs[0]}"
+		else
+			return "${rcs[1]}"
+		fi
+	fi
+'
+
+# vim: ft=bash noet ts=8
