@@ -21,7 +21,6 @@
 
   systemdServiceSymlinks = map systemdWantsService [];
   systemdHomeshickReportSymlinks = map homeshickReportWants [
-    "bash\\x2dgit\\x2dprompt"
     "homeshick"
   ];
   systemdTimerSymlinks = map systemdWantsTimer [
