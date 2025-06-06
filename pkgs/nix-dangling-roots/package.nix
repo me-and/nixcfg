@@ -14,12 +14,13 @@ writeCheckedShellApplication {
   runtimeInputs = [findutils coreutils];
   text = ''
     exclude_args=(
-        \! -lname '/home/*/.local/state/nix/profiles/*'
-        \! -lname '/root/.local/state/nix/profiles/*'
-        \! -lname '/home/*/.local/state/home-manager/gcroots/*'
         \! -lname '/home/*/.cache/nix/flake-registry.json'
-        \! -lname '/root/.local/state/home-manager/gcroots/*'
+        \! -lname '/home/*/.local/state/home-manager/gcroots/*'
+        \! -lname '/home/*/.local/state/nix/profiles/*'
         \! -lname '/nix/var/nix/profiles/*'
+        \! -lname '/root/.cache/nix/flake-registry.json'
+        \! -lname '/root/.local/state/home-manager/gcroots/*'
+        \! -lname '/root/.local/state/nix/profiles/*'
     )
     ls_cmd=(ls --color=auto -lhU)
     mode='ls'
