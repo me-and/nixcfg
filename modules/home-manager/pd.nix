@@ -10,22 +10,33 @@
     name = "pd-sync-with-fileserver";
     runtimeInputs = [pkgs.coreutils];
     text = ''
-      UNISON=${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions/.unison-state"}
-      UNISONLOCALHOSTNAME=FakePDUnisonOneDriveSyncHost
-      export UNISON UNISONLOCALHOSTNAME
+      declare -r SOURCE=/usr/share/gonzo
+      declare -r DEST=${lib.strings.escapeShellArg "${config.home.homeDirectory}/Documents/Profound Decisions"}
 
-      this_year="$(date +%Y)"
+      printf -v this_year '%(%Y)T' -1
+
+      for event_path in "$DEST"/Event/*; do
+          if [[ "$event_path" != "$DEST"/Event/*"$this_year"* ]]; then
+              rsp='unset'
+              while [[ "''${rsp,}" != y && "''${rsp,}" != n  && "$rsp" != ''' ]]; do
+                  read -r -p "Delete old event directory ''${event_path@Q}? [y/N] " rsp
+              done
+              if [[ "$rsp" = y ]]; then
+                  rm -r "$event_path"
+              fi
+          fi
+      done
 
       exec ${unison}/bin/unison \
           -ignore 'Name Thumbs.db' \
           -ignore 'Name .*' \
           -ignore 'Name ~*' \
-          -dontchmod -perms 0 \
+          -fat \
           -fastcheck true \
           -ui text \
           -times \
-          -root ${lib.strings.escapeShellArg "${config.home.homeDirectory}/OneDrive/Profound Decisions"} \
-          -root /usr/share/gonzo \
+          -root "$SOURCE" \
+          -root "$DEST" \
           -path Empire/GOD \
           -path 'IT/Front End/Empire.mdb' \
           -path 'IT/Front End/Backups' \
@@ -37,7 +48,7 @@
           -path Empire/Art/Font \
           -path Event \
           -ignore 'Path Event/*' \
-          -ignorenot "Path Event/* - $this_year" \
+          -ignorenot "Path Event/*$this_year*" \
           -path Site/Signs \
           -path 'Unknown Worlds/art' \
           -path 'Weapon Check' \
