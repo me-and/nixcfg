@@ -88,6 +88,9 @@ in {
 
       # Get Bash to check for local mail.
       MAILPATH = "/var/spool/mail/${config.home.username}";
+
+      # Use a XDG-style path for Unison.
+      UNISON = "${config.xdg.stateHome}/unison";
     };
   };
 
