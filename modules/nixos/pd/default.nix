@@ -4,13 +4,11 @@
   pkgs,
   ...
 }: let
+  cfg = config.networking.pd;
+
   vpnConfigTemplate = builtins.readFile ./pd.ovpn;
 
-  wslEnabled = config.wsl.enable or false;
-
-  # Only need VPN config on non-WSL systems; on WSL systems the VPN will be
-  # managed by Windows' OpenVPN client.
-  vpnConfig = lib.mkIf (config.networking.accessPD && !wslEnabled) {
+  vpnConfig = lib.mkIf cfg.vpn {
     services.openvpn.servers.pdnet = {
       autoStart = false;
       config =
@@ -30,7 +28,7 @@
     };
   };
 
-  mountConfig = lib.mkIf config.networking.accessPD {
+  mountConfig = lib.mkIf cfg.gonzo {
     fileSystems."/usr/share/gonzo" = let
       mountOptions = lib.mkMerge [
         [
@@ -52,7 +50,7 @@
           "nofail"
           "noauto"
         ]
-        (lib.mkIf (!wslEnabled) [
+        (lib.mkIf cfg.vpn [
           "x-systemd.requires=openvpn-pdnet.service"
           "x-systemd.after=openvpn-pdnet.service"
         ])
@@ -65,7 +63,10 @@
     environment.systemPackages = [pkgs.cifs-utils];
   };
 in {
-  options.networking.accessPD = lib.mkEnableOption "PD remote network access";
+  options.networking.pd = {
+    vpn = lib.mkEnableOption "PD VPN access";
+    gonzo = lib.mkEnableOption "mounting the Gonzo file share";
+  };
 
   config = lib.mkMerge [vpnConfig mountConfig];
 }

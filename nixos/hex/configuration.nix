@@ -19,7 +19,8 @@
 
   networking.networkmanager.enable = true;
 
-  networking.accessPD = true;
+  networking.pd.vpn = true;
+  networking.pd.gonzo = true;
 
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;

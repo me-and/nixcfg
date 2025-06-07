@@ -4,7 +4,7 @@
   networking.hostName = "multivac";
   networking.domain = "dinwoodie.org";
 
-  networking.accessPD = true;
+  networking.pd.gonzo = true;
 
   services.postfix = {
     enable = true;
