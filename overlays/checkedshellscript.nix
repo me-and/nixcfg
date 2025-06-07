@@ -4,7 +4,7 @@
 # purposes) bin directory, and the latter's ability to do some safety checks on
 # the result.  This is that function.
 final: prev: let
-  inherit (final) lib writeTextFile runtimeShell stdenv shellcheck-minimal;
+  inherit (final) lib writeTextFile stdenv shellcheck-minimal;
 
   defaultExcludeShellChecks = ["SC2016"];
   defaultOptionalShellChecks = [
@@ -23,6 +23,7 @@ in {
     text,
     runtimeInputs ? [],
     runtimeEnv ? {},
+    runtimeShell ? final.runtimeShell,
     meta ? {},
     checkPhase ? null,
     excludeShellChecks ? defaultExcludeShellChecks,
