@@ -37,6 +37,10 @@
           -times \
           -root "$SOURCE" \
           -root "$DEST" \
+          -mountpoint Empire/GOD \
+          -mountpoint Event \
+          -mountpoint 'IT/Front End' \
+          -mountpoint Site/Signs \
           -path Empire/GOD \
           -path 'IT/Front End/Empire.mdb' \
           -path 'IT/Front End/Backups' \
