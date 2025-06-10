@@ -24,16 +24,15 @@
   systemdHomeshickReportSymlinks = map homeshickReportWants [
     "homeshick"
   ];
-  systemdTimerSymlinks =
-    (
-      map systemdWantsTimer [
-        "disk-usage-report"
-        "report-onedrive-conflicts"
-        "taskwarrior-inbox"
-        "taskwarrior-monthly"
-        "taskwarrior-project-check"
-      ]
-    );
+  systemdTimerSymlinks = (
+    map systemdWantsTimer [
+      "disk-usage-report"
+      "report-onedrive-conflicts"
+      "taskwarrior-inbox"
+      "taskwarrior-monthly"
+      "taskwarrior-project-check"
+    ]
+  );
   systemdPathSymlinks = [];
 
   systemdSymlinks = lib.mergeAttrsList (
