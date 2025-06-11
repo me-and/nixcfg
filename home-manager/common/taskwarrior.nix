@@ -207,7 +207,7 @@
       dadford = {
         # Prioritise things that can only be done on site, and filter out
         # things that aren't urgent and aren't PD related.
-        read = readFilter "-home -southport -enfield -business -work -office -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
+        read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
         write = "+dadford";
         rc.urgency.user.tag.dadford.coefficient = 10;
       };
