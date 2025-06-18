@@ -32,7 +32,10 @@
   services.displayManager.sddm.autoNumlock = true;
 
   services.printing.enable = true;
-  services.printing.drivers = [pkgs.cups-kyocera-3500-4500];
+  services.printing.drivers = with pkgs; [
+    cups-kyocera-3500-4500
+    hplip
+  ];
 
   programs.mosh.enable = true;
 
