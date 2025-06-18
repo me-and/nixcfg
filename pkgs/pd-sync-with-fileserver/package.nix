@@ -39,6 +39,8 @@ writeCheckedShellApplication {
         -mountpoint 'IT/Front End' \
         -mountpoint Site/Signs \
         -path Empire/GOD \
+        -path Empire/Refs \
+        -path Empire/Academy \
         -path 'IT/Front End/Empire.mdb' \
         -path 'IT/Front End/Backups' \
         -ignore 'Path IT/Front End/Backups/*' \
