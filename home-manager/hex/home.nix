@@ -24,15 +24,9 @@
   systemdHomeshickReportSymlinks = map homeshickReportWants [
     "homeshick"
   ];
-  systemdTimerSymlinks = (
-    map systemdWantsTimer [
-      "disk-usage-report"
-      "report-onedrive-conflicts"
-      "taskwarrior-inbox"
-      "taskwarrior-monthly"
-      "taskwarrior-project-check"
-    ]
-  );
+  systemdTimerSymlinks = map systemdWantsTimer [
+    "disk-usage-report"
+  ];
   systemdPathSymlinks = [];
 
   systemdSymlinks = lib.mergeAttrsList (
@@ -81,52 +75,6 @@ in {
   # therefore everything needs to be done manually.
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
-  systemd.user.services = {
-    taskwarrior-create-recurring-tasks = {
-      Unit.Description = "Create recurring Taskwarrior tasks";
-      Service.Type = "oneshot";
-      Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.recurrence=true ids";
-    };
-    taskwarrior-check-active-tasks = {
-      Unit.Description = "Check for Taskwarrior tasks that have been active too long";
-      Service.Type = "oneshot";
-      Service.ExecStart = pkgs.writeCheckedShellScript {
-        name = "flag-stale-active-tasks.sh";
-        runtimeInputs = [config.programs.taskwarrior.package];
-        text = ''
-          task_quick_quiet () {
-              task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 "$@"
-          }
-
-          filter=(+ACTIVE -COMPLETED -DELETED modified.before:now-28d)
-
-          declare -i stale_active_tasks
-          stale_active_tasks="$(task_quick_quiet "''${filter[@]}" count)"
-          if (( stale_active_tasks > 0 )); then
-              task_quick_quiet rc.bulk=0 "''${filter[@]}" modify +inbox
-          fi
-        '';
-      };
-    };
-  };
-  systemd.user.timers = {
-    taskwarrior-create-recurring-tasks = {
-      Unit.Description = "Create recurring Taskwarrior tasks daily";
-      Install.WantedBy = ["timers.target"];
-      Timer.OnCalendar = "01:00";
-      Timer.AccuracySec = "6h";
-      Timer.Persistent = true;
-    };
-    taskwarrior-check-active-tasks = {
-      Unit.Description = "Daily check for tasks that have been active too long";
-      Install.WantedBy = ["timers.target"];
-      Timer.OnCalendar = "01:00";
-      Timer.AccuracySec = "6h";
-      Timer.RandomizedDelaySec = "1h";
-      Timer.Persistent = true;
-    };
-  };
-
   services.rclone.enable = true;
   services.rclone.mountPoints = {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
@@ -156,17 +104,7 @@ in {
 
   programs.keepassxc.enable = true;
 
-  services.calendarEmails = {
-    enable = true;
-    calendars = [
-      config.accounts.email.accounts.main.address
-      "Adam Dinwoodie's Facebook Events"
-    ];
-  };
-
   pd.enable = true;
 
   programs.mypy.enable = true;
-
-  programs.taskwarrior.autoSync = false;
 }
