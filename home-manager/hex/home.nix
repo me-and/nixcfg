@@ -108,6 +108,9 @@ in {
         '';
       };
     };
+    taskwarrior-sync = {
+      Service.ExecStart = lib.mkForce "/run/current-system/sw/bin/true";
+    };
   };
   systemd.user.timers = {
     taskwarrior-create-recurring-tasks = {
