@@ -39,6 +39,6 @@ writeShellApplication {
 
     command="''${command_args[*]}"
 
-    powershell.exe -Command "start '$command'"
+    powershell.exe -Command "start \"$command\""
   '';
 }
