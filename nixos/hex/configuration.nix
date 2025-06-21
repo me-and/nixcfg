@@ -11,8 +11,14 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Allow working with all LVM features I sometimes use.
-  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror"];
+  boot.initrd.kernelModules = [
+    # Allow working with all LVM features I sometimes use.
+    "dm-snapshot" "dm-raid" "dm-mirror"
+
+    # Enable SCSI access to CD drives
+    # https://discourse.nixos.org/t/makemkv-cant-find-my-usb-blu-ray-drive/23714/4
+    "sg"
+  ];
 
   networking.hostName = "hex";
   networking.domain = "dinwoodie.org";
