@@ -61,6 +61,7 @@ in {
     hunspellDicts.en-gb-ise
     inkscape
     libreoffice
+    makemkv
     openscad
     poppler_utils
     prusa-slicer
