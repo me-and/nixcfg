@@ -98,6 +98,7 @@ in {
     enable = true;
     addKeysToAgent = "yes";
   };
+  services.ssh-agent.enable = true;
 
   # Don't expect this to ever clean much up, but it's a backstop against
   # ancient versions hanging around unnecessarily.
