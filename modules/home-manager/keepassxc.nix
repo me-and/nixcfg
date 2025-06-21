@@ -9,57 +9,47 @@
   # https://github.com/NixOS/nixpkgs/blob/64b80bfb316b57cdb8919a9110ef63393d74382a/nixos/lib/systemd-lib.nix#L59C3-L60C1
   unitNameType = lib.types.strMatching "[a-zA-Z0-9@%:_.\\-]+[.](service|socket|device|mount|automount|swap|target|path|timer|scope|slice)";
 in {
-  options.programs.keepassxc = {
-    enable = lib.mkEnableOption "KeePassXC";
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.keepassxc;
-      description = "The KeePassXC package to use.";
-    };
-    autostart = {
-      enable = lib.mkEnableOption "automatically starting KeePassXC";
-      extraConfig = lib.mkOption {
-        # TODO Get this to pull the data out of KeePassXC itself.
-        type = with lib.types; attrsOf (oneOf [bool int str]);
-        description = ''
-          Extra attributes to add to the autostart .desktop entry.
+  options.programs.keepassxc.autostart = {
+    enable = lib.mkEnableOption "automatically starting KeePassXC";
+    extraConfig = lib.mkOption {
+      # TODO Get this to pull the data out of KeePassXC itself.
+      type = with lib.types; attrsOf (oneOf [bool int str]);
+      description = ''
+        Extra attributes to add to the autostart .desktop entry.
 
-          The default value is taken from the one created by KeePassXC when
-          setting it to start automatically.
-        '';
-        default = {
-          X-GNOME-Autostart-enabled = true;
-          X-GNOME-Autostart-Delay = 2;
-          X-KDE-autostart-after = "panel";
-          X-LXQt-Need-Tray = true;
-        };
+        The default value is taken from the one created by KeePassXC when
+        setting it to start automatically.
+      '';
+      default = {
+        X-GNOME-Autostart-enabled = true;
+        X-GNOME-Autostart-Delay = 2;
+        X-KDE-autostart-after = "panel";
+        X-LXQt-Need-Tray = true;
       };
-      after = lib.mkOption {
-        type = lib.types.listOf unitNameType;
-        description = "User systemd units that must be started before KeePassXC.";
-        default = [];
-      };
-      before = lib.mkOption {
-        type = lib.types.listOf unitNameType;
-        description = "User systemd units that must be started after KeePassXC.";
-        default = [];
-      };
-      wants = lib.mkOption {
-        type = lib.types.listOf unitNameType;
-        description = "User systemd units that KeePassXC wants to also be running.";
-        default = [];
-      };
-      requires = lib.mkOption {
-        type = lib.types.listOf unitNameType;
-        description = "User systemd units that KeePassXC requires to also be running.";
-        default = [];
-      };
+    };
+    after = lib.mkOption {
+      type = lib.types.listOf unitNameType;
+      description = "User systemd units that must be started before KeePassXC.";
+      default = [];
+    };
+    before = lib.mkOption {
+      type = lib.types.listOf unitNameType;
+      description = "User systemd units that must be started after KeePassXC.";
+      default = [];
+    };
+    wants = lib.mkOption {
+      type = lib.types.listOf unitNameType;
+      description = "User systemd units that KeePassXC wants to also be running.";
+      default = [];
+    };
+    requires = lib.mkOption {
+      type = lib.types.listOf unitNameType;
+      description = "User systemd units that KeePassXC requires to also be running.";
+      default = [];
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [cfg.package];
-
+  config = {
     xdg.configFile = lib.mkIf cfg.autostart.enable {
       "autostart/org.keepassxc.KeePassXC.desktop".source = let
       in
