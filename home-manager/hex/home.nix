@@ -62,6 +62,7 @@ in {
     hunspellDicts.en-gb-ise
     inkscape
     libreoffice
+    makemkv
     openscad
     poppler_utils
     pkgsNixosUnstable.prusa-slicer

@@ -6,6 +6,7 @@
       "cups-kyocera-3500-4500"
       "discord"
       "google-chrome"
+      "makemkv"
       "netflix-icon"
       "netflix-via-google-chrome"
       "steam"
