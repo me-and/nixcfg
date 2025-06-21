@@ -55,11 +55,7 @@ in {
     programs.screen.enable = true;
 
     # Always want locate running.
-    services.locate = {
-      enable = true;
-      package = pkgs.plocate;
-      localuser = null; # Needed to silence warning about running as root.
-    };
+    services.locate.enable = true;
 
     environment.systemPackages = with pkgs; [
       file
