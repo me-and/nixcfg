@@ -14,8 +14,8 @@ final: prev: {
       patches = final.fetchGitHubPatch {
         owner = "nix-community";
         repo = "home-manager";
-        commit = "0bef6b08dd7f79621afc0522e152d5e171f3a830";
-        hash = "sha256-+jUdGNJUlDWS/8XpIy3eBm8Odj2TejZTMVd7XTsCUgM=";
+        commit = "b7e5223b0b25c3fcdb3937df160e7b5efccd2dfb";
+        hash = "sha256-+EHrAu+CggJWDqnnrn2VlUN4HNsD96QXo+D6CAzAqDo=";
       };
     };
   });
