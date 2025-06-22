@@ -37,6 +37,7 @@
 in {
   imports = [
     ./fonts.nix
+    ./syncthing.nix
   ];
 
   home.stateVersion = "24.11";
