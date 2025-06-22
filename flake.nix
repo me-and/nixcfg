@@ -83,8 +83,8 @@
               nixpkgs.lib.nixosSystem {
                 inherit system;
                 specialArgs = optionalAttrs includeWinapps {
-                    winapps-pkgs = winapps.packages."${system}";
-                  };
+                  winapps-pkgs = winapps.packages."${system}";
+                };
                 modules = let
                   allModules = source: [
                     (source.nixosModules.default or {})
