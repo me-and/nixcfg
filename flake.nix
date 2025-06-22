@@ -33,7 +33,7 @@
     winapps,
     private,
     workCfg,
-  }: let
+  } @ flakeInputs: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
     inherit (nixpkgs.lib.lists) optional optionals;
     inherit (nixpkgs.lib.strings) removeSuffix;
@@ -83,6 +83,7 @@
               nixpkgs.lib.nixosSystem {
                 inherit system;
                 specialArgs = optionalAttrs includeWinapps {
+                  inherit flakeInputs;
                   winapps-pkgs = winapps.packages."${system}";
                 };
                 modules = let
@@ -129,6 +130,9 @@
               (
                 home-manager.lib.homeManagerConfiguration {
                   pkgs = nixpkgs.legacyPackages."${system}";
+                  extraSpecialArgs = {
+                    inherit flakeInputs;
+                  };
                   modules = let
                     allModules = source: [
                       (source.hmModules.default or {})
