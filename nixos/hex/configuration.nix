@@ -13,7 +13,7 @@
 
   boot.initrd.kernelModules = [
     # Allow working with all LVM features I sometimes use.
-    "dm-snapshot" "dm-raid" "dm-mirror"
+    "dm-snapshot" "dm-raid" "dm-mirror" "dm-cache" "dm-cache-smq"
 
     # Enable SCSI access to CD drives
     # https://discourse.nixos.org/t/makemkv-cant-find-my-usb-blu-ray-drive/23714/4

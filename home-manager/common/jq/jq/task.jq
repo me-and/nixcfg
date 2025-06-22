@@ -1,5 +1,5 @@
-import "datetime" as datetime {search: "./"};
-import "util" as util {search: "./"};
+import "datetime" as datetime;
+import "util" as util;
 
 def test: "datetime" | modulemeta;
 
