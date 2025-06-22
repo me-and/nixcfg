@@ -8,7 +8,7 @@
 in {
   options.nix.nhgc = {
     enable = lib.mkEnableOption "periodically collecting garbage using the Nix Heuristic Garbage Collector";
-    package = lib.mkPackageOption pkgs "Nix Heuristic Garbage Collector" {default = "nhgc";};
+    package = lib.mkPackageOption pkgs "Nix Heuristic Garbage Collector" {default = "nix-heuristic-gc";};
     optimiseAfter = lib.mkEnableOption "running nix-optimise after collecting garbage";
     minimumFreeSpace = lib.mkOption {
       description = ''

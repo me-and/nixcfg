@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  pkgsNixosUnstable,
   ...
 }: let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
@@ -59,7 +58,7 @@ in {
     makemkv
     openscad
     poppler_utils
-    pkgsNixosUnstable.prusa-slicer
+    prusa-slicer
     qalculate-gtk
     scribus
     signal-desktop

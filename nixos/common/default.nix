@@ -55,11 +55,7 @@ in {
     programs.screen.enable = true;
 
     # Always want locate running.
-    services.locate = {
-      enable = true;
-      package = pkgs.plocate;
-      localuser = null; # Needed to silence warning about running as root.
-    };
+    services.locate.enable = true;
 
     environment.systemPackages = with pkgs; [
       file
@@ -73,9 +69,6 @@ in {
 
     services.avahi.enable = true;
     services.avahi.nssmdns4 = true;
-
-    # Set up ssh-agent.
-    programs.ssh.startAgent = true;
 
     # For the system Git installation, gitMinimal is fine; I'll have the full
     # installation, probably on the tip, in Home Manager.
