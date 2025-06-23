@@ -177,11 +177,11 @@
     },
     "private": {
       "locked": {
-        "lastModified": 1750618734,
-        "narHash": "sha256-e/JoQIt9aHniUt1OMMbHGQufGyBLih48zVNGzrZAJBw=",
+        "lastModified": 1750700351,
+        "narHash": "sha256-j2eXm6y6azDTJFAM2MgXeVZ18hkXwS2eTz7bIkQ/EGI=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "a47c98e0395f07c423f4e6afe31dc9735beb4102",
+        "rev": "d47c250bb5d918e9b99570640b993ea051c46431",
         "type": "github"
       },
       "original": {

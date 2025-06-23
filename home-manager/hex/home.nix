@@ -35,10 +35,7 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [
-    ./fonts.nix
-    ./syncthing.nix
-  ];
+  imports = [./fonts.nix];
 
   home.stateVersion = "24.11";
 
@@ -108,4 +105,9 @@ in {
   pd.enable = true;
 
   programs.mypy.enable = true;
+
+  services.syncthing = {
+    enable = true;
+    tray.enable = true;
+  };
 }

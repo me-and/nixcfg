@@ -95,6 +95,12 @@ in {
     };
   };
 
+  services.syncthing = {
+    overrideDevices = lib.mkDefault true;
+    overrideFolders = lib.mkDefault true;
+    settings.options.urAccepted = 3;
+  };
+
   programs.ssh = {
     enable = true;
     addKeysToAgent = "yes";
