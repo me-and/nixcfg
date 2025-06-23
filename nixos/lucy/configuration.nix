@@ -23,7 +23,6 @@
 
   system.stateVersion = "24.11";
   system.isPi4 = true;
-  networking.hostName = "lucy";
   networking.domain = "dinwoodie.org";
 
   programs.mosh = {

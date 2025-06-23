@@ -102,7 +102,12 @@
                     wsl.enable = true;
                   };
                 in
-                  [{users.me = me;}]
+                  [
+                    {
+                      users.me = me;
+                      networking.hostName = name;
+                    }
+                  ]
                   ++ nixosExtraModules
                   ++ allModules self
                   ++ optional includeHomeManager home-manager.nixosModules.default
@@ -147,7 +152,12 @@
                       home.wsl.windowsUsername = nixpkgs.lib.mkIf (winUsername != null) winUsername;
                     };
                   in
-                    [{home.username = me;}]
+                    [
+                      {
+                        home.username = me;
+                        home.hostName = name;
+                      }
+                    ]
                     ++ hmExtraModules
                     ++ allModules self
                     ++ optional wsl windowsConfig

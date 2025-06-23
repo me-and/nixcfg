@@ -24,7 +24,6 @@
     "sg"
   ];
 
-  networking.hostName = "hex";
   networking.domain = "dinwoodie.org";
 
   networking.networkmanager.enable = true;

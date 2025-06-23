@@ -12,6 +12,7 @@ in {
     ./git.nix
     ./jq
     ./homeshick.nix
+    ./host.nix
     ./keepassxc.nix
     ./python.nix
     ./taskwarrior.nix
