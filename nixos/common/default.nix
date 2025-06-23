@@ -135,7 +135,6 @@ in {
 
     services.nix-serve = {
       openFirewall = true;
-      enable = true;
       secretKeyFile = "/home/adam/store-secret";
     };
   };
