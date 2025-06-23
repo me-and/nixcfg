@@ -11,7 +11,6 @@
     ./nixbuild.net.nix
     ./openvpn.nix
     ./pd
-    ./phone-backup.nix
     ./pi.nix
     ./postfix.nix
     ./rclone.nix

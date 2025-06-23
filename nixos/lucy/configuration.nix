@@ -48,8 +48,6 @@
     rebootTime = "5m";
   };
 
-  services.nibbleBackup.enable = true;
-
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
 
