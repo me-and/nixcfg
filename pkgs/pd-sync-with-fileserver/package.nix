@@ -8,7 +8,7 @@ writeCheckedShellApplication {
   runtimeInputs = [coreutils];
   text = ''
     declare -r SOURCE=/usr/share/gonzo
-    declare -r DEST="$HOME/Documents/Profound Decisions"
+    declare -r DEST="$HOME/Profound Decisions"
 
     printf -v this_year '%(%Y)T' -1
 
