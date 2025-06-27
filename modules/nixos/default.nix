@@ -14,7 +14,7 @@
     ./pi.nix
     ./postfix.nix
     ./rclone.nix
-    ./scantoonedrive.nix
+    ./scantocomms.nix
     ./servegnucash.nix
     ./sudo.nix
     ./syncthing.nix

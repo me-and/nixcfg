@@ -94,7 +94,6 @@
     };
     scannerUser = "ida";
     scannerHashedPasswordFile = "/etc/nixos/secrets/ida";
-    uploadUser = "rclone";
   };
 
   services.gnucashFileServer = {

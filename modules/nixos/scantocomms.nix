@@ -11,7 +11,7 @@ in {
   options.services.scanToOneDrive = {
     enable =
       lib.mkEnableOption
-      "copying documents sent from my scanner to OneDrive";
+      "copying documents sent from my scanner to my personal folder";
 
     ftpPasvPortRange = lib.mkOption {
       description = "Port range to use for FTP PASV connections.";
@@ -29,16 +29,6 @@ in {
       description = "Group name to use for uploading from the scanner to the local directory.";
       type = lib.types.str;
       default = cfg.scannerUser;
-    };
-
-    uploadUser = lib.mkOption {
-      description = "Username to use for uploading from the local directory to OneDrive.";
-      type = lib.types.str;
-    };
-    uploadGroup = lib.mkOption {
-      description = "Group name to use for uploading from the local directory to OneDrive.";
-      type = lib.types.str;
-      default = cfg.uploadUser;
     };
 
     scannerDestDir = lib.mkOption {
@@ -70,15 +60,15 @@ in {
       }
     ];
 
-    # Set up the user account the scanner will use to log in with.
+    # Set up the user account the scanner will use to log in with, and make
+    # sure I have access to the uploaded files.
     users.users."${cfg.scannerUser}" = {
       description = "Printer scanner upload account";
       isSystemUser = true;
       group = cfg.scannerGroup;
       hashedPasswordFile = cfg.scannerHashedPasswordFile;
     };
-    users.groups."${cfg.scannerGroup}".members = [cfg.uploadUser];
-    users.groups."${cfg.uploadGroup}".members = [cfg.scannerUser];
+    users.groups."${cfg.scannerGroup}".members = [config.users.me];
 
     # Set up the FTP server that the scanner will log into.
     services.vsftpd = {
@@ -112,45 +102,32 @@ in {
       "Z '${cfg.scannerDestDir}' ~0770 ${cfg.scannerUser} ${cfg.scannerGroup}"
     ];
 
-    # Set up a systemd service for checking the network is online and usable.
-    systemd.services."resolve-host-a@" = {
-      description = "Check %I resolves";
-      wants = ["network-online.target"];
-      after = ["network-online.target"];
-      serviceConfig.Type = "oneshot";
-      serviceConfig.ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
-    };
+    # Make sure my user account can access the scanner directory.
+    users.users."${config.users.me}".extraGroups = [cfg.scannerGroup];
 
     # Set up the systemd service that will copy files from the FTP directory to
-    # OneDrive.
-    systemd.services.ftp-to-onedrive = {
-      description = "uploading scanned documents to OneDrive";
-      wants = ["resolve-host-a@graph.onedrive.com.service" "resolve-host-a@1drv.ms.service"];
-      after = ["resolve-host-a@graph.onedrive.com.service" "resolve-host-a@1drv.ms.service"];
+    # my documents folder
+    systemd.services.scan-to-docs = {
+      description = "moving scanned documents to ${config.users.me}'s home directory";
       unitConfig.RequiresMountsFor = cfg.scannerDestDir;
       serviceConfig = {
         Type = "oneshot";
         WorkingDirectory = cfg.scannerDestDir;
-        CacheDirectory = "rclone";
-        CacheDirectoryMode = "0770";
-        ConfigurationDirectory = "rclone";
-        ConfigurationDirectoryMode = "0770";
-        User = cfg.uploadUser;
-        Group = cfg.uploadGroup;
+        User = config.users.me;
+        Group = config.users.users."${config.users.me}".group;
         SupplementaryGroups = cfg.scannerGroup;
         ExecStart = pkgs.writeCheckedShellScript {
-          name = "ftp-to-onedrive.sh";
+          name = "scan-to-docs.sh";
           runtimeEnv = {
             MAIL_USER = config.users.me;
           };
-          purePath = true;
           text = ''
             shopt -s nullglob
             for ext in pdf jpg; do
                 for file in *."$ext"; do
                     # Wait for the file to have been stable for 30 seconds, to
-                    # avoid trying to upload to OneDrive before the local
-                    # upload has completed.
+                    # avoid trying to move the file before the local upload has
+                    # completed.
                     ${pkgs.mtimewait}/bin/mtimewait 30 "$file"
 
                     basename="''${file%."$ext"}"
@@ -220,9 +197,9 @@ in {
                     # If the destination starts with Desktop, put it there,
                     # otherwise put it in the Communications directory.
                     if [[ "$destdir" = Desktop || "$destdir" = Desktop/* ]]; then
-                        fulldest=onedrive:"$destdir"/"$destbasename"
+                        fulldest="$HOME"/"$destdir"/"$destbasename"
                     else
-                        fulldest=onedrive:Documents/Communications/"$destdir"/"$destbasename"
+                        fulldest="$HOME"/Documents/Communications/"$destdir"/"$destbasename"
                     fi
 
                     # If there's a page number, add that to the filename.
@@ -237,23 +214,26 @@ in {
                     # start running commands.
                     if [[ ! "$MAIL_USER" =~ ^[A-Za-z0-9]+$
                         || ! "$file" =~ ^[A-Za-z0-9_-][A-Za-z0-9' &'.,=_-]*\."$ext"$
-                        || ! "$fulldest" =~ ^onedrive:([A-Za-z0-9_-]([A-Za-z0-9' &'.,=_-]*[A-Za-z0-9_-])?/)*[A-Za-z0-9_-][A-Za-z0-9' &'.,=_-]*."$ext"$
+                        || ! "$fulldest" =~ ^/home/([A-Za-z0-9_-]([A-Za-z0-9' &'.,=_-]*[A-Za-z0-9_-])?/)*[A-Za-z0-9_-][A-Za-z0-9' &'.,=_-]*\."$ext"$
+                        || "$fulldest" = *..*
                         ]]; then
                         echo 'Unexpected value in one of the below' >&2
                         declare -p MAIL_USER file fulldest >&2
                         exit 1
                     fi
 
-                    # Upload the file
-                    ${pkgs.rclone}/bin/rclone \
-                        --config="''${CONFIGURATION_DIRECTORY}/rclone.conf" \
-                        --cache-dir="''${CACHE_DIRECTORY}" \
-                        moveto "$file" "$fulldest"
+                    # Move the file.
+                    mv -n -- "$file" "$fulldest"
+                    if [[ -e "$file" ]]; then
+                        echo 'File unexpectedly exists after move' >&2
+                        echo 'Possibly failed to move to avoid clobbering?' >&2
+                        declare -p file fulldest >&2
+                    fi
 
-                    # Send a notification that the file has been uploaded
+                    # Send a notification that the file has been moved
                     ${pkgs.system-sendmail}/bin/sendmail -odi -i -t <<EOF
             To: $MAIL_USER
-            Subject: Copied $file from ftp directory to OneDrive
+            Subject: Copied $file from ftp directory to home directory
 
             Destination $fulldest
             EOF
@@ -266,8 +246,8 @@ in {
 
     # Set up the systemd path unit that will start the service when files get
     # uploaded.
-    systemd.paths.ftp-to-onedrive = {
-      description = "monitoring for scanned documents to upload to OneDrive";
+    systemd.paths.scan-to-docs = {
+      description = "monitoring for scanned documents to move";
       wantedBy = ["paths.target"];
       unitConfig.RequiresMountsFor = cfg.scannerDestDir;
       pathConfig.PathExistsGlob = [
