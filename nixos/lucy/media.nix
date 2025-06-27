@@ -51,7 +51,7 @@
         mountDirPerms = "0775";
         mountFilePerms = "0664";
         cacheMode = "writes";
-        extraRcloneArgs = ["--vfs-fast-fingerprint"];
+        extraRcloneArgs = ["--vfs-fast-fingerprint" "--vfs-cache-min-free-space=1G"];
         extraUnitConfig = {
           unitConfig.RequiresMountsFor = ["/run/av"];
           serviceConfig.ExecStartPre = [
