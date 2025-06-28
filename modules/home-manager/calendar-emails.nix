@@ -55,6 +55,7 @@ in {
           Timer = {
             OnCalendar = "weekly";
             RandomizedDelaySec = "12h";
+            RandomizedOffsetSec = "1w";
             AccuracySec = "1d";
             Persistent = true;
           };

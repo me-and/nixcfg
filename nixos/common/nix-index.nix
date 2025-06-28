@@ -57,10 +57,11 @@ in {
   systemd.timers.nix-index = {
     wantedBy = ["timers.target"];
     timerConfig = {
-      OnCalendar = "18:00";
+      OnCalendar = "daily";
       AccuracySec = "24h";
       RandomizedDelaySec = "1h";
       Persistent = "true";
+      RandomizedOffsetSec = "24h";
     };
   };
 }

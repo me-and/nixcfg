@@ -140,11 +140,11 @@ in {
   systemd.user.timers.nix-remove-old-profiles = {
     Unit.Description = "Delete old Nix profiles weekly";
     Timer = {
-      # Randomly picked.
-      OnCalendar = "Tue 09:33:38";
+      OnCalendar = "weekly";
       AccuracySec = "24h";
       Persistent = true;
       RandomizedDelaySec = "1h";
+      RandomizedOffsetSec = "1w";
     };
   };
 }

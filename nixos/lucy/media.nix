@@ -12,7 +12,6 @@
       libraryName = "Music";
       libraryType = "music";
       includePhotos = true;
-      checkTime = "Thu 09:05:10";
     }
     {
       local = "films";
@@ -20,7 +19,6 @@
       libraryName = "Films";
       libraryType = "movies";
       includePhotos = true;
-      checkTime = "Tue 08:18:08";
     }
     {
       local = "tv";
@@ -28,7 +26,6 @@
       libraryName = "TV";
       libraryType = "tvshows";
       includePhotos = true;
-      checkTime = "Mon 02:04:56";
     }
     {
       local = "fitness";
@@ -36,7 +33,6 @@
       libraryName = "Fitness stuff";
       libraryType = "homevideos";
       includePhotos = false;
-      checkTime = "Tue 17:06:42";
     }
   ];
 
@@ -100,9 +96,11 @@
     systemd.timers."rclone-onedrive-check-${d.local}" = {
       description = "rclone weekly check ${d.local} directory is in sync";
       timerConfig = {
-        OnCalendar = d.checkTime;
+        OnCalendar = "weekly";
         AccuracySec = "7d";
         Persistent = true;
+        RandomizedOffsetSec = "1w";
+        RandomizedDelaySec = "1h";
       };
       wantedBy = ["timers.target"];
     };

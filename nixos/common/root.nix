@@ -143,11 +143,11 @@
   systemd.timers.nix-remove-old-root-profiles = {
     description = "Delete old Nix profiles for root weekly";
     timerConfig = {
-      # Randomly picked.
-      OnCalendar = "Wed 05:39:15";
+      OnCalendar = "weekly";
       AccuracySec = "24h";
       Persistent = true;
       RandomizedDelaySec = "1h";
+      RandomizedOffsetSec = "1w";
     };
   };
 }
