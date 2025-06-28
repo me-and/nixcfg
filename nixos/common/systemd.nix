@@ -109,19 +109,21 @@
   # Add support for RandomizedOffsetSec= in timer units.
   packageConfig = {
     systemd.package = pkgs.systemd.overrideAttrs (prevAttrs: {
-      patches = prevAttrs.patches ++ map pkgs.fetchpatch [
-        # https://github.com/systemd/systemd/pull/36437
-        {
-          url = "https://github.com/systemd/systemd/commit/9a0749c82b313d4abd31171beb7cca48bd56f19b.patch";
-          hash = "sha256-Qjcaxs7oPvQokTtCOUHHEtZZnkakFEZw6pZ15L6G0Fk=";
-        }
+      patches =
+        prevAttrs.patches
+        ++ map pkgs.fetchpatch [
+          # https://github.com/systemd/systemd/pull/36437
+          {
+            url = "https://github.com/systemd/systemd/commit/9a0749c82b313d4abd31171beb7cca48bd56f19b.patch";
+            hash = "sha256-Qjcaxs7oPvQokTtCOUHHEtZZnkakFEZw6pZ15L6G0Fk=";
+          }
 
-        # https://github.com/systemd/systemd/pull/37981
-        {
-          url = "https://github.com/systemd/systemd/commit/c6bb846c04fe326c3b5c2f31ae6eace8b2ce7153.patch";
-          hash = "sha256-gmPVPdjCXUGuOu2SDqd2lo45kzHaOvNLL7NlebPHnPc=";
-        }
-      ];
+          # https://github.com/systemd/systemd/pull/37981
+          {
+            url = "https://github.com/systemd/systemd/commit/c6bb846c04fe326c3b5c2f31ae6eace8b2ce7153.patch";
+            hash = "sha256-gmPVPdjCXUGuOu2SDqd2lo45kzHaOvNLL7NlebPHnPc=";
+          }
+        ];
     });
   };
 in
