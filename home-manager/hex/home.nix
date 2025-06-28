@@ -40,9 +40,11 @@ in {
   home.stateVersion = "24.11";
 
   home.packages = with pkgs; [
+    abcde
     android-tools # adb
     azuredatastudio
     cardimpose
+    cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
     discord
     freecad
     gh-random-pr
