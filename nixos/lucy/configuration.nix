@@ -4,6 +4,7 @@
   ...
 }: {
   imports = [
+    ./archives.nix
     ./hardware-configuration.nix
     ./media.nix
   ];
