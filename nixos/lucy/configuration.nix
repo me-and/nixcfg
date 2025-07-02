@@ -99,9 +99,9 @@
 
   services.gnucashFileServer = {
     enable = true;
-    rclone.needsTime = true;
-    rclone.needsNetwork = true;
-    rclone.gnucashDirectory = "onedrive:Documents/Gnucash";
+    rclone.needsTime = false;
+    rclone.needsNetwork = false;
+    rclone.gnucashDirectory = "/home/adam/Documents/Gnucash";
     extraVirtualHostConfig = {
       enableACME = true;
       acmeRoot = null;
