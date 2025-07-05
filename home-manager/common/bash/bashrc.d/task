@@ -2,6 +2,27 @@ _task_quick_quiet () {
 	command task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 "$@"
 }
 
+# Munge multiple `blocks` arguments into a single argument.  This wrap must
+# happen before any other wraps that might add `blocks` arguments, in
+# particular the wrap that adds the `add-before` command, so this function can
+# do any requisite munging of arguments added in other functions.
+bashwrap task '
+	local arg blocks= blocks_set=
+	local -a new_args=()
+	for arg; do
+		if [[ "$arg" = blocks:* ]]; then
+			blocks="${blocks:+"$blocks",}${arg#blocks:}"
+			blocks_set=Yes
+		else
+			new_args+=("$arg")
+		fi
+	done
+	if [[ "$blocks_set" ]]; then
+		new_args+=("blocks:$blocks")
+		set -- "${new_args[@]}"
+	fi
+'
+
 # Function to enable `task <filter> (done-replace|del-replace) <new-task>`,
 # which marks one task as done or deleted and creates a new task that has the
 # same properties (including both blocked and blocking tasks) as the previous
