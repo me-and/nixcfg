@@ -173,7 +173,11 @@ if [[ -v TMUX_TASKLOOP_TMPDIR ]]; then
 		fi
 
 		for f in "${files[@]}"; do
-			printf '%s\n' "$@" >>"$f"
+			if (( $# == 1 )); then
+				printf '%s\n' "$1" >>"$f"
+			else
+				printf '%s\n' \( "$@" \) >> "$f"
+			fi
 		done
 	}
 
