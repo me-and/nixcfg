@@ -197,10 +197,12 @@ in {
                     # If the destination starts with Desktop, put it there,
                     # otherwise put it in the Communications directory.
                     if [[ "$destdir" = Desktop || "$destdir" = Desktop/* ]]; then
-                        fulldest="$HOME"/"$destdir"/"$destbasename"
+                        fulldestdir="$HOME"/"$destdir"
                     else
-                        fulldest="$HOME"/Documents/Communications/"$destdir"/"$destbasename"
+                        fulldestdir="$HOME"/Documents/Communications/"$destdir"
                     fi
+
+                    fulldest="$fulldestdir"/"$destbasename"
 
                     # If there's a page number, add that to the filename.
                     if [[ "$page" ]]; then
@@ -223,6 +225,7 @@ in {
                     fi
 
                     # Move the file.
+                    mkdir -p -- "$fulldestdir"
                     mv -n -- "$file" "$fulldest"
                     if [[ -e "$file" ]]; then
                         echo 'File unexpectedly exists after move' >&2
