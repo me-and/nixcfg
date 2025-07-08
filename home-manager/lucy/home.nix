@@ -113,12 +113,9 @@ in {
       sent = "[Gmail]/Sent Mail";
       trash = "[Gmail]/Bin";
     };
-    # TODO configure this?
-    #maildir.path = config.accounts.email.accounts.main.address;
+    maildir.path = config.accounts.email.accounts.main.address;
     # TODO configure this, with all the attentant options
     #neomutt.enable = true;
-    # TODO configure this, with all the attendant options
-    #offlineimap.enable = true;
     primary = true;
     realName = "Adam Dinwoodie";
   };
@@ -136,7 +133,7 @@ in {
   pd.enable = true;
 
   # TODO Fix my email config.
-  home.packages = [pkgs.offlineimap];
+  programs.offlineimap.enable = true;
   programs.neomutt.enable = true;
 
   services.syncthing.enable = true;

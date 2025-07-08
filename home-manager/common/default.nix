@@ -14,6 +14,7 @@ in {
     ./homeshick.nix
     ./host.nix
     ./keepassxc.nix
+    ./offlineimap.nix
     ./python.nix
     ./taskwarrior
     ../../modules/home-manager
