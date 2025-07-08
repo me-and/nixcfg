@@ -15,7 +15,7 @@ in {
     ./host.nix
     ./keepassxc.nix
     ./python.nix
-    ./taskwarrior.nix
+    ./taskwarrior
     ../../modules/home-manager
     ../../modules/shared
   ];

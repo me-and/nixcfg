@@ -4,6 +4,8 @@
   pkgs,
   ...
 }: let
+  cfg = config.programs.taskwarrior;
+
   # TODO Finish converting the config from the original taskrc file currently
   # included as extraConfig.
   # TODO Make the config much more modular, DRY, and readable
@@ -302,6 +304,17 @@ in {
     };
 
     home.packages = [pkgs.task-project-report];
+
+    # TODO Patch these properly to use a Nix-appropriate shebang.
+    home.file =
+      lib.mapAttrs'
+      (
+        k: v:
+          lib.attrsets.nameValuePair
+          "${cfg.config.hooks.location}/${k}"
+          {source = ./hooks + "/${k}";}
+      )
+      (builtins.readDir ./hooks);
 
     systemd.user = {
       services = {

@@ -177,11 +177,11 @@
     },
     "private": {
       "locked": {
-        "lastModified": 1751833004,
-        "narHash": "sha256-W/G9SNwz85saejehA0OB9nQ7DEEVjYMTdEzLm7xfKro=",
+        "lastModified": 1751922942,
+        "narHash": "sha256-8U3dygfLL9dsNe5eovl9qy9uEIyMlV9zPPnBTupDZjk=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "b79f79947d74f09f92448c0084575e6441bda386",
+        "rev": "bb366f26249c1d0247ddc6a48d70927d221308aa",
         "type": "github"
       },
       "original": {
@@ -278,11 +278,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1751363332,
-        "narHash": "sha256-Zp3lkF57Tva2baqOThNF42DI4ON+egpp/BMu6YdB7Os=",
+        "lastModified": 1751900533,
+        "narHash": "sha256-sf6FaVvtuDH4qhehr3n29Uwh4gh0oqJOTqCl02d3Rdc=",
         "ref": "refs/heads/main",
-        "rev": "8fae6385b67264c1d9a128d8fefc550302caa193",
-        "revCount": 980,
+        "rev": "f1e1550e5c889397ecb0d887cc58eb484542cda9",
+        "revCount": 982,
         "type": "git",
         "url": "ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git"
       },
