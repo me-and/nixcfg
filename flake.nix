@@ -139,6 +139,10 @@
                     inherit flakeInputs;
                   };
                   modules = let
+                    # TODO Looks like some things included in this list might
+                    # get evaluated twice, which is *mostly* fine unless there
+                    # are multiple config options that get added to a
+                    # configured list.
                     allModules = source: [
                       (source.hmModules.default or {})
                       (source.hmModules."${me}" or {})
