@@ -231,6 +231,7 @@ in {
                         echo 'File unexpectedly exists after move' >&2
                         echo 'Possibly failed to move to avoid clobbering?' >&2
                         declare -p file fulldest >&2
+                        exit 70 # EX_SOFTWARE
                     fi
 
                     # Send a notification that the file has been moved
