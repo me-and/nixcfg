@@ -14,6 +14,7 @@ in {
     ./homeshick.nix
     ./host.nix
     ./keepassxc.nix
+    ./neomutt.nix
     ./offlineimap.nix
     ./python.nix
     ./taskwarrior
