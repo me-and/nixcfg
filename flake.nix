@@ -156,12 +156,17 @@
                       home.wsl.windowsUsername = nixpkgs.lib.mkIf (winUsername != null) winUsername;
                     };
                   in
+<<<<<<< Updated upstream
                     [
                       {
                         home.username = me;
                         home.hostName = name;
                       }
                     ]
+=======
+                    [{home.username = me;}]
+                    ++ [./test.nix]
+>>>>>>> Stashed changes
                     ++ hmExtraModules
                     ++ allModules self
                     ++ optional wsl windowsConfig
