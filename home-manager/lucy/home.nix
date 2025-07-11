@@ -33,7 +33,7 @@
         "taskwarrior-project-check"
       ]
     )
-    ++ [(systemdWantsInstance "offlineimap-full@.timer" "adam\\x40dinwoodie.org" "timers.target")];
+    ++ [(systemdWantsInstance "offlineimap-full@.timer" "main" "timers.target")];
   systemdPathSymlinks = map systemdWantsPath [
     "taskwarrior-dinwoodie.org-emails"
     "sign-petitions"
