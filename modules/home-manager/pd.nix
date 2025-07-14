@@ -15,7 +15,5 @@
     # TODO This should be handled more sensibly by my Python installation
     # and/or scripts.
     home.sessionVariables.LD_LIBRARY_PATH = "${pkgs.zlib}/lib";
-
-    home.packages = with pkgs; [pd-sync-with-fileserver unison-nox];
   };
 }
