@@ -109,12 +109,12 @@ in {
     flavor = "gmail.com";
     folders = {
       inbox = "INBOX";
-      drafts = "[Gmail]/Drafts";
-      sent = "[Gmail]/Sent Mail";
-      trash = "[Gmail]/Bin";
+      drafts = "[Gmail].Drafts";
+      sent = "[Gmail].Sent Mail";
     };
     maildir.path = config.accounts.email.accounts.main.address;
     # TODO configure this, with all the attentant options
+    # TODO UPDATE
     #neomutt.enable = true;
     primary = true;
     realName = "Adam Dinwoodie";
