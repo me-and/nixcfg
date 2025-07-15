@@ -113,6 +113,7 @@ in {
       ".*.swp"
       ".rsync-partial"
       ".rsync-tmp"
+      ".unison.*"
       "*.crdownload"
     ];
   };
