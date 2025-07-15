@@ -1,4 +1,9 @@
-{config, ...}: {
+{
+  config,
+  lib,
+  ...
+}:
+lib.mkIf config.programs.offlineimap.enable {
   programs.offlineimap = {
     extraConfig = {
       general.metadata = config.accounts.email.maildirBasePath + "/offlineimap";

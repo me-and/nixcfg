@@ -56,7 +56,9 @@ in {
     inkscape
     libreoffice
     makemkv
+    unison-nox
     openscad
+    pd-sync-with-fileserver
     poppler_utils
     prusa-slicer
     qalculate-gtk
