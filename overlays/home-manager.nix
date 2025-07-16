@@ -11,12 +11,20 @@ final: prev: {
 
       # https://github.com/nix-community/home-manager/pull/5600
       # Add a `home-manager repl` command.
-      patches = final.fetchGitHubPatch {
-        owner = "nix-community";
-        repo = "home-manager";
-        commit = "b7e5223b0b25c3fcdb3937df160e7b5efccd2dfb";
-        hash = "sha256-+EHrAu+CggJWDqnnrn2VlUN4HNsD96QXo+D6CAzAqDo=";
-      };
+      patches = map final.fetchGitHubPatch [
+        {
+          owner = "nix-community";
+          repo = "home-manager";
+          commit = "cab8104e9236fab1eb9a702165454ffed353c20f";
+          hash = "sha256-+EHrAu+CggJWDqnnrn2VlUN4HNsD96QXo+D6CAzAqDo=";
+        }
+        {
+          owner = "nix-community";
+          repo = "home-manager";
+          commit = "392ddb642abec771d63688c49fa7bcbb9d2a5717";
+          hash = "sha256-jQBczf1m8lBTY7voUqgWrCidTLObGYTBKrulwqpswHw=";
+        }
+      ];
     };
   });
 }
