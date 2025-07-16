@@ -53,6 +53,9 @@ writeCheckedShellApplication {
         -ignore 'Path Event/*' \
         -ignorenot "Path Event/*$this_year*" \
         -path Site/Signs \
+        -path 'Site/Dadford Road' \
+        -path Site/Cottonham \
+        -path Site/Planning \
         -path 'Unknown Worlds/art' \
         -path 'Weapon Check' \
         "$@"
