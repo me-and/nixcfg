@@ -12,6 +12,7 @@
       "(?d).DS_Store"
       "(?d)desktop.ini"
       "(?d)Thumbs.db"
+      "*.lnk"
       "~$*"
       ".*.swp"
       ".rsync-partial"
