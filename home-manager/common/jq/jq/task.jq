@@ -48,4 +48,9 @@ def diff_exports_by_task:
                         )
                    );
 
+def duplicate_tasks:
+        group_by(.uuid)
+        | map(select(length > 1))
+        ;
+
 # vim: et ts=8 ft=jq
