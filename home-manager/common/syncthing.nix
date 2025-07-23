@@ -19,6 +19,7 @@
       ".rsync-tmp"
       ".unison.*"
       "*.crdownload"
+      ".Trash-*"
     ];
   };
 }
