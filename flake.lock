@@ -278,11 +278,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1751900533,
-        "narHash": "sha256-sf6FaVvtuDH4qhehr3n29Uwh4gh0oqJOTqCl02d3Rdc=",
+        "lastModified": 1753793197,
+        "narHash": "sha256-hqKrgVaP9oZaeyI6rxrLTgdbsvfmtzeNvBe+845D7OI=",
         "ref": "refs/heads/main",
-        "rev": "f1e1550e5c889397ecb0d887cc58eb484542cda9",
-        "revCount": 982,
+        "rev": "010fc5c28ec7d8989e868eeba2c6131fa3550791",
+        "revCount": 985,
         "type": "git",
         "url": "ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git"
       },
