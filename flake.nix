@@ -16,7 +16,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    private.url = "github:me-and/nixcfg-private";
+    private = {
+      url = "github:me-and/nixcfg-private";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     workCfg = {
       url = "git+ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git";
       inputs.nixpkgs.follows = "nixpkgs";
