@@ -109,6 +109,7 @@
       description = "rclone bisync of the ${d.local} directory";
       wants = ["network-online.target" "time-sync.target"];
       after = ["network-online.target" "time-sync.target"];
+      before = ["rclone-onedrive-check-${d.local}.service"];
       unitConfig.RequiresMountsFor = ["/run/av/${d.local}"];
       serviceConfig = {
         User = "rclone";
