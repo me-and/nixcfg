@@ -11,5 +11,6 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICHScGt3WWGad9e581EBfkXKEbnqi3N0p2QO16cohSCl root@cootlet"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHMkEX7Mlt7lu+dTmXZD3bHVdEHJTt2rUFqVBWEvlthp root@twite"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDXgoou/euNtGtSn/yDKKUnSovuPJ0XfT6/VanCpozmm root@tern"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGWRtr9wrN7XBCAof2ePaxdTQYjftV9vDp+vLW2sZZ86 root@stilt"
   ];
 }
