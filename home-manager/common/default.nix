@@ -8,13 +8,13 @@ in {
   imports = [
     ../../common
     ./bash
+    ./email.nix
     ./firefox.nix
     ./git.nix
     ./jq
     ./homeshick.nix
     ./host.nix
     ./keepassxc.nix
-    ./offlineimap.nix
     ./python.nix
     ./syncthing.nix
     ./taskwarrior
