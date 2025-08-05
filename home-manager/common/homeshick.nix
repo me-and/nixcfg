@@ -8,7 +8,6 @@
   in {
     enable = true;
     repos = [
-      (doLink "https://github.com/me-and/castle")
       (dontLink "https://github.com/me-and/nixcfg")
     ];
   };
