@@ -91,16 +91,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1750792728,
-        "narHash": "sha256-Lh3dopA8DdY+ZoaAJPrtkZOZaFEJGSYjOdAYYgOPgE4=",
-        "owner": "nix-community",
+        "lastModified": 1752569458,
+        "narHash": "sha256-LXguyUtlko2XLzOPBqGFp/2N9mrm9+MswImGiVwxAcY=",
+        "owner": "me-and",
         "repo": "home-manager",
-        "rev": "366f00797b1efb70f2882d3da485e3c10fd3d557",
+        "rev": "c244b7f239c183a7c26736f430e98ccbe1637f7e",
         "type": "github"
       },
       "original": {
-        "owner": "nix-community",
-        "ref": "release-25.05",
+        "owner": "me-and",
+        "ref": "neomutt-25.05",
         "repo": "home-manager",
         "type": "github"
       }
