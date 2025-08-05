@@ -8,10 +8,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
-      # Want https://github.com/nix-community/home-manager/pull/7476 included
-      # in the input.
-      #url = "github:nix-community/home-manager/release-25.05";
-      url = "github:me-and/home-manager/neomutt-25.05";
+      # My fork, adding
+      #
+      # https://github.com/nix-community/home-manager/pull/7476
+      # https://github.com/nix-community/home-manager/pull/7618
+      url = "github:me-and/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     winapps = {
