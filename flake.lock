@@ -91,16 +91,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1752569458,
-        "narHash": "sha256-LXguyUtlko2XLzOPBqGFp/2N9mrm9+MswImGiVwxAcY=",
+        "lastModified": 1754403297,
+        "narHash": "sha256-QfAXgdsRyDc4Q2CxMNvqUcg3TQW0cYD4lakQJWVkHFU=",
         "owner": "me-and",
         "repo": "home-manager",
-        "rev": "c244b7f239c183a7c26736f430e98ccbe1637f7e",
+        "rev": "b176dfff8bdea488c882fb00604d805d299f770a",
         "type": "github"
       },
       "original": {
         "owner": "me-and",
-        "ref": "neomutt-25.05",
+        "ref": "release-25.05",
         "repo": "home-manager",
         "type": "github"
       }
@@ -283,11 +283,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1754386565,
-        "narHash": "sha256-ojDtpTp3rgpFLfVoNOueGKHZuz8RLKZRXd4+P3MVFA8=",
+        "lastModified": 1754407824,
+        "narHash": "sha256-vjnz2jvTjr39n8+QYW+l4stPHsxDXDf15LOaOqhClH0=",
         "ref": "refs/heads/main",
-        "rev": "ebb7aa8e4646f8bd7d25b002834ea742dd785b8c",
-        "revCount": 986,
+        "rev": "c94d7ddb6149b0bdab485e28ad0b367796585d88",
+        "revCount": 987,
         "type": "git",
         "url": "ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git"
       },
