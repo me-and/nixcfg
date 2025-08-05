@@ -41,6 +41,7 @@
     description = "rclone bisync of the archives directory";
     wants = ["network-online.target" "time-sync.target"];
     after = ["network-online.target" "time-sync.target"];
+    before = ["rclone-onedrive-check-archives.service"];
     unitConfig.RequiresMountsFor = ["/usr/local/share/archives"];
     serviceConfig = {
       User = "rclone";

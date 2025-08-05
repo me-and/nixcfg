@@ -18,7 +18,7 @@
     name = repo;
     rev = "HEAD";
     private = true;
-    hash = "sha256-UhrANfNiufom1m4rCFhGCpcb4x35ofmPqvH+azyYfFU=";
+    hash = "sha256-0VKTn/C+lfI7Gt+Zrn8CesPNXE8oHeOe043z/k/z7Zk=";
   in
     lib.warnIf (lib.oldestSupportedReleaseIsAtLeast 2505)
     ''

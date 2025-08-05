@@ -8,7 +8,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      # My fork, adding
+      #
+      # https://github.com/nix-community/home-manager/pull/7476
+      # https://github.com/nix-community/home-manager/pull/7618
+      url = "github:me-and/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     winapps = {
@@ -16,7 +20,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    private.url = "github:me-and/nixcfg-private";
+    private = {
+      url = "github:me-and/nixcfg-private";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     workCfg = {
       url = "git+ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git";
       inputs.nixpkgs.follows = "nixpkgs";

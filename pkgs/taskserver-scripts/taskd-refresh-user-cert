@@ -48,8 +48,10 @@ name="$1"
 usercert="${name}.cert.pem"
 userkey="${name}.key.pem"
 
+# TODO Should probably get this info from the cert using some mechanism with a
+# more stable interface.
 certinfo="$(openssl x509 -in "$usercert" -noout -subject)"
-[[ "$certinfo" =~ 'subject=C = '(.*)', CN = '(.*) ]]
+[[ "$certinfo" =~ 'subject=C '?'= '?(.*)', CN '?'= '?(.*) ]]
 country="${BASH_REMATCH[1]}"
 cn="${BASH_REMATCH[2]}"
 

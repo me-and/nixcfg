@@ -33,7 +33,7 @@
         "taskwarrior-project-check"
       ]
     )
-    ++ [(systemdWantsInstance "offlineimap-full@.timer" "adam\\x40dinwoodie.org" "timers.target")];
+    ++ [(systemdWantsInstance "offlineimap-full@.timer" "main" "timers.target")];
   systemdPathSymlinks = map systemdWantsPath [
     "taskwarrior-dinwoodie.org-emails"
     "sign-petitions"
@@ -104,23 +104,10 @@ in {
     "${config.home.homeDirectory}/OneDrive" = "onedrive:";
   };
 
-  # Configure accounts.email.accounts.*.address in private config flake.
-  accounts.email.accounts.main = {
-    flavor = "gmail.com";
-    folders = {
-      inbox = "INBOX";
-      drafts = "[Gmail]/Drafts";
-      sent = "[Gmail]/Sent Mail";
-      trash = "[Gmail]/Bin";
-    };
-    maildir.path = config.accounts.email.accounts.main.address;
-    # TODO configure this, with all the attentant options
-    #neomutt.enable = true;
-    primary = true;
-    realName = "Adam Dinwoodie";
-  };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   accounts.email.forwardLocal.enable = true;
+  programs.offlineimap.enable = true;
+  programs.neomutt.enable = true;
 
   services.calendarEmails = {
     enable = true;
@@ -131,10 +118,6 @@ in {
   };
 
   pd.enable = true;
-
-  # TODO Fix my email config.
-  programs.offlineimap.enable = true;
-  programs.neomutt.enable = true;
 
   services.syncthing.enable = true;
 }

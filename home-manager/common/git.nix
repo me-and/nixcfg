@@ -3,7 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  mainEmailAccount = lib.lists.findFirst (a: a.enable && a.primary) null (builtins.attrValues config.accounts.email.accounts);
+in {
   programs.git =
     {
       enable = true;
@@ -117,6 +119,6 @@
         };
       };
     }
-    // lib.optionalAttrs (config.accounts.email.accounts ? main)
-    {userEmail = config.accounts.email.accounts.main.address;};
+    // lib.optionalAttrs (mainEmailAccount != null)
+    {userEmail = mainEmailAccount.address;};
 }
