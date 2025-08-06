@@ -6,6 +6,7 @@ export PATH=@PATH@
 source_files=()
 opusenc_args=()
 force=
+delete=
 bad_args=()
 while (( $# > 0 )); do
 	case "$1" in
@@ -13,6 +14,10 @@ while (( $# > 0 )); do
 		# key ones I care about.
 		--music|--speech)
 			opusenc_args+=("$1")
+			shift
+			;;
+		-d|--delete)
+			delete=YesPlease
 			shift
 			;;
 		-f|--force)
@@ -24,7 +29,7 @@ while (( $# > 0 )); do
 			;;
 
 		# Break apart merged option switches.
-		-[fx]*)
+		-[dfx]*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
 
@@ -66,6 +71,9 @@ for arg in "${source_files[@]}"; do
 	if [[ "$force" || ! -e "$target" ]]; then
 		opusenc "${opusenc_args[@]}" -- "$arg" "$target"
 		touch --no-create --reference="$arg" -- "$target"
+		if [[ "$delete" ]]; then
+			rm -- "$arg"
+		fi
 	else
 		printf 'File exists: %s\n' "${target}" >&2
 		exit 73 # EX_CANTCREAT
