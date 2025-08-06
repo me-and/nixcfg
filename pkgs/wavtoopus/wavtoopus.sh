@@ -1,0 +1,63 @@
+#!@runtimeShell@
+set -euo pipefail
+
+export PATH=@PATH@
+
+source_files=()
+opusenc_args=()
+force=
+while (( $# > 0 )); do
+	case "$1" in
+		# Not attempting to emulate all the opusenc options, just the
+		# key ones I care about.
+		--music|--speech)
+			opusenc_args+=("$1")
+			shift
+			;;
+		-f|--force)
+			force=YesPlease
+			shift
+			;;
+		-x)	set -x
+			shift
+			;;
+		-xf|-fx)
+			set -x
+			force=YesPlease
+			shift
+			;;
+		--)	shift
+			source_files+=("$@")
+			break
+			;;
+		*)	source_files+=("$1")
+			shift
+			;;
+	esac
+done
+
+shopt -s nocasematch
+
+bad_args=()
+for arg in "${source_files[@]}"; do
+	if [[ "$arg" != *.wav ]]; then
+		bad_args+=("$arg")
+	fi
+done
+
+if (( ${#bad_args[*]} > 0 )); then
+	printf 'Unexpected arguments:\n'
+	printf '%s\n' "${bad_args[@]@Q}"
+	exit 64 # EX_USAGE
+fi >&2
+
+for arg in "${source_files[@]}"; do
+	target="${arg%.wav}.opus"
+	if [[ "$force" || ! -e "$target" ]]; then
+		opusenc "${opusenc_args[@]}" "$arg" "$target"
+		touch --no-create --reference="$arg" "$target"
+	else
+		printf 'File exists: %s\n' "${target}" >&2
+		exit 73 # EX_CANTCREAT
+	fi
+done
