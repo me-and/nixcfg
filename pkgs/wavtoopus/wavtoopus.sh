@@ -99,7 +99,16 @@ for arg in "${source_files[@]}"; do
 
 	target="${arg%.wav}.opus"
 	if [[ "$force" || ! -e "$target" ]]; then
-		opusenc "${opusenc_args[@]}" -- "$arg" "$target"
+		rc=0
+		# Inner function only has a single command, and we're handling
+		# the return code explicitly, so disable the set -e warnings.
+		# shellcheck disable=SC2310
+		opusenc "${opusenc_args[@]}" -- "$arg" "$target" || rc="$?"
+		if (( rc != 0 )); then
+			rm -- "$target"
+			exit "$rc"
+		fi
+
 		touch --no-create --reference="$arg" -- "$target"
 		if [[ "$delete" ]]; then
 			rm -- "$arg"
