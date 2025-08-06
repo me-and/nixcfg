@@ -6,6 +6,7 @@ export PATH=@PATH@
 source_files=()
 opusenc_args=()
 force=
+bad_args=()
 while (( $# > 0 )); do
 	case "$1" in
 		# Not attempting to emulate all the opusenc options, just the
@@ -21,24 +22,33 @@ while (( $# > 0 )); do
 		-x)	set -x
 			shift
 			;;
-		-xf|-fx)
-			set -x
-			force=YesPlease
-			shift
+
+		# Break apart merged option switches.
+		-[fx]*)
+			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
+
+		# Anything after a -- should be treated as a file.
 		--)	shift
 			source_files+=("$@")
 			break
 			;;
+
+		# Error on any unrecognised option switches.
+		-*)	bad_args+=("$1")
+			shift
+			;;
+
+		# Anything that doesn't look like an option is a file.
 		*)	source_files+=("$1")
 			shift
 			;;
 	esac
 done
 
+# Permit .wav or .WAV or .wAv...
 shopt -s nocasematch
 
-bad_args=()
 for arg in "${source_files[@]}"; do
 	if [[ "$arg" != *.wav ]]; then
 		bad_args+=("$arg")
@@ -54,8 +64,8 @@ fi >&2
 for arg in "${source_files[@]}"; do
 	target="${arg%.wav}.opus"
 	if [[ "$force" || ! -e "$target" ]]; then
-		opusenc "${opusenc_args[@]}" "$arg" "$target"
-		touch --no-create --reference="$arg" "$target"
+		opusenc "${opusenc_args[@]}" -- "$arg" "$target"
+		touch --no-create --reference="$arg" -- "$target"
 	else
 		printf 'File exists: %s\n' "${target}" >&2
 		exit 73 # EX_CANTCREAT
