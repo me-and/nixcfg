@@ -7,6 +7,7 @@ source_files=()
 opusenc_args=()
 force=
 delete=
+dry_run=
 bad_args=()
 while (( $# > 0 )); do
 	case "$1" in
@@ -24,12 +25,16 @@ while (( $# > 0 )); do
 			force=YesPlease
 			shift
 			;;
+		-n|--dry-run)
+			dry_run=YesPlease
+			shift
+			;;
 		-x)	set -x
 			shift
 			;;
 
 		# Break apart merged option switches.
-		-[dfx]*)
+		-[dfnx]*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
 
@@ -65,6 +70,18 @@ if (( ${#bad_args[*]} > 0 )); then
 	printf '%s\n' "${bad_args[@]@Q}"
 	exit 64 # EX_USAGE
 fi >&2
+
+if [[ "$dry_run" ]]; then
+	echo 'Dry run!' >&2
+	_printcall () {
+		printf 'Command:'
+		printf ' %q' "${FUNCNAME[1]}" "$@"
+		printf '\n'
+	} >&2
+	opusenc () { _printcall "$@"; }
+	touch () { _printcall "$@"; }
+	rm () { _printcall "$@"; }
+fi
 
 for arg in "${source_files[@]}"; do
 	target="${arg%.wav}.opus"
