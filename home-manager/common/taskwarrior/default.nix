@@ -344,7 +344,6 @@ in {
             Type = "oneshot";
             ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
           };
-          Install.WantedBy = ["default.target"];
         };
 
         taskwarrior-gc-stable = {
@@ -369,11 +368,19 @@ in {
             Type = "oneshot";
             ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
           };
-          Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["default.target"];
         };
       };
 
       timers = {
+        # Use a timer to start taskwarrior-gc rather than just having it wanted
+        # by default.target so that sd-switch doesn't restart it when
+        # home-manager reloads.
+        taskwarrior-gc = {
+          Unit.Description = "Perform Taskwarrior garbage collection at start of day";
+          Timer.OnStartupSec = "0s";
+          Install.WantedBy = ["timers.target"];
+        };
+
         taskwarrior-gc-stable = {
           Unit.Description = "Perform Taskwarrior garbage collection overnight";
           Timer = {
@@ -381,6 +388,16 @@ in {
             AccuracySec = "4h";
           };
           Install.WantedBy = ["timers.target"];
+        };
+
+        # Use a timer to start taskwarrior-sync at start of day rather than
+        # just having it wanted by default.target so that sd-switch doesn't
+        # restart it when home-manager reloads.
+        taskwarrior-sync-start-of-day = {
+          Unit.Description = "Sync Taskwarrior data at start of day";
+          Timer.OnStartupSec = "0s";
+          Timer.Unit = "taskwarrior-sync.service";
+          Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
         };
 
         taskwarrior-sync = {
