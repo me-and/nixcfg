@@ -64,7 +64,7 @@ writeCheckedShellApplication {
     find_roots () {
         local printf="$1"
         shift
-        find /nix/var/nix/gcroots/auto -type l \! -xtype l \( "''${exclude_args[@]}" \) -printf "$printf"
+        find /nix/var/nix/gcroots/auto -type l \! -xtype l "''${exclude_args[@]}" -printf "$printf"
     }
 
     case "$mode" in
