@@ -11,10 +11,11 @@ in {
     ./email.nix
     ./firefox.nix
     ./git.nix
-    ./jq
     ./homeshick.nix
     ./host.nix
+    ./jq
     ./keepassxc.nix
+    ./latex.nix
     ./python.nix
     ./syncthing.nix
     ./taskwarrior
