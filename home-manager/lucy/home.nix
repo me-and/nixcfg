@@ -123,4 +123,6 @@ in {
   pd.enable = true;
 
   services.syncthing.enable = true;
+
+  programs.taskwarrior.onedriveBackup = true;
 }

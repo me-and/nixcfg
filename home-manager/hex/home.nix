@@ -115,4 +115,6 @@ in {
     enable = true;
     tray.enable = true;
   };
+
+  programs.taskwarrior.onedriveBackup = true;
 }
