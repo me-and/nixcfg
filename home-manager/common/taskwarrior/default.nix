@@ -334,9 +334,10 @@
       timers.taskwarrior-onedrive-backup = {
         Unit.Description = "Daily backup Taskwarrior data to OneDrive";
         Timer = {
-          OnCalendar = "daily";
-          AccuracySec = "6h";
-          RandomizedOffsetSec = "24h";
+          OnCalendar = "01:00";
+          AccuracySec = "1h";
+          RandomizedOffsetSec = "6h";
+          RandomizedDelaySec = "10min";
           Persistent = true;
         };
         Install.WantedBy = ["timers.target"];
