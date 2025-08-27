@@ -53,6 +53,9 @@ in {
   # therefore everything needs to be done manually.
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
+  # Add the wavtoopus utility.
+  home.packages = [pkgs.wavtoopus];
+
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
       Unit.Description = "Create recurring Taskwarrior tasks";
@@ -120,4 +123,6 @@ in {
   pd.enable = true;
 
   services.syncthing.enable = true;
+
+  programs.taskwarrior.onedriveBackup = true;
 }

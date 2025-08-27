@@ -26,4 +26,6 @@ in {
   ];
 
   accounts.email.forwardLocal.enable = true;
+
+  programs.taskwarrior.onedriveBackup = true;
 }

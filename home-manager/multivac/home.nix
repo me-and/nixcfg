@@ -28,4 +28,6 @@ in {
   pd.enable = true;
 
   accounts.email.forwardLocal.enable = true;
+
+  programs.taskwarrior.onedriveBackup = true;
 }

@@ -277,122 +277,213 @@
       L.coefficient = -1.8;
     };
   };
-in {
-  options.programs.taskwarrior.autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = config.programs.taskwarrior.sync.enable;};
 
-  config = {
-    programs.taskwarrior = {
-      enable = true;
-      # Not using taskwarrior3 until its performance is more tolerable for my use
-      # case.
-      package = pkgs.taskwarrior2;
-      sync = lib.mkDefault {
-        # Configure programs.taskwarrior.sync.credentials in the private config
-        # flake.  Not sure this is necessary, but I'd rather have it private
-        # than not.
-        enable = true;
-        address = "taskwarrior.dinwoodie.org";
-        port = 50340;
-        certPath = "${config.xdg.configHome}/task/adam.cert.pem";
-        keyPath = "${config.xdg.configHome}/task/adam.key.pem";
-      };
-      config = lib.mkMerge [
-        mainConfig
-        aliasConfig
-        priorityConfig
-      ];
-    };
-
-    home.packages = [pkgs.task-project-report];
-
-    # TODO Patch these properly to use a Nix-appropriate shebang.
-    home.file =
-      lib.mapAttrs'
-      (
-        k: v:
-          lib.attrsets.nameValuePair
-          "${cfg.config.hooks.location}/${k}"
-          {source = ./hooks + "/${k}";}
-      )
-      (builtins.readDir ./hooks);
+  backupConfig = lib.mkIf cfg.onedriveBackup {
+    # TODO
+    warnings = [
+      ''
+        Need to sort out programs.taskwarrior.onedriveBackup to work with
+        programs.rclone rather than just using the base rclone package.
+      ''
+    ];
+    # assertions = [
+    #   {
+    #     assertion = config.programs.rclone.enable;
+    #     message = ''
+    #       cfg.programs.taskwarrior.onedriveBackup requires
+    #       cfg.programs.rclone.enable.
+    #     '';
+    #   }
+    # ];
 
     systemd.user = {
-      services = {
-        "resolve-host-a@" = {
-          Unit = {
-            Description = "Check %I resolves";
-            Wants = ["network.target" "network-online.target"];
-            After = ["network.target" "network-online.target"];
-          };
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
-          };
-        };
+      services.taskwarrior-onedrive-backup = {
+        Unit.Description = "Backup Taskwarrior data to OneDrive";
+        Service = {
+          Type = "oneshot";
+          ExecStart = pkgs.writeCheckedShellScript {
+            name = "taskwarrior-to-onedrive";
+            runtimeInputs = [
+              cfg.package
+              config.programs.rclone.package
+              pkgs.jq.bin
+              pkgs.zstd.bin
+            ];
+            runtimeEnv.TZ = "UTC";
+            text = ''
+              printf -v filename '%(%F %H.%M.%S)T Z.json.zst'
 
-        taskwarrior-wait-for-stability = {
-          Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${pkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
-          };
-        };
+              tmpdir="$(mktemp -d taskwarrior-to-onedrive.''$''$.XXXXX)"
+              cleanup () {
+                  rm -rf "$tmpdir"
+              }
+              trap cleanup EXIT
 
-        taskwarrior-gc = {
-          Unit.Description = "Perform Taskwarrior garbage collection";
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
-          };
-          Install.WantedBy = ["default.target"];
-        };
+              output_file="$tmpdir"/"$filename"
 
-        taskwarrior-gc-stable = {
-          Unit = {
-            Description = "Perform Taskwarrior garbage collection once the undo file is stable";
-            Wants = ["taskwarrior-wait-for-stability.service"];
-            After = ["taskwarrior-wait-for-stability.service"];
-          };
-          Service = config.systemd.user.services.taskwarrior-gc.Service;
-        };
+              task export |
+                  jq 'map(del(.urgency))' |
+                  zstd -o "$output_file"
 
-        taskwarrior-sync = {
-          Unit = let
-            domain = config.programs.taskwarrior.sync.address;
-          in {
-            Description = "Sync Taskwarrior data";
-            Wants = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
-            After = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
-            Before = ["taskwarrior-gc.service" "taskwarrior-gc-stable.service"];
+              rclone moveto "$output_file" onedrive:Taskwarrior/"$HOSTNAME"/"$filename"
+            '';
           };
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
-          };
-          Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["default.target"];
         };
       };
 
-      timers = {
-        taskwarrior-gc-stable = {
-          Unit.Description = "Perform Taskwarrior garbage collection overnight";
-          Timer = {
-            OnCalendar = "02:00";
-            AccuracySec = "4h";
-          };
-          Install.WantedBy = ["timers.target"];
+      timers.taskwarrior-onedrive-backup = {
+        Unit.Description = "Daily backup Taskwarrior data to OneDrive";
+        Timer = {
+          OnCalendar = "01:00";
+          AccuracySec = "1h";
+          RandomizedOffsetSec = "6h";
+          RandomizedDelaySec = "10min";
+          Persistent = true;
         };
-
-        taskwarrior-sync = {
-          Unit.Description = "Sync Taskwarrior data periodically";
-          Timer = {
-            OnUnitInactiveSec = "15m";
-            RandomizedDelaySec = "15m";
-            AccuracySec = "15m";
-          };
-          Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
-        };
+        Install.WantedBy = ["timers.target"];
       };
     };
   };
+in {
+  options.programs.taskwarrior = {
+    autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = config.programs.taskwarrior.sync.enable;};
+
+    onedriveBackup = lib.mkEnableOption "backup of Taskwarrior data to OneDrive";
+  };
+
+  config = lib.mkMerge [
+    {
+      programs.taskwarrior = {
+        enable = true;
+        # Not using taskwarrior3 until its performance is more tolerable for my use
+        # case.
+        package = pkgs.taskwarrior2;
+        sync = lib.mkDefault {
+          # Configure programs.taskwarrior.sync.credentials in the private config
+          # flake.  Not sure this is necessary, but I'd rather have it private
+          # than not.
+          enable = true;
+          address = "taskwarrior.dinwoodie.org";
+          port = 50340;
+          certPath = "${config.xdg.configHome}/task/adam.cert.pem";
+          keyPath = "${config.xdg.configHome}/task/adam.key.pem";
+        };
+        config = lib.mkMerge [
+          mainConfig
+          aliasConfig
+          priorityConfig
+        ];
+      };
+
+      home.packages = [pkgs.task-project-report];
+
+      # TODO Patch these properly to use a Nix-appropriate shebang.
+      home.file =
+        lib.mapAttrs'
+        (
+          k: v:
+            lib.attrsets.nameValuePair
+            "${cfg.config.hooks.location}/${k}"
+            {source = ./hooks + "/${k}";}
+        )
+        (builtins.readDir ./hooks);
+
+      systemd.user = {
+        services = {
+          "resolve-host-a@" = {
+            Unit = {
+              Description = "Check %I resolves";
+              Wants = ["network.target" "network-online.target"];
+              After = ["network.target" "network-online.target"];
+            };
+            Service = {
+              Type = "oneshot";
+              ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
+            };
+          };
+
+          taskwarrior-wait-for-stability = {
+            Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
+            Service = {
+              Type = "oneshot";
+              ExecStart = "${pkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
+            };
+          };
+
+          taskwarrior-gc = {
+            Unit.Description = "Perform Taskwarrior garbage collection";
+            Service = {
+              Type = "oneshot";
+              ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+            };
+          };
+
+          taskwarrior-gc-stable = {
+            Unit = {
+              Description = "Perform Taskwarrior garbage collection once the undo file is stable";
+              Wants = ["taskwarrior-wait-for-stability.service"];
+              After = ["taskwarrior-wait-for-stability.service"];
+            };
+            Service = config.systemd.user.services.taskwarrior-gc.Service;
+          };
+
+          taskwarrior-sync = {
+            Unit = let
+              domain = config.programs.taskwarrior.sync.address;
+            in {
+              Description = "Sync Taskwarrior data";
+              Wants = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
+              After = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
+              Before = ["taskwarrior-gc.service" "taskwarrior-gc-stable.service"];
+            };
+            Service = {
+              Type = "oneshot";
+              ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
+            };
+          };
+        };
+
+        timers = {
+          # Use a timer to start taskwarrior-gc rather than just having it wanted
+          # by default.target so that sd-switch doesn't restart it when
+          # home-manager reloads.
+          taskwarrior-gc = {
+            Unit.Description = "Perform Taskwarrior garbage collection at start of day";
+            Timer.OnStartupSec = "0s";
+            Install.WantedBy = ["timers.target"];
+          };
+
+          taskwarrior-gc-stable = {
+            Unit.Description = "Perform Taskwarrior garbage collection overnight";
+            Timer = {
+              OnCalendar = "02:00";
+              AccuracySec = "4h";
+            };
+            Install.WantedBy = ["timers.target"];
+          };
+
+          # Use a timer to start taskwarrior-sync at start of day rather than
+          # just having it wanted by default.target so that sd-switch doesn't
+          # restart it when home-manager reloads.
+          taskwarrior-sync-start-of-day = {
+            Unit.Description = "Sync Taskwarrior data at start of day";
+            Timer.OnStartupSec = "0s";
+            Timer.Unit = "taskwarrior-sync.service";
+            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
+          };
+
+          taskwarrior-sync = {
+            Unit.Description = "Sync Taskwarrior data periodically";
+            Timer = {
+              OnUnitInactiveSec = "15m";
+              RandomizedDelaySec = "15m";
+              AccuracySec = "15m";
+            };
+            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
+          };
+        };
+      };
+    }
+    backupConfig
+  ];
 }

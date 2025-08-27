@@ -109,9 +109,12 @@ in {
   pd.enable = true;
 
   programs.mypy.enable = true;
+  programs.latex.enable = true;
 
   services.syncthing = {
     enable = true;
     tray.enable = true;
   };
+
+  programs.taskwarrior.onedriveBackup = true;
 }
