@@ -125,6 +125,9 @@ in {
       "gitlab.com".publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf";
     };
 
+    # Using flakes so have no need for channels.
+    nix.channel.enable = false;
+
     nix.nixBuildDotNet = {
       substituter = {
         enable = lib.mkDefault true;
