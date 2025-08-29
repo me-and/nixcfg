@@ -109,6 +109,10 @@
 
       oldest = oldOrNewColumnConfig;
       newest = oldOrNewColumnConfig;
+      byid = oldOrNewColumnConfig // {
+        description = "By ID for ease of wrangling";
+        sort = ["id"];
+      };
       all.context = false;
       completed.context = false;
 
