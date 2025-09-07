@@ -12,5 +12,6 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHMkEX7Mlt7lu+dTmXZD3bHVdEHJTt2rUFqVBWEvlthp root@twite"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDXgoou/euNtGtSn/yDKKUnSovuPJ0XfT6/VanCpozmm root@tern"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGWRtr9wrN7XBCAof2ePaxdTQYjftV9vDp+vLW2sZZ86 root@stilt"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIITc1n9QPj1OdRb2v7KXdhXGHT4y2PMcr1CEXVZVqEdU AdamDinwoodie@desktop-4d6hh84-nixos"
   ];
 }

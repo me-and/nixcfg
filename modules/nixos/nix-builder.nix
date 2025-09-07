@@ -34,5 +34,12 @@ in {
     };
     users.groups."${cfg.buildUserGroup}" = {};
     nix.settings.trusted-users = [cfg.buildUser];
+
+    nix.sshServe = {
+      enable = true;
+      write = true;
+      trusted = true;
+      keys = cfg.permittedSshKeys;
+    };
   };
 }
