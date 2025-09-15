@@ -38,7 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v19
+        uses: DeterminateSystems/nix-installer-action@v20
         with:
           extra-conf: sandbox = relaxed
       - name: Store Nix channel to use
