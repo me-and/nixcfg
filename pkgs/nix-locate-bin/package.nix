@@ -2,8 +2,7 @@
   lib,
   writeCheckedShellApplication,
   nix-index,
-}:
-let
+}: let
   # https://github.com/NixOS/nixpkgs/issues/444284
   nix-indexVersion = lib.strings.getVersion nix-index;
   topLevelArg =
@@ -11,16 +10,16 @@ let
     then "--top-level"
     else "";
 in
-writeCheckedShellApplication {
-  name = "nix-locate-bin";
-  text = ''
-    exec ${nix-index}/bin/nix-locate \
-        --minimal \
-        --no-group \
-        --type x --type s \
-        ${topLevelArg} \
-        --whole-name \
-        --at-root \
-        "/bin/$1"
-  '';
-}
+  writeCheckedShellApplication {
+    name = "nix-locate-bin";
+    text = ''
+      exec ${nix-index}/bin/nix-locate \
+          --minimal \
+          --no-group \
+          --type x --type s \
+          ${topLevelArg} \
+          --whole-name \
+          --at-root \
+          "/bin/$1"
+    '';
+  }
