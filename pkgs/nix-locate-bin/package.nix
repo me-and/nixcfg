@@ -9,7 +9,6 @@ writeCheckedShellApplication {
         --minimal \
         --no-group \
         --type x --type s \
-        --top-level \
         --whole-name \
         --at-root \
         "/bin/$1"
