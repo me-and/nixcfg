@@ -10,6 +10,7 @@ in {
     ./bash
     ./email.nix
     ./firefox.nix
+    ./garbage.nix
     ./git.nix
     ./homeshick.nix
     ./host.nix
