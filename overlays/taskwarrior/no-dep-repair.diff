@@ -1,0 +1,32 @@
+diff --git a/src/dependency.cpp b/src/dependency.cpp
+index 154859e32a7f..b76a5d60d47a 100644
+--- a/src/dependency.cpp
++++ b/src/dependency.cpp
+@@ -145,27 +145,6 @@ void dependencyChainOnComplete (Task& task)
+         for (const auto& b : blocked)
+           std::cout << "  " << b.id << ' ' << b.get ("description") << '\n';
+       }
+-
+-      if (!Context::getContext ().config.getBoolean ("dependency.confirmation") ||
+-          confirm ("Would you like the dependency chain fixed?"))
+-      {
+-        // Repair the chain - everything in blocked should now depend on
+-        // everything in blocking, instead of task.id.
+-        for (auto& left : blocked)
+-        {
+-          left.removeDependency (task.id);
+-
+-          for (const auto& right : blocking)
+-            left.addDependency (right.id);
+-        }
+-
+-        // Now update TDB2, now that the updates have all occurred.
+-        for (auto& left : blocked)
+-          Context::getContext ().tdb2.modify (left);
+-
+-        for (auto& right : blocking)
+-          Context::getContext ().tdb2.modify (right);
+-      }
+     }
+   }
+ }
