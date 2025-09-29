@@ -94,7 +94,7 @@
     cores = 8;
   };
 
-  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 100; # 100GB
+  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 200; # 200GB
 
   programs.winapps.enable = true;
 
