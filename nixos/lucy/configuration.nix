@@ -99,9 +99,7 @@
 
   services.gnucashFileServer = {
     enable = true;
-    rclone.needsTime = false;
-    rclone.needsNetwork = false;
-    rclone.gnucashDirectory = "/home/adam/Documents/Gnucash";
+    source = "/home/adam/Documents/Gnucash/gnucash.gnucash";
     extraVirtualHostConfig = {
       enableACME = true;
       acmeRoot = null;

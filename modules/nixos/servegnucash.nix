@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.services.gnucashFileServer;
@@ -8,29 +9,11 @@
 in {
   options.services.gnucashFileServer = {
     enable = lib.mkEnableOption "serving my GnuCash file for download by Excel";
-    rclone = {
-      gnucashDirectory = lib.mkOption {
-        type = lib.types.str;
-        description = "Rclone path to the folder containing the Gnucash file.";
-      };
-      needsTime = lib.mkOption {
-        description = ''
-          Whether rclone needs to wait for the system to have synchronised its
-          clock before it can mount the unit.
-
-          This is often necessary for remotes that use time-based authentication
-          tokens.
-        '';
-        type = lib.types.bool;
-        default = false;
-      };
-      needsNetwork = lib.mkOption {
-        description = ''
-          Whether rclone needs to wait for the system to have external network
-          connectivity before it can mount the unit.
-        '';
-        type = lib.types.bool;
-        default = true;
+    source = lib.mkOption {
+      description = "Path to the GnuCash file to serve.";
+      type = lib.types.pathWith {
+        inStore = false;
+        absolute = true;
       };
     };
 
@@ -57,25 +40,46 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    programs.rclone.mounts = [
-      {
-        inherit (cfg.rclone) needsTime needsNetwork;
-        what = cfg.rclone.gnucashDirectory;
-        where = "/run/rclone-nginx-gnucash";
-        extraUnitConfig = {
-          wantedBy = ["nginx.service"];
-          serviceConfig.RuntimeDirectory = "rclone-nginx-gnucash";
-        };
-        mountOwner = nginxCfg.user;
-        readOnly = true;
-      }
-    ];
-
     environment.etc."nginx/auth/${cfg.fqdn}" = {
       user = nginxCfg.user;
       group = nginxCfg.group;
       source = cfg.authFilePath;
       mode = "0640";
+    };
+
+    systemd.services.gnucash-to-nginx = {
+      description = "Move GnuCash file into place for service by Nginx";
+      path = [pkgs.mtimewait];
+      wantedBy = ["nginx.service"];
+      before = ["nginx.service"];
+      environment = {
+        SOURCE = cfg.source;
+        DST_DIR = "/run/nginx-gnucash";
+        DST_NAME = "gnucash.gnucash";
+        DST_GROUP = nginxCfg.group;
+      };
+      script = ''
+        mtimewait 5 "$SOURCE"
+        mkdir -p "$DST_DIR"
+        tmpdest="$(mktemp "$DST_DIR"/"$DST_NAME".XXXXX.tmp)"
+        cp "$SOURCE" "$tmpdest"
+        chown :"$DST_GROUP" "$tmpdest"
+        chmod 640 "$tmpdest"
+        mv "$tmpdest" "$DST_DIR"/"$DST_NAME"
+      '';
+      unitConfig.RequiresMountsFor = [
+        "/run"
+        cfg.source
+      ];
+      serviceConfig.Type = "oneshot";
+    };
+
+    systemd.paths.gnucash-to-nginx = {
+      description = "Move GnuCash file into place when it changes";
+      wantedBy = ["nginx.service"];
+      before = ["nginx.service"];
+      pathConfig.PathChanged = cfg.source;
+      unitConfig.RequiresMountsFor = [cfg.source];
     };
 
     services.nginx = {
@@ -86,7 +90,7 @@ in {
           forceSSL = true;
           basicAuthFile = "/etc/nginx/auth/${cfg.fqdn}";
           locations."= /gnucash.gnucash" = {
-            root = "/run/rclone-nginx-gnucash";
+            root = "/run/nginx-gnucash";
           };
         }
         cfg.extraVirtualHostConfig;
