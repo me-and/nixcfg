@@ -15,7 +15,6 @@ in
   runCommandLocal "albertus-fonts"
   {
     meta.license = lib.licenses.unfree;
-    meta.buildOnGitHub = false;
   }
   ''
     mkdir -p "$TMPDIR"/unpack
