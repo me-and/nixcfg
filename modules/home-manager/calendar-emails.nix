@@ -33,7 +33,7 @@ in {
     ];
 
     systemd.user = let
-      reportScript = pkgs.writeCheckedShellScript {
+      reportScript = pkgs.mypkgs.writeCheckedShellScript {
         name = "report-calendar.sh";
         text = ''
           calendar_name="$1"
@@ -42,7 +42,7 @@ in {
           ${pkgs.gcalcli}/bin/gcalcli \
                   --calendar "$1" \
                   agenda "$today" "$next_month" |
-              ${pkgs.colourmail}/bin/colourmail \
+              ${pkgs.mypkgs.colourmail}/bin/colourmail \
                   -s "Upcoming calendar events in $calendar_name" \
                   -- ${lib.strings.escapeShellArg cfg.destination}
         '';

@@ -16,7 +16,7 @@
       serviceConfig.ExecStartPre = ["${pkgs.coreutils}/bin/rm -f \${DEVICE_FILE}"];
       serviceConfig.StandardOutput = "file:%t/%n.device";
       serviceConfig.StandardError = "journal";
-      serviceConfig.ExecStop = pkgs.writeCheckedShellScript {
+      serviceConfig.ExecStop = pkgs.mypkgs.writeCheckedShellScript {
         name = "setup-loop-device-stop";
         text = ''
           device="$(<"$DEVICE_FILE")"
@@ -45,7 +45,7 @@
       description = "Unit %i state report";
       serviceConfig.Type = "oneshot";
       serviceConfig.ExecStart = let
-        reportScript = pkgs.writeCheckedShellScript {
+        reportScript = pkgs.mypkgs.writeCheckedShellScript {
           name = "mailstate.sh";
           bashOptions = ["errexit" "nounset"];
           text = ''
@@ -67,7 +67,7 @@
             # shellcheck disable=SC2312 # systemctl expected to return non-zero
             SYSTEMD_COLORS=True SYSTEMD_URLIFY=False \
                 systemctl status "$unit" |
-                ${pkgs.colourmail}/bin/colourmail \
+                ${pkgs.mypkgs.colourmail}/bin/colourmail \
                     -s "Unit $unit $unit_state on $shorthost" \
                     -r "$from" \
                     -- "$user"

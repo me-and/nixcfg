@@ -47,7 +47,6 @@ in {
     cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
     discord
     freecad
-    gh-random-pr
     gnucash
     gnome-calculator # Prefer this to the KDE options
     jellyfin-media-player
@@ -56,9 +55,7 @@ in {
     inkscape
     libreoffice
     makemkv
-    unison-nox
     openscad
-    pd-sync-with-fileserver
     poppler_utils
     prusa-slicer
     qalculate-gtk
@@ -68,7 +65,12 @@ in {
     vlc
     whatsapp-for-linux
     zoom-us
-  ];
+  ]
+  ++ (with pkgs.mypkgs; [
+    gh-random-pr
+    pd-sync-with-fileserver
+    unison-nox
+  ]);
 
   programs.firefox.enable = true;
 

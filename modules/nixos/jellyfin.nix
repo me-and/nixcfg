@@ -567,7 +567,7 @@ in {
         EnableAutomaticPortForwarding = false;
       };
     in
-      pkgs.writeCheckedShellScript {
+      pkgs.mypkgs.writeCheckedShellScript {
         name = "configure-jellyfin";
         purePath = true;
         text = let
@@ -860,7 +860,7 @@ in {
     };
 
     apiDebugConfig = let
-      debugScript = pkgs.writeCheckedShellApplication {
+      debugScript = pkgs.mypkgs.writeCheckedShellApplication {
         name = "jellyfin-api";
         purePath = true;
         runtimeInputs = [

@@ -57,7 +57,7 @@ in {
         GIT_PROMPT_THEME=${lib.escapeShellArg cfg.theme}
       ''
       + ''
-        . ${pkgs.bash-git-prompt}/gitprompt.sh
+        . ${pkgs.mypkgs.bash-git-prompt}/gitprompt.sh
       '';
   };
 }

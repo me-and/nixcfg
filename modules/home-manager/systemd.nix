@@ -34,7 +34,7 @@
         passthru = {gitRepoUrl = "https://github.com/${owner}/${repo}.git";};
       }
       // lib.optionalAttrs private {
-        netrcPhase = pkgs.writeCheckedShellScript {
+        netrcPhase = pkgs.mypkgs.writeCheckedShellScript {
           name = "fetch-systemd-homeshick.sh";
           text = ''
             if [[ -z "$NIX_GITHUB_PRIVATE_USERNAME" || -z "$NIX_GITHUB_PRIVATE_PASSWORD" ]]; then
@@ -67,7 +67,7 @@ in
         Unit.Description = "Unit %i state report";
         Service.Type = "oneshot";
         Service.ExecStart = let
-          reportScript = pkgs.writeCheckedShellScript {
+          reportScript = pkgs.mypkgs.writeCheckedShellScript {
             name = "mailstate.sh";
             bashOptions = ["errexit" "nounset"];
             text = ''
@@ -81,7 +81,7 @@ in
               # shellcheck disable=SC2312 # systemctl expected to return non-zero
               SYSTEMD_COLORS=True SYSTEMD_URLIFY=False \
                   systemctl --user status "$unit" |
-                  ${pkgs.colourmail}/bin/colourmail \
+                  ${pkgs.mypkgs.colourmail}/bin/colourmail \
                       -s "Unit $unit $unit_state on $shorthost" \
                       -r "$user on $shorthost <''${user}@''${longhost}>" \
                       -- "$user"
