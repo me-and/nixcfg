@@ -6,7 +6,7 @@
 }: let
   cfg = config.services.rclone;
 
-  waitForTimesync = pkgs.writeCheckedShellScript {
+  waitForTimesync = pkgs.mypkgs.writeCheckedShellScript {
     name = "wait-for-timesync.sh";
     runtimeInputs = [pkgs.inotify-tools];
     purePath = true;

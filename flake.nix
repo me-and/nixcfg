@@ -218,6 +218,10 @@
           inherit system;
           overlays = builtins.attrValues self.overlays;
         };
-      in {packages = import ./. {inherit pkgs;};}
+        lib = pkgs.lib;
+      in {
+        legacyPackages = import ./. {inherit pkgs;};
+        packages = lib.filterAttrs (n: v: lib.isDerivation v) self.legacyPackages."${system}";
+      }
     );
 }

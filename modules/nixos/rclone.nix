@@ -188,7 +188,7 @@
             User = "rclone";
             Group = "rclone";
 
-            ExecStart = pkgs.writeCheckedShellScript {
+            ExecStart = pkgs.mypkgs.writeCheckedShellScript {
               name = "rclone-mount-start-${config.where}";
               text = ''
                 mount_owner_info="$(${pkgs.getent}/bin/getent passwd ${lib.escapeShellArg config.mountOwner})"
@@ -204,7 +204,7 @@
               '';
             };
             ExecReload = "kill -HUP $MAINPID";
-            ExecStop = pkgs.writeCheckedShellScript {
+            ExecStop = pkgs.mypkgs.writeCheckedShellScript {
               name = "rclone-mount-stop-${config.where}";
               text = ''
                 exec /run/wrappers/bin/fusermount -u ${lib.escapeShellArg config.where}

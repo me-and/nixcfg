@@ -42,7 +42,7 @@ in {
       # possible in an override?) and put their patchPhase code in a
       # post-patch hook.
       patchPhase = let
-        patchFile = final.fetchGitHubPatch {
+        patchFile = final.mypkgs.fetchGitHubPatch {
           owner = "GothenburgBitFactory";
           repo = "taskserver";
           commit = "bbd42468d284a3a954bdb233211a17b598036e98";

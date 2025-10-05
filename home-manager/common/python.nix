@@ -7,7 +7,7 @@
   # affecting the general Python installation.
   python = pkgs.python3.withPackages (pp: [
     pp.requests # Needed for petition signing script
-    (pkgs.asmodeus.override {python3Packages = pp;})
+    (pkgs.mypkgs.asmodeus.override {python3Packages = pp;})
   ]);
 in {
   home.packages = [python];

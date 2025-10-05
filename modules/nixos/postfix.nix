@@ -69,7 +69,7 @@ in {
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
-          ExecStart = pkgs.writeCheckedShellScript {
+          ExecStart = pkgs.mypkgs.writeCheckedShellScript {
             name = "postfix-configure-auth";
             purePath = true;
             runtimeInputs = [pkgs.coreutils];

@@ -1,1 +1,1 @@
-final: prev: import ../. {pkgs = prev;}
+final: prev: {mypkgs = import ../. {pkgs = prev;};}

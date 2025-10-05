@@ -116,7 +116,7 @@ in {
         User = config.users.me;
         Group = config.users.users."${config.users.me}".group;
         SupplementaryGroups = cfg.scannerGroup;
-        ExecStart = pkgs.writeCheckedShellScript {
+        ExecStart = pkgs.mypkgs.writeCheckedShellScript {
           name = "scan-to-docs.sh";
           runtimeEnv = {
             MAIL_USER = config.users.me;
@@ -128,7 +128,7 @@ in {
                     # Wait for the file to have been stable for 30 seconds, to
                     # avoid trying to move the file before the local upload has
                     # completed.
-                    ${pkgs.mtimewait}/bin/mtimewait 30 "$file"
+                    ${pkgs.mypkgs.mtimewait}/bin/mtimewait 30 "$file"
 
                     basename="''${file%."$ext"}"
 

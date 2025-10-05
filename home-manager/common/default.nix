@@ -31,47 +31,50 @@ in {
     # want to use the system home-manager installation.  In particular, that
     # avoids inconsistent Home Manager and NixOS installation versions when
     # there's a new NixOS release.
-    packages = with pkgs; [
-      aaisp-quota
-      alejandra
-      ascii
-      bintools
-      coldiff
-      dig.dnsutils
-      dos2unix
-      file-age
-      final-eol
-      fzf
-      gh
-      git-filter-repo
-      git-report
-      gnumake
-      htop
-      jq
-      lesspipe
-      lsof
-      man-pages
-      moreutils
-      mosh
-      mtimewait
-      ncdu
-      nix-about
-      nix-dangling-roots
-      nix-diff
-      nix-locate-bin
-      nix-output-monitor
-      nixos-generators
-      nixpkgs-review
-      psmisc
-      pv
-      shellcheck
-      silver-searcher
-      tmux
-      tmux-taskloop
-      tmux-xpanes
-      toil
-      unzip
-    ];
+    packages = with pkgs;
+      [
+        alejandra
+        ascii
+        bintools
+        dig.dnsutils
+        dos2unix
+        fzf
+        gh
+        git-filter-repo
+        gnumake
+        htop
+        jq
+        lesspipe
+        lsof
+        man-pages
+        moreutils
+        mosh
+        ncdu
+        nix-diff
+        nix-output-monitor
+        nixos-generators
+        nixpkgs-review
+        psmisc
+        pv
+        shellcheck
+        silver-searcher
+        tmux
+        tmux-xpanes
+        unzip
+      ]
+      ++ (with pkgs.mypkgs; [
+        aaisp-quota
+        coldiff
+        file-age
+        final-eol
+        git-report
+        mtimewait
+        nix-about
+        nix-dangling-roots
+        nix-locate-bin
+        tmux-taskloop
+        toil
+      ]);
 
     sessionVariables = {
       # TODO Move to using sessionPath once sessionSearchVariables is available
@@ -113,7 +116,7 @@ in {
     Unit.Description = "Delete old Nix profiles";
     Service = {
       Type = "oneshot";
-      ExecStart = pkgs.writeCheckedShellScript {
+      ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "rm-nix-profiles";
         text = let
           nixPackage =

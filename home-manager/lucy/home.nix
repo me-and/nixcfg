@@ -54,7 +54,7 @@ in {
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
   # Add the wavtoopus utility.
-  home.packages = [pkgs.wavtoopus];
+  home.packages = [pkgs.mypkgs.wavtoopus];
 
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
@@ -65,7 +65,7 @@ in {
     taskwarrior-check-active-tasks = {
       Unit.Description = "Check for Taskwarrior tasks that have been active too long";
       Service.Type = "oneshot";
-      Service.ExecStart = pkgs.writeCheckedShellScript {
+      Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "flag-stale-active-tasks.sh";
         runtimeInputs = [config.programs.taskwarrior.package];
         text = ''

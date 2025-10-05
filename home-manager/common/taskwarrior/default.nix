@@ -307,7 +307,7 @@
         Unit.Description = "Backup Taskwarrior data to OneDrive";
         Service = {
           Type = "oneshot";
-          ExecStart = pkgs.writeCheckedShellScript {
+          ExecStart = pkgs.mypkgs.writeCheckedShellScript {
             name = "taskwarrior-to-onedrive";
             runtimeInputs = [
               cfg.package
@@ -381,7 +381,7 @@ in {
         ];
       };
 
-      home.packages = [pkgs.task-project-report];
+      home.packages = [pkgs.mypkgs.task-project-report];
 
       # TODO Patch these properly to use a Nix-appropriate shebang.
       home.file =
@@ -404,7 +404,7 @@ in {
             };
             Service = {
               Type = "oneshot";
-              ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
+              ExecStart = "${pkgs.mypkgs.wait-for-host}/bin/wait-for-host %I";
             };
           };
 
@@ -412,7 +412,7 @@ in {
             Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
             Service = {
               Type = "oneshot";
-              ExecStart = "${pkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
+              ExecStart = "${pkgs.mypkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
             };
           };
 

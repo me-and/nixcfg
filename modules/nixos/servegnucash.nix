@@ -49,7 +49,7 @@ in {
 
     systemd.services.gnucash-to-nginx = {
       description = "Move GnuCash file into place for service by Nginx";
-      path = [pkgs.mtimewait];
+      path = [pkgs.mypkgs.mtimewait];
       wantedBy = ["nginx.service"];
       before = ["nginx.service"];
       environment = {

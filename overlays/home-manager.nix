@@ -11,7 +11,7 @@ final: prev: {
 
       # https://github.com/nix-community/home-manager/pull/5600
       # Add a `home-manager repl` command.
-      patches = map final.fetchGitHubPatch [
+      patches = map final.mypkgs.fetchGitHubPatch [
         {
           owner = "nix-community";
           repo = "home-manager";

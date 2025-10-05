@@ -26,7 +26,7 @@
           "LONGHOST=%H"
           "SHORTHOST=%l"
         ];
-        ExecStart = pkgs.writeCheckedShellScript {
+        ExecStart = pkgs.mypkgs.writeCheckedShellScript {
           name = "homeshick-report.sh";
           purePath = true;
           bashOptions = ["nounset" "pipefail"]; # No errexit
@@ -34,7 +34,7 @@
             coreutils
             gnused
             moreutils
-            colourmail
+            mypkgs.colourmail
             bash
             git
             findutils
