@@ -218,6 +218,6 @@
           inherit system;
           overlays = builtins.attrValues self.overlays;
         };
-      in {packages = import ./pkgs {inherit pkgs;};}
+      in {packages = import ./. {inherit pkgs;};}
     );
 }
