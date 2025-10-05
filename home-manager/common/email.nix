@@ -1,49 +1,66 @@
 {config, ...}: {
   # Configure accounts.email.accounts.*.address in private config flake.
-  accounts.email.accounts.main = {
-    primary = true;
-    realName = "Adam Dinwoodie";
+  accounts.email.accounts = {
+    main = {
+      primary = true;
+      realName = "Adam Dinwoodie";
 
-    flavor = "gmail.com";
+      flavor = "gmail.com";
 
-    # Folders use the offlineimap format, since that's how I'm syncing them.
-    folders = {
-      inbox = "INBOX";
-      drafts = "[Gmail].Drafts";
-      sent = "[Gmail].Sent Mail";
-    };
-    maildir.path = config.accounts.email.accounts.main.address;
+      # Folders use the offlineimap format, since that's how I'm syncing them.
+      folders = {
+        inbox = "INBOX";
+        drafts = "[Gmail].Drafts";
+        sent = "[Gmail].Sent Mail";
+      };
+      maildir.path = config.accounts.email.accounts.main.address;
 
-    neomutt = {
-      enable = true;
-      extraConfig = ''
-        set reverse_name = yes
-        unset reverse_realname
-        alternates '[@\.]dinwoodie\.org$' '^adam@profounddecisions\.co\.uk$' '^(adamdinwoodie|gamma3000|knightley\.nightly|sorrowfulsnail)@(gmail|googlemail)\.com$' '^adam@tastycake\.net$' '^adam\.dinwoodie@worc\.oxon\.org$'
+      neomutt = {
+        enable = true;
+        extraConfig = ''
+          set reverse_name = yes
+          unset reverse_realname
+          alternates '[@\.]dinwoodie\.org$' '^adam@profounddecisions\.co\.uk$' '^(adamdinwoodie|gamma3000|knightley\.nightly|sorrowfulsnail)@(gmail|googlemail)\.com$' '^adam@tastycake\.net$' '^adam\.dinwoodie@worc\.oxon\.org$'
 
-        # Don't move deleted messages to the trash; Gmail will interpret that to
-        # mean they should be deleted permanently after 30 days, where I want
-        # them to stay in my All Mail directory.
-        unset trash
-      '';
-    };
+          # Don't move deleted messages to the trash; Gmail will interpret that to
+          # mean they should be deleted permanently after 30 days, where I want
+          # them to stay in my All Mail directory.
+          unset trash
+        '';
+      };
 
-    offlineimap = {
-      enable = true;
-      extraConfig = {
-        account = {
-          synclabels = true;
-          labelsheader = "X-Labels";
+      offlineimap = {
+        enable = true;
+        extraConfig = {
+          account = {
+            synclabels = true;
+            labelsheader = "X-Labels";
+          };
+          local = {
+            nametrans = "lambda f: f.replace('&', '&-')";
+            utime_from_header = true;
+          };
+          remote = {
+            maxconnections = 4;
+            remotepassfile = "${config.home.homeDirectory}/.${config.accounts.email.accounts.main.address}-offlineimap-password";
+            folderfilter = "lambda f: not f.startswith('To/') and not f.startswith('Git/') and not f.startswith('Cygwin/') and f not in ('To', 'Git', 'Cygwin', 'Retention', '[Gmail]/Important', 'Retention/Undefined', 'Retention/0')";
+            nametrans = "lambda f: f.replace('&-', '&')";
+          };
         };
-        local = {
-          nametrans = "lambda f: f.replace('&', '&-')";
-          utime_from_header = true;
-        };
-        remote = {
-          maxconnections = 4;
-          remotepassfile = "${config.home.homeDirectory}/.${config.accounts.email.accounts.main.address}-offlineimap-password";
-          folderfilter = "lambda f: not f.startswith('To/') and not f.startswith('Git/') and not f.startswith('Cygwin/') and f not in ('To', 'Git', 'Cygwin', 'Retention', '[Gmail]/Important', 'Retention/Undefined', 'Retention/0')";
-          nametrans = "lambda f: f.replace('&-', '&')";
+      };
+    };
+
+    pd = {
+      realName = "Adam Dinwoodie";
+      #folders = throw "Work out how to do this";
+      maildir.path = config.accounts.email.accounts.pd.address;
+      imap.host = "popmail.hostingsystems.co.uk";
+      userName = config.accounts.email.accounts.pd.address;
+
+      offlineimap = {
+        enable = true;
+        extraConfig = {
+          remote.remotepassfile = "${config.home.homeDirectory}/.${config.accounts.email.accounts.main.address}-offlineimap-password";
         };
       };
     };
