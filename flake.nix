@@ -45,8 +45,6 @@
     inherit (nixpkgs.lib.lists) optional optionals;
     inherit (nixpkgs.lib.strings) removeSuffix;
 
-    subdirfiles = (import ./lib/subdirfiles.nix) nixpkgs.lib;
-
     boxen = {
       hex = {
         system = "x86_64-linux";
@@ -188,7 +186,10 @@
             ./nixos/common
           ];
         }
-        // mapAttrs (name: value: import value) (subdirfiles ./nixos "configuration.nix");
+        // mapAttrs (name: value: import value) (self.lib.subdirfiles {
+          dir = ./nixos;
+          filename = "configuration.nix";
+        });
 
       hmModules =
         {
@@ -199,7 +200,10 @@
             ./home-manager/common
           ];
         }
-        // mapAttrs (name: value: import value) (subdirfiles ./home-manager "home.nix");
+        // mapAttrs (name: value: import value) (self.lib.subdirfiles {
+          dir = ./home-manager;
+          filename = "home.nix";
+        });
 
       overlays = let
         overlayPaths = builtins.readDir ./overlays;
@@ -211,6 +215,8 @@
             (import (./overlays + "/${name}"))
         )
         overlayPaths;
+
+      lib = import ./lib.nix {inherit (nixpkgs) lib;};
     }
     // flake-utils.lib.eachDefaultSystem (
       system: let

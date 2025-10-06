@@ -1,4 +1,7 @@
-lib: dir: filename: let
+{lib}: {
+  dir,
+  filename,
+}: let
   inherit (builtins) pathExists readDir;
   inherit (lib.attrsets) filterAttrs mapAttrs;
 
