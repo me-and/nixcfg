@@ -24,10 +24,6 @@
       url = "github:me-and/nixcfg-private";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    workCfg = {
-      url = "git+ssh://git@git.datcon.co.uk/add/adinwoodie-nixcfg.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
@@ -39,7 +35,6 @@
     home-manager,
     winapps,
     private,
-    workCfg,
   } @ flakeInputs: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
     inherit (nixpkgs.lib.lists) optional optionals;
@@ -58,15 +53,6 @@
         me = "adam";
         nixosExtraModules = [nixos-hardware.nixosModules.raspberry-pi-4];
       };
-
-      desktop-4d6hh84-nixos = {
-        system = "x86_64-linux";
-        me = "adamdinwoodie";
-        work = true;
-        wsl = true;
-        winUsername = "AdamDinwoodie";
-        includePersonal = false;
-      };
     };
   in
     {
@@ -78,7 +64,6 @@
             wsl ? false,
             winUsername ? null,
             includeWinapps ? false,
-            work ? false,
             includeHomeManager ? true,
             includePersonal ? true,
             nixosExtraModules ? [],
@@ -117,7 +102,6 @@
                   ++ allModules self
                   ++ optional includeHomeManager home-manager.nixosModules.default
                   ++ optional wsl windowsConfig
-                  ++ optionals work (allModules workCfg)
                   ++ allModules private;
               }
         )
@@ -130,7 +114,6 @@
             me,
             wsl ? false,
             winUsername ? null,
-            work ? false,
             includePersonal ? true,
             hmExtraModules ? [],
             ...
@@ -170,7 +153,6 @@
                     ++ hmExtraModules
                     ++ allModules self
                     ++ optional wsl windowsConfig
-                    ++ optionals work (allModules workCfg)
                     ++ allModules private;
                 }
               )
