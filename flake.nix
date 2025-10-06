@@ -57,7 +57,6 @@
             system,
             me,
             includeWinapps ? false,
-            includeHomeManager ? true,
             includePersonal ? true,
             nixosExtraModules ? [],
             ...
@@ -83,10 +82,10 @@
                     users.me = me;
                     networking.hostName = name;
                   }
+                  home-manager.nixosModules.default
                 ]
                 ++ nixosExtraModules
                 ++ allModules self
-                ++ optional includeHomeManager home-manager.nixosModules.default
                 ++ allModules private;
             }
         )
