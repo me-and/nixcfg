@@ -3,10 +3,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       # My fork, adding
       #
@@ -31,7 +27,6 @@
     nixpkgs,
     flake-utils,
     nixos-hardware,
-    nixos-wsl,
     home-manager,
     winapps,
     private,
@@ -61,52 +56,39 @@
           name: {
             system,
             me,
-            wsl ? false,
-            winUsername ? null,
             includeWinapps ? false,
             includeHomeManager ? true,
             includePersonal ? true,
             nixosExtraModules ? [],
             ...
           }:
-            assert nixpkgs.lib.assertMsg ((winUsername != null) -> wsl) "Windows username cannot be set if wsl is not true";
-              nixpkgs.lib.nixosSystem {
-                inherit system;
-                specialArgs =
+            nixpkgs.lib.nixosSystem {
+              inherit system;
+              specialArgs =
+                {
+                  inherit flakeInputs;
+                }
+                // optionalAttrs includeWinapps {
+                  winapps-pkgs = winapps.packages."${system}";
+                };
+              modules = let
+                allModules = source: [
+                  (source.nixosModules.default or {})
+                  (source.nixosModules."${name}" or {})
+                  (optionalAttrs includePersonal (source.nixosModules.personal or {}))
+                ];
+              in
+                [
                   {
-                    inherit flakeInputs;
+                    users.me = me;
+                    networking.hostName = name;
                   }
-                  // optionalAttrs includeWinapps {
-                    winapps-pkgs = winapps.packages."${system}";
-                  };
-                modules = let
-                  allModules = source: [
-                    (source.nixosModules.default or {})
-                    (source.nixosModules."${name}" or {})
-                    (optionalAttrs includePersonal (source.nixosModules.personal or {}))
-                  ];
-
-                  windowsConfig = {
-                    imports = [
-                      nixos-wsl.nixosModules.default
-                      ./extraModules/nixos/wsl.nix
-                    ];
-                    wsl.defaultUser = me;
-                    wsl.enable = true;
-                  };
-                in
-                  [
-                    {
-                      users.me = me;
-                      networking.hostName = name;
-                    }
-                  ]
-                  ++ nixosExtraModules
-                  ++ allModules self
-                  ++ optional includeHomeManager home-manager.nixosModules.default
-                  ++ optional wsl windowsConfig
-                  ++ allModules private;
-              }
+                ]
+                ++ nixosExtraModules
+                ++ allModules self
+                ++ optional includeHomeManager home-manager.nixosModules.default
+                ++ allModules private;
+            }
         )
         boxen;
 
@@ -115,50 +97,41 @@
           name: {
             system,
             me,
-            wsl ? false,
-            winUsername ? null,
             includePersonal ? true,
             hmExtraModules ? [],
             ...
           }:
-            assert nixpkgs.lib.assertMsg ((winUsername != null) -> wsl) "Windows username cannot be set if wsl is not true";
-              nameValuePair "${me}@${name}"
-              (
-                home-manager.lib.homeManagerConfiguration {
-                  pkgs = nixpkgs.legacyPackages."${system}";
-                  extraSpecialArgs = {
-                    inherit flakeInputs;
-                  };
-                  modules = let
-                    # TODO Looks like some things included in this list might
-                    # get evaluated twice, which is *mostly* fine unless there
-                    # are multiple config options that get added to a
-                    # configured list.
-                    allModules = source: [
-                      (source.hmModules.default or {})
-                      (source.hmModules."${me}" or {})
-                      (source.hmModules."${name}" or {})
-                      (source.hmModules."${me}@${name}" or {})
-                      (optionalAttrs includePersonal (source.hmModules.personal or {}))
-                    ];
-
-                    windowsConfig = {
-                      home.wsl.enable = true;
-                      home.wsl.windowsUsername = nixpkgs.lib.mkIf (winUsername != null) winUsername;
-                    };
-                  in
-                    [
-                      {
-                        home.username = me;
-                        home.hostName = name;
-                      }
-                    ]
-                    ++ hmExtraModules
-                    ++ allModules self
-                    ++ optional wsl windowsConfig
-                    ++ allModules private;
-                }
-              )
+            nameValuePair "${me}@${name}"
+            (
+              home-manager.lib.homeManagerConfiguration {
+                pkgs = nixpkgs.legacyPackages."${system}";
+                extraSpecialArgs = {
+                  inherit flakeInputs;
+                };
+                modules = let
+                  # TODO Looks like some things included in this list might
+                  # get evaluated twice, which is *mostly* fine unless there
+                  # are multiple config options that get added to a
+                  # configured list.
+                  allModules = source: [
+                    (source.hmModules.default or {})
+                    (source.hmModules."${me}" or {})
+                    (source.hmModules."${name}" or {})
+                    (source.hmModules."${me}@${name}" or {})
+                    (optionalAttrs includePersonal (source.hmModules.personal or {}))
+                  ];
+                in
+                  [
+                    {
+                      home.username = me;
+                      home.hostName = name;
+                    }
+                  ]
+                  ++ hmExtraModules
+                  ++ allModules self
+                  ++ allModules private;
+              }
+            )
         )
         boxen;
 

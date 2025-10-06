@@ -11,6 +11,5 @@
     ./systemd.nix
     ./taskwarrior.nix
     ./vim.nix
-    ./wsl.nix
   ];
 }
