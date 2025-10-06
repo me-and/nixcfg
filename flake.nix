@@ -57,7 +57,6 @@
             system,
             me,
             includeWinapps ? false,
-            includeHomeManager ? true,
             includePersonal ? true,
             nixosExtraModules ? [],
             ...
@@ -86,7 +85,7 @@
                 ]
                 ++ nixosExtraModules
                 ++ allModules self
-                ++ optional includeHomeManager home-manager.nixosModules.default
+                ++ home-manager.nixosModules.default
                 ++ allModules private;
             }
         )
