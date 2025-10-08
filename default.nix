@@ -6,7 +6,8 @@ in
   {
     pkgs ? import <nixpkgs> {overlays = map import overlayFiles;},
     lib ? pkgs.lib,
-  }: lib.packagesFromDirectoryRecursive {
-    inherit (pkgs) callPackage newScope;
-    directory = ./pkgs;
-  }
+  }:
+    lib.packagesFromDirectoryRecursive {
+      inherit (pkgs) callPackage newScope;
+      directory = ./pkgs;
+    }
