@@ -58,11 +58,9 @@
           }:
             nixpkgs.lib.nixosSystem {
               inherit system;
-              specialArgs =
-                {
-                  inherit flake;
-                }
-                ;
+              specialArgs = {
+                inherit flake;
+              };
               modules = let
                 allModules = source: [
                   (source.nixosModules.default or {})
