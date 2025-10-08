@@ -39,38 +39,39 @@ in {
 
   home.stateVersion = "24.11";
 
-  home.packages = with pkgs; [
-    abcde
-    android-tools # adb
-    azuredatastudio
-    cardimpose
-    cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
-    discord
-    freecad
-    gnucash
-    gnome-calculator # Prefer this to the KDE options
-    jellyfin-media-player
-    hunspell
-    hunspellDicts.en-gb-ise
-    inkscape
-    libreoffice
-    makemkv
-    openscad
-    poppler_utils
-    prusa-slicer
-    qalculate-gtk
-    scribus
-    signal-desktop
-    telegram-desktop
-    vlc
-    whatsapp-for-linux
-    zoom-us
-  ]
-  ++ (with pkgs.mypkgs; [
-    gh-random-pr
-    pd-sync-with-fileserver
-    unison-nox
-  ]);
+  home.packages = with pkgs;
+    [
+      abcde
+      android-tools # adb
+      azuredatastudio
+      cardimpose
+      cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
+      discord
+      freecad
+      gnucash
+      gnome-calculator # Prefer this to the KDE options
+      jellyfin-media-player
+      hunspell
+      hunspellDicts.en-gb-ise
+      inkscape
+      libreoffice
+      makemkv
+      openscad
+      poppler_utils
+      prusa-slicer
+      qalculate-gtk
+      scribus
+      signal-desktop
+      telegram-desktop
+      vlc
+      whatsapp-for-linux
+      zoom-us
+    ]
+    ++ (with pkgs.mypkgs; [
+      gh-random-pr
+      pd-sync-with-fileserver
+      unison-nox
+    ]);
 
   programs.firefox.enable = true;
 
