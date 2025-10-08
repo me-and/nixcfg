@@ -1,12 +1,14 @@
 {
   config,
   pkgs,
+  flake,
   ...
 }: {
   imports = [
     ./archives.nix
     ./hardware-configuration.nix
     ./media.nix
+    flake.nixos-hardware.nixosModules.raspberry-pi-4
   ];
 
   boot.initrd.systemd.enable = true;

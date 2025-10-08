@@ -1,11 +1,13 @@
 {
   lib,
   pkgs,
+  flake,
   ...
 }: {
   imports = [
     ./hardware-configuration.nix
     ./pd.nix
+    flake.nixos-hardware.nixosModules.framework-16-7040-amd
   ];
 
   boot.loader.systemd-boot.enable = true;
