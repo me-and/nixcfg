@@ -1,4 +1,5 @@
 {
+  flake,
   config,
   lib,
   pkgs,
@@ -21,7 +22,6 @@ in {
     ./syncthing.nix
     ./taskwarrior
     ../../modules/home-manager
-    ../../modules/shared
   ];
 
   home = {
@@ -148,4 +148,6 @@ in {
       RandomizedOffsetSec = "1w";
     };
   };
+
+  nixpkgs.overlays = builtins.attrValues flake.self.overlays;
 }

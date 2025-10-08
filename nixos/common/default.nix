@@ -1,4 +1,5 @@
 {
+  flake,
   config,
   lib,
   options,
@@ -9,7 +10,6 @@
 in {
   imports = [
     ../../modules/nixos
-    ../../modules/shared
     ../../common
     ./avahi.nix
     ./emergency.nix
@@ -141,4 +141,6 @@ in {
       secretKeyFile = "/home/adam/store-secret";
     };
   };
+
+  nixpkgs.overlays = builtins.attrValues flake.self.overlays;
 }

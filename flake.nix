@@ -127,7 +127,6 @@
           default.imports = [
             ./common
             ./modules/nixos
-            ./modules/shared
             ./nixos/common
           ];
         }
@@ -142,7 +141,6 @@
           default.imports = [
             ./common
             ./modules/home-manager
-            ./modules/shared
             ./home-manager/common
           ];
         }
