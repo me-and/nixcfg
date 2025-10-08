@@ -162,16 +162,10 @@
           filename = "home.nix";
         });
 
-      overlays = let
-        overlayPaths = builtins.readDir ./overlays;
-      in
-        mapAttrs' (
-          name: value:
-            nameValuePair
-            (removeSuffix ".nix" name)
-            (import (./overlays + "/${name}"))
-        )
-        overlayPaths;
+      overlays =
+        builtins.mapAttrs
+        (n: v: import v)
+        (self.lib.dirfiles {dir = ./overlays;});
 
       lib = import ./lib.nix {inherit (nixpkgs) lib;};
     }
