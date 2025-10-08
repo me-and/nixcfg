@@ -40,13 +40,11 @@
         system = "x86_64-linux";
         me = "adam";
         includeWinapps = true;
-        nixosExtraModules = [nixos-hardware.nixosModules.framework-16-7040-amd];
       };
 
       lucy = {
         system = "aarch64-linux";
         me = "adam";
-        nixosExtraModules = [nixos-hardware.nixosModules.raspberry-pi-4];
       };
     };
   in
@@ -58,7 +56,6 @@
             me,
             includeWinapps ? false,
             includePersonal ? true,
-            nixosExtraModules ? [],
             ...
           }:
             nixpkgs.lib.nixosSystem {
@@ -84,7 +81,6 @@
                   }
                   home-manager.nixosModules.default
                 ]
-                ++ nixosExtraModules
                 ++ allModules self
                 ++ allModules private;
             }
@@ -97,7 +93,6 @@
             system,
             me,
             includePersonal ? true,
-            hmExtraModules ? [],
             ...
           }:
             nameValuePair "${me}@${name}"
@@ -126,7 +121,6 @@
                       home.hostName = name;
                     }
                   ]
-                  ++ hmExtraModules
                   ++ allModules self
                   ++ allModules private;
               }
