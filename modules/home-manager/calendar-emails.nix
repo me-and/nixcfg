@@ -2,7 +2,7 @@
   config,
   lib,
   pkgs,
-  flakeInputs,
+  flake,
   ...
 }: let
   cfg = config.services.calendarEmails;
@@ -49,7 +49,7 @@ in {
         '';
       };
       calConfig = cal: let
-        escapedCal = flakeInputs.self.lib.escapeSystemdString cal;
+        escapedCal = flake.self.lib.escapeSystemdString cal;
       in {
         timers."report-calendar@${escapedCal}" = {
           Unit.Description = "Send periodic calendar events for %I";

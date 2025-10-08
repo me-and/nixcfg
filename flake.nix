@@ -30,7 +30,7 @@
     home-manager,
     winapps,
     private,
-  } @ flakeInputs: let
+  } @ flake: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
     inherit (nixpkgs.lib.lists) optional optionals;
     inherit (nixpkgs.lib.strings) removeSuffix;
@@ -65,7 +65,7 @@
               inherit system;
               specialArgs =
                 {
-                  inherit flakeInputs;
+                  inherit flake;
                 }
                 // optionalAttrs includeWinapps {
                   winapps-pkgs = winapps.packages."${system}";
@@ -105,7 +105,7 @@
               home-manager.lib.homeManagerConfiguration {
                 pkgs = nixpkgs.legacyPackages."${system}";
                 extraSpecialArgs = {
-                  inherit flakeInputs;
+                  inherit flake;
                 };
                 modules = let
                   # TODO Looks like some things included in this list might
