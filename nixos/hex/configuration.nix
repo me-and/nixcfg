@@ -8,6 +8,7 @@
     ./hardware-configuration.nix
     ./pd.nix
     flake.nixos-hardware.nixosModules.framework-16-7040-amd
+    flake.self.nixosModules.winapps
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -97,8 +98,6 @@
   };
 
   nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 200; # 200GB
-
-  programs.winapps.enable = true;
 
   services.nix-serve.enable = true;
 }

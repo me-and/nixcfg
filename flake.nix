@@ -39,7 +39,6 @@
       hex = {
         system = "x86_64-linux";
         me = "adam";
-        includeWinapps = true;
       };
 
       lucy = {
@@ -54,7 +53,6 @@
           name: {
             system,
             me,
-            includeWinapps ? false,
             includePersonal ? true,
             ...
           }:
@@ -64,9 +62,7 @@
                 {
                   inherit flake;
                 }
-                // optionalAttrs includeWinapps {
-                  winapps-pkgs = winapps.packages."${system}";
-                };
+                ;
               modules = let
                 allModules = source: [
                   (source.nixosModules.default or {})
@@ -140,7 +136,8 @@
         // mapAttrs (name: value: import value) (self.lib.subdirfiles {
           dir = ./nixos;
           filename = "configuration.nix";
-        });
+        })
+        // mapAttrs (name: value: import value) (self.lib.dirfiles {dir = ./extraModules/nixos;});
 
       hmModules =
         {
