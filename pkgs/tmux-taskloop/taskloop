@@ -8,7 +8,6 @@ umask 0077
 
 toil_pid=
 sleep_pid=
-bash_pid=
 read_pid=
 
 cleanup () {
@@ -18,7 +17,6 @@ cleanup () {
 	local -a kill=()
 	[[ "$toil_pid" ]] && kill+=("$toil_pid")
 	[[ "$sleep_pid" ]] && kill+=("$sleep_pid")
-	[[ "$bash_pid" ]] && kill+=("$bash_pid")
 	[[ "$read_pid" ]] && kill+=("$read_pid")
 	if (( "${#kill[*]}" > 0 )); then
 		# kill is allowed to return non-zero because it's fairly likely
@@ -49,15 +47,11 @@ if ! command -v toil >/dev/null; then
 fi
 
 debug=
-prompt=Yes
 watch_sigwinch=Yes
 show_count=
 positional_args=()
 while (( $# > 0 )); do
 	case "$1" in
-		-n)	prompt=
-			shift
-			;;
 		-d)	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
 			set -x
 			debug=Yes
@@ -69,7 +63,7 @@ while (( $# > 0 )); do
 		-c)	show_count=Yes
 			shift
 			;;
-		-n*|-d*|-s*|-c*)
+		-d*|-s*|-c*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
 		--)	shift
@@ -83,11 +77,6 @@ while (( $# > 0 )); do
 done
 
 if [[ "$show_count" ]]; then
-	if [[ "$prompt" ]]; then
-		echo "Can't currently show counts unless prompts are disabled" >&2
-		echo 'Either specify `-n` or remove `-c`' >&2
-		exit 64 # EX_USAGE
-	fi
 	if ! command -v jq >/dev/null; then
 		echo 'jq missing' >&2
 		echo 'Cannot show counts without jq' >&2
@@ -154,9 +143,6 @@ fi
 
 task_config_file="$tmpdir"/config
 task_filter_file="$tmpdir"/filter
-#bash_in_use_flag_file="$tmpdir"/doingthings
-explicit_exit_flag_file="$tmpdir"/explicitexit
-sigterm_set_flag_file="$tmpdir"/sigtermset
 
 data_path="$(task _get rc.data.location)"
 data_path="${data_path%/}"
@@ -202,13 +188,9 @@ while :; do
 	sleep 15m &
 	sleep_pid="$!"
 
-	if [[ -z "$prompt" ]]; then
-		# Clear the screen so short tasklists don't get confused by
-		# showing part of the previous list as well as the latest one.
-		# Only do this when running without a prompt, as if there's a
-		# prompt I don't want to hide the output of a previous command.
-		clear
-	fi
+	# Clear the screen so short tasklists don't get confused by showing
+	# part of the previous list as well as the latest one.
+	clear
 
 	# Draw the task list.  Ignore errors because they normally mean the
 	# tasklist is empty, but that doesn't mean I need to quit.
@@ -220,31 +202,12 @@ while :; do
 		task -COMPLETED -DELETED export | jq -j '"\(length) "'
 	fi
 
-	if [[ "$prompt" ]]; then
-		# Start an interactive Bash shell so the user can enter task commands.
-		rm -f "$sigterm_set_flag_file"
-		bash_in_use_flag_file="$tmpdir"/doingthings."$n"
-		bash_in_use_flag_file="$bash_in_use_flag_file" \
-			explicit_exit_flag_file="$explicit_exit_flag_file" \
-			sigterm_set_flag_file="$sigterm_set_flag_file" \
-			debug="$debug" \
-			tmpdir="$tmpdir" \
-			watch_sigwinch="$watch_sigwinch" \
-			n="$n" \
-			bash --rcfile @@TASKLOOPRC_PATH@@ -i \
-			<&0 &
-		bash_pid="$!"
-		read_pid=
-		wait_pids=("$bash_pid" "$toil_pid" "$sleep_pid")
-	else
-		if [[ -z "$read_pid" ]]; then
-			read -r <&0 &
-			read_pid="$!"
-			bash_pid=
-			[[ "$watch_sigwinch" ]] && trap -- ':' SIGWINCH
-		fi
-		wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
+	if [[ -z "$read_pid" ]]; then
+		read -r <&0 &
+		read_pid="$!"
+		[[ "$watch_sigwinch" ]] && trap -- ':' SIGWINCH
 	fi
+	wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
 	n="$((n+1))"
 
 	# Wait for one of the three background processes to exit.
@@ -265,19 +228,6 @@ while :; do
 				# The timeout for doing a refresh has expired.
 				sleep_pid=
 				;;
-			"$bash_pid")
-				# Bash has exited, either because the user
-				# successfully ran a command, or because Bash
-				# timed out.  Assume the former and loop unless
-				# the exit flag file exists.
-				if [[ -e "$explicit_exit_flag_file" ]]; then
-					# User explicitly ran the "exit"
-					# command.
-					exit 0
-				else
-					bash_pid=
-				fi
-				;;
 			"$read_pid")
 				# The read command has exited.  No way to get
 				# the output, so just assume the user pressed
@@ -295,15 +245,7 @@ while :; do
 		esac
 	else
 		waitrc="$?"
-		if [[ -v waited_pid && "$waited_pid" = "$bash_pid" ]]; then
-			# Bash can exit with non-zero return codes if the
-			# previous command was unsuccessful.  Don't take that
-			# as an indicator to exit unless the file signalling
-			# that we should really exit exists.
-			if [[ -e "$explicit_exit_flag_file" ]]; then
-				exit "$waitrc"
-			fi
-		elif [[ "$waitrc" = 156 ]]; then
+		if [[ "$waitrc" = 156 ]]; then
 			# SIGWINCH, so just redraw
 			:
 		else
@@ -311,27 +253,6 @@ while :; do
 			# with that return code.
 			exit "$waitrc"
 		fi
-	fi
-
-	if [[ "$bash_pid" ]] && kill -0 "$bash_pid" 2>/dev/null; then
-		# The interactive bash session is still running, so we need to
-		# terminate it if the user doesn't appear to be using it, or
-		# wait for it to be done if the user is using it.
-		if [[ ! -e "$bash_in_use_flag_file" ]]; then
-			# User doesn't appear to be using Bash, so send it a
-			# term signal if it's still running.
-			while [[ ! -e "$sigterm_set_flag_file" ]] && kill -0 "$bash_pid" 2>/dev/null; do
-				# Bash hasn't yet indicated it has set the trap
-				# on sigterm, so if we try to terminate it now,
-				# the signal will be ignored.  Wait for the
-				# file to exist before sending the signal.
-				sleep 1
-			done
-			kill "$bash_pid" 2>/dev/null || :
-		fi
-
-		# Wait for the Bash process to exit.
-		wait "$bash_pid" || :
 	fi
 
 	# Wait for files that might get multiple updates in rapid succession to

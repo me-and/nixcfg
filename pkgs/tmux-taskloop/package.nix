@@ -34,13 +34,8 @@ stdenvNoCC.mkDerivation {
   in ''
     mkdir -p $out/bin $out/lib $out/libexec
 
-    cp tasklooprc $out/lib
-
     cp taskloop $out/libexec
     substituteInPlace $out/libexec/taskloop \
-        --replace-fail \
-            '@@TASKLOOPRC_PATH@@' \
-            "$out/lib/tasklooprc" \
         --replace-fail \
             '@@PATH@@' \
             ${lib.escapeShellArg taskloopPath}
