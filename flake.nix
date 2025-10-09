@@ -62,7 +62,6 @@
             ...
           }:
             nixpkgs.lib.nixosSystem {
-              inherit system;
               specialArgs = {
                 inherit flake;
               };
