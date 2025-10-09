@@ -13,14 +13,15 @@ in {
   imports = [
     (lib.mkRemovedOptionModule ["services" "calendarEmails"] "")
   ];
-    assertions = [
-      {
-        assertion = config.systemd.user.enable;
-        message = ''
-          Sending calendar emails requires systemd to be enabled.
-        '';
-      }
-    ];
+
+  assertions = [
+    {
+      assertion = config.systemd.user.enable;
+      message = ''
+        Sending calendar emails requires systemd to be enabled.
+      '';
+    }
+  ];
 
   systemd.user = let
     reportScript = pkgs.mypkgs.writeCheckedShellScript {
