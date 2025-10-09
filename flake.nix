@@ -20,6 +20,10 @@
       url = "github:me-and/nixcfg-private/rearrange";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    user-systemd-config = {
+      url = "github:me-and/user-systemd-config";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -30,6 +34,7 @@
     home-manager,
     winapps,
     private,
+    user-systemd-config,
   } @ flake: let
     inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
     inherit (nixpkgs.lib.lists) optional optionals;

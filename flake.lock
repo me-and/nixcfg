@@ -145,6 +145,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "private": "private",
+        "user-systemd-config": "user-systemd-config",
         "winapps": "winapps"
       }
     },
@@ -175,6 +176,22 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "user-systemd-config": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1759255572,
+        "narHash": "sha256-X7NcBHc5dHxBJroTI8FMu8zP/hvumVowd5CNsiL8SCM=",
+        "owner": "me-and",
+        "repo": "user-systemd-config",
+        "rev": "c6d5107fe8380a936aa9e88feab7104ac280d7b5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "me-and",
+        "repo": "user-systemd-config",
         "type": "github"
       }
     },
