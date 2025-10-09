@@ -9,6 +9,5 @@
     ./pd.nix
     ./rclone.nix
     ./systemd.nix
-    ./taskwarrior.nix
   ];
 }
