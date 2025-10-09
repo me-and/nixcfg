@@ -147,7 +147,8 @@
         // mapAttrs (name: value: import value) (self.lib.subdirfiles {
           dir = ./home-manager;
           filename = "home.nix";
-        });
+        })
+        // mapAttrs (name: value: import value) (self.lib.dirfiles {dir = ./extraModules/home-manager;});
 
       overlays =
         builtins.mapAttrs

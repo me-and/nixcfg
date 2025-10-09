@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  flake,
   ...
 }: let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
@@ -35,7 +36,10 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./fonts.nix];
+  imports = [
+    ./fonts.nix
+    flake.self.hmModules.mypy
+  ];
 
   home.stateVersion = "24.11";
 
@@ -110,7 +114,6 @@ in {
 
   pd.enable = true;
 
-  programs.mypy.enable = true;
   programs.latex.enable = true;
 
   services.syncthing = {

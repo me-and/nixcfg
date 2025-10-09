@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
@@ -10,7 +11,9 @@
     (pkgs.mypkgs.asmodeus.override {python3Packages = pp;})
   ]);
 in {
-  home.packages = [python];
+  imports = [
+    (lib.mkRemovedOptionModule ["programs" "mypy"] "")
+  ];
 
-  programs.mypy.config.mypy.cache_dir = "${config.xdg.cacheHome}/mypy";
+  home.packages = [python];
 }
