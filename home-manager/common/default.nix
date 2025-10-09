@@ -21,6 +21,7 @@ in {
     ./latex.nix
     ./python.nix
     ./syncthing.nix
+    ./systemd.nix
     ./taskwarrior
     ./vim.nix
     ../../modules/home-manager

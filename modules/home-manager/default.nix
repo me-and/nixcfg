@@ -5,6 +5,5 @@
     ./keepassxc.nix
     ./pd.nix
     ./rclone.nix
-    ./systemd.nix
   ];
 }
