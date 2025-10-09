@@ -46,7 +46,6 @@ if ! command -v toil >/dev/null; then
 fi
 
 debug=
-watch_sigwinch=Yes
 show_count=
 positional_args=()
 while (( $# > 0 )); do
@@ -56,13 +55,10 @@ while (( $# > 0 )); do
 			debug=Yes
 			shift
 			;;
-		-s)	watch_sigwinch=
-			shift
-			;;
 		-c)	show_count=Yes
 			shift
 			;;
-		-d*|-s*|-c*)
+		-d*|-c*)
 			set -- "-${1: 1:1}" "-${1: 2}" "${@: 2}"
 			;;
 		--)	shift
@@ -197,7 +193,6 @@ while :; do
 	if [[ -z "$read_pid" ]]; then
 		read -r <&0 &
 		read_pid="$!"
-		[[ "$watch_sigwinch" ]] && trap -- ':' SIGWINCH
 	fi
 	wait_pids=("$read_pid" "$toil_pid" "$sleep_pid")
 	n="$((n+1))"
@@ -237,14 +232,9 @@ while :; do
 		esac
 	else
 		waitrc="$?"
-		if [[ "$waitrc" = 156 ]]; then
-			# SIGWINCH, so just redraw
-			:
-		else
-			# Non-zero return code or unexpected signal, so exit
-			# with that return code.
-			exit "$waitrc"
-		fi
+		# Non-zero return code or unexpected signal, so exit with that
+		# return code.
+		exit "$waitrc"
 	fi
 
 	# Wait for files that might get multiple updates in rapid succession to
