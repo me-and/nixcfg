@@ -7,50 +7,6 @@
 }: let
   cfg = config.services.rclone;
 
-  waitForTimesync = pkgs.mypkgs.writeCheckedShellScript {
-    name = "wait-for-timesync.sh";
-    runtimeInputs = [pkgs.inotify-tools];
-    purePath = true;
-    text = ''
-      if [[ -e /run/systemd/timesync/synchronized ]]; then
-          exit 0
-      fi
-
-      inw_PID= # Avoid shellcheck failures
-      coproc inw {
-          exec inotifywait \
-              -e create,moved_to \
-              --include '/synchronized$' \
-              /run/systemd/timesync \
-              2>&1
-      }
-
-      while read -r -u "''${inw[0]}" line; do
-          if [[ "$line" = 'Watches established.' ]]; then
-              break;
-          fi
-      done
-
-      if [[ -e /run/systemd/timesync/synchronized ]]; then
-          kill "$inw_PID"
-          rc=0
-          wait "$inw_PID" || rc="$?"
-          if (( rc == 143 )); then
-              exit 0
-          else
-              printf 'Unexpected inotifywait return code %s\n' "$rc"
-              if (( rc == 0 )); then
-                  exit 1
-              else
-                  exit "$rc"
-              fi
-          fi
-      fi
-
-      time wait "$inw_PID"
-    '';
-  };
-
   mountToService = mountpoint: target: let
     escapedMountpoint = flake.self.lib.escapeSystemdPath mountpoint;
   in {
