@@ -11,6 +11,7 @@ in {
     ./bash
     ./email.nix
     ./firefox.nix
+    ./forward.nix
     ./garbage.nix
     ./git.nix
     ./homeshick.nix
