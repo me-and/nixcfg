@@ -20,6 +20,7 @@ in {
     ./keepassxc.nix
     ./latex.nix
     ./python.nix
+    ./rclone.nix
     ./syncthing.nix
     ./systemd.nix
     ./taskwarrior
