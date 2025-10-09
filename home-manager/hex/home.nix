@@ -106,8 +106,6 @@ in {
 
   programs.keepassxc.enable = true;
 
-  pd.enable = true;
-
   programs.latex.enable = true;
 
   services.syncthing = {

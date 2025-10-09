@@ -107,8 +107,6 @@ in {
   programs.offlineimap.enable = true;
   programs.neomutt.enable = true;
 
-  pd.enable = true;
-
   services.syncthing.enable = true;
 
   programs.taskwarrior.onedriveBackup = true;

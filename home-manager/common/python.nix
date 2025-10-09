@@ -13,7 +13,15 @@
 in {
   imports = [
     (lib.mkRemovedOptionModule ["programs" "mypy"] "")
+    (lib.mkRemovedOptionModule ["pd"] "")
   ];
 
   home.packages = [python];
+
+  # Needed for, in particular, the Python mssql module to work, which I need
+  # for accessing the PD database.
+  #
+  # TODO This should be handled more sensibly by my Python installation
+  # and/or scripts.
+  home.sessionVariables.LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.zlib];
 }
