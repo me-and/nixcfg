@@ -1,0 +1,13 @@
+diff --git a/src/commands/CmdCount.cpp b/src/commands/CmdCount.cpp
+index 14c6f442b..0f7a3f4ed 100644
+--- a/src/commands/CmdCount.cpp
++++ b/src/commands/CmdCount.cpp
+@@ -57,7 +57,7 @@ int CmdCount::execute (std::string& output)
+   filter.subset (filtered);
+ 
+   // Find number of matching tasks.  Skip recurring parent tasks.
+-  int count = std::count_if(filtered.begin(), filtered.end(), [](const auto& task){ return task.getStatus () != Task::recurring; });
++  int count = std::count_if(filtered.begin(), filtered.end(), [](const auto& task){ return true; });
+   output = format (count) + '\n';
+   return 0;
+ }
