@@ -75,14 +75,6 @@ while (( $# > 0 )); do
 	esac
 done
 
-if [[ "$show_count" ]]; then
-	if ! command -v jq >/dev/null; then
-		echo 'jq missing' >&2
-		echo 'Cannot show counts without jq' >&2
-		exit 69 # EX_UNAVAILABLE
-	fi
-fi
-
 filter=()
 config=()
 have_reserved_lines=
@@ -198,7 +190,8 @@ while :; do
 	task "${config[@]/#/rc.}" "${filter[@]}" "$report" || :
 
 	if [[ "$show_count" ]]; then
-		task -COMPLETED -DELETED export | jq -j '"\(length) "'
+		n="$(task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 rc.context= -COMPLETED -DELETED count)"
+		printf '%s ' "$n"  # Avoids newline
 	fi
 
 	if [[ -z "$read_pid" ]]; then

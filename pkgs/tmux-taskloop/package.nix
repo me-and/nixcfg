@@ -3,7 +3,6 @@
   lib,
   bashInteractive,
   coreutils,
-  jq,
   mtimewait,
   ncurses,
   taskwarrior2,
@@ -28,7 +27,6 @@ stdenvNoCC.mkDerivation {
       mtimewait
       taskwarrior2
       toil
-      jq
       ncurses
     ];
   in ''
