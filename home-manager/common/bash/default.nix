@@ -55,6 +55,8 @@
       fucking = "sudo";
 
       snarf = "aria2c -x16 -s16";
+
+      ag = "ag --hidden --ignore=.git";
     };
 
     # TODO Handle these paths in a more Nix-friendly fashion, and/or without
