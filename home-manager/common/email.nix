@@ -57,12 +57,7 @@
       imap.host = "popmail.hostingsystems.co.uk";
       userName = config.accounts.email.accounts.pd.address;
 
-      offlineimap = {
-        enable = true;
-        extraConfig = {
-          remote.remotepassfile = "${config.home.homeDirectory}/.${config.accounts.email.accounts.main.address}-offlineimap-password";
-        };
-      };
+      offlineimap.enable = true;
     };
   };
 

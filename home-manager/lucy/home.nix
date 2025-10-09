@@ -46,6 +46,8 @@
     ++ systemdPathSymlinks
   );
 in {
+  imports = [./pdsync.nix];
+
   home.stateVersion = "24.11";
 
   # Enable all the systemd units I want running.  These are mostly coming from
