@@ -21,7 +21,7 @@
     };
 
     private = {
-      url = "github:me-and/nixcfg-private";
+      url = "github:me-and/nixcfg-private/rearrange";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     workCfg = {
