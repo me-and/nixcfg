@@ -105,7 +105,6 @@ in {
     realName = "Adam Dinwoodie";
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-  accounts.email.forwardLocal.enable = true;
 
   programs.keepassxc.enable = true;
 

@@ -108,7 +108,6 @@ in {
   };
 
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-  accounts.email.forwardLocal.enable = true;
   programs.offlineimap.enable = true;
   programs.neomutt.enable = true;
 
