@@ -17,7 +17,6 @@ in {
     ./homeshick.nix
     ./host.nix
     ./jq
-    ./keepassxc.nix
     ./latex.nix
     ./python.nix
     ./rclone.nix
@@ -25,7 +24,6 @@ in {
     ./systemd.nix
     ./taskwarrior
     ./vim.nix
-    ../../modules/home-manager
   ];
 
   home = {

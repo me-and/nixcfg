@@ -32,6 +32,7 @@
 in {
   imports = [
     ./fonts.nix
+    ./keepassxc.nix
     flake.self.hmModules.mypy
   ];
 
@@ -103,8 +104,6 @@ in {
     realName = "Adam Dinwoodie";
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-
-  programs.keepassxc.enable = true;
 
   programs.latex.enable = true;
 
