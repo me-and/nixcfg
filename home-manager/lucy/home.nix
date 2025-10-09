@@ -46,6 +46,8 @@
     ++ systemdPathSymlinks
   );
 in {
+  imports = [./calendar-emails.nix];
+
   home.stateVersion = "24.11";
 
   # Enable all the systemd units I want running.  These are mostly coming from
@@ -110,14 +112,6 @@ in {
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   programs.offlineimap.enable = true;
   programs.neomutt.enable = true;
-
-  services.calendarEmails = {
-    enable = true;
-    calendars = [
-      config.accounts.email.accounts.main.address
-      "Adam Dinwoodie's Facebook Events"
-    ];
-  };
 
   pd.enable = true;
 
