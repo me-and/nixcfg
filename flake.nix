@@ -145,7 +145,6 @@
         {
           default.imports = [
             ./common
-            ./modules/home-manager
             ./home-manager/common
           ];
         }
