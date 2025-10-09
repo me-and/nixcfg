@@ -10,6 +10,5 @@
     ./rclone.nix
     ./systemd.nix
     ./taskwarrior.nix
-    ./vim.nix
   ];
 }

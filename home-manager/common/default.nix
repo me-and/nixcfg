@@ -21,6 +21,7 @@ in {
     ./python.nix
     ./syncthing.nix
     ./taskwarrior
+    ./vim.nix
     ../../modules/home-manager
   ];
 
