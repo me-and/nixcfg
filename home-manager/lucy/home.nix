@@ -13,16 +13,11 @@
   in
     systemdWantsAlias unit instanceUnit;
 
-  homeshickReportWants = dir: systemdWantsInstance "homeshick-pull@.service" dir "homeshick-report.service";
-
   systemdWantsService = name: systemdWants "${name}.service" "default.target";
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
   systemdServiceSymlinks = map systemdWantsService [];
-  systemdHomeshickReportSymlinks = map homeshickReportWants [
-    "homeshick"
-  ];
   systemdTimerSymlinks =
     (
       map systemdWantsTimer [
@@ -41,7 +36,6 @@
 
   systemdSymlinks = lib.mergeAttrsList (
     systemdServiceSymlinks
-    ++ systemdHomeshickReportSymlinks
     ++ systemdTimerSymlinks
     ++ systemdPathSymlinks
   );

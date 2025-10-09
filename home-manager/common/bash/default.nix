@@ -25,9 +25,6 @@
             done
         fi
       '';
-      ".bash_completion.d/homeshick-completion.bash".text = ''
-        . ~/.homesick/repos/homeshick/completions/homeshick-completion.bash
-      '';
     };
 
   programs.bash = {
@@ -106,13 +103,6 @@
                       printf '%s\n' "$1"
               fi
       }
-
-      # Set up Homeshick.
-      if [[ -r ~/.homesick/repos/homeshick/homeshick.sh ]]; then
-              . ~/.homesick/repos/homeshick/homeshick.sh
-      else
-              wrap_message <<<'homeshick unavailable' >&2
-      fi
 
       # Utility function to make tracing other Bash functions easier.
       tracewrap () {
