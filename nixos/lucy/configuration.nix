@@ -10,6 +10,7 @@
     ./jellyfin.nix
     ./media.nix
     ./scantocomms.nix
+    ./servegnucash.nix
     flake.nixos-hardware.nixosModules.raspberry-pi-4
   ];
 
@@ -89,16 +90,6 @@
     cache.minFree = "100m";
     # TODO add resolver config to use the AAISP resolvers, assuming I don't
     # manage to get this working with the default system resolver?
-  };
-
-  services.gnucashFileServer = {
-    enable = true;
-    source = "/home/adam/Documents/Gnucash/gnucash.gnucash";
-    extraVirtualHostConfig = {
-      enableACME = true;
-      acmeRoot = null;
-    };
-    authFilePath = "/etc/nixos/secrets/${config.networking.fqdn}-auth";
   };
 
   nix.settings = {
