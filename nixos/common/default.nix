@@ -19,7 +19,6 @@ in {
     ./mail.nix
     ./mosh.nix
     ./nginx.nix
-    ./nix-builder.nix
     ./nix-index.nix
     ./plasma.nix
     ./root.nix
