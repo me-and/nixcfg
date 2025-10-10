@@ -4,6 +4,5 @@
     ./nhgc.nix
     ./postfix.nix
     ./syncthing.nix
-    ./user.nix
   ];
 }
