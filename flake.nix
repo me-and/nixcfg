@@ -130,7 +130,6 @@
         {
           default.imports = [
             ./common
-            ./modules/nixos
             ./nixos/common
           ];
         }

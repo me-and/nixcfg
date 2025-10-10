@@ -9,7 +9,6 @@
   defaultPrio = (lib.mkOptionDefault null).priority;
 in {
   imports = [
-    ../../modules/nixos
     ../../common
     ./avahi.nix
     ./emergency.nix
