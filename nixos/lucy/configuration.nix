@@ -17,6 +17,8 @@
 
   boot.initrd.systemd.enable = true;
   boot.initrd.systemd.tpm2.enable = false;
+  boot.loader.grub.enable = false;
+  boot.loader.generic-extlinux-compatible.enable = true;
 
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   hardware = {
@@ -29,7 +31,6 @@
   boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror" "dm-cache" "dm-cache-smq"];
 
   system.stateVersion = "24.11";
-  system.isPi4 = true;
   networking.domain = "dinwoodie.org";
 
   programs.mosh = {
