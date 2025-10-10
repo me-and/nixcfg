@@ -3,13 +3,16 @@
 {
   lib,
   subdirfiles,
-}: {dir}: let
+}: {
+  dir,
+  excludes ? [],
+}: let
   importableDirs = subdirfiles {
-    inherit dir;
+    inherit dir excludes;
     filename = "default.nix";
   };
 
-  filenames = lib.filterAttrs (n: v: lib.hasSuffix ".nix" n) (builtins.readDir dir);
+  filenames = lib.filterAttrs (n: v: lib.hasSuffix ".nix" n && !builtins.elem n excludes) (builtins.readDir dir);
   importableFiles = lib.mapAttrs' (n: v: lib.nameValuePair (lib.removeSuffix ".nix" n) (dir + "/${n}")) filenames;
 in
   lib.attrsets.unionOfDisjoint importableDirs importableFiles
