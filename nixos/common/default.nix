@@ -23,6 +23,7 @@ in {
     ./nix-index.nix
     ./plasma.nix
     ./root.nix
+    ./sudo.nix
     ./systemd.nix
     ./user.nix
     ./vim.nix
