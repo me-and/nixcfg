@@ -78,8 +78,6 @@
 
   system.stateVersion = "24.05";
 
-  hardware.frameworkBluetoothWorkaround = true;
-
   # Need at least kernel 6.10 for framework-tool to work.  6.10 is out of
   # support, so use 6.12 as a more recent LTS kernel.
   #

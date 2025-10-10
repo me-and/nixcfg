@@ -1,6 +1,5 @@
 {
   imports = [
-    ./framework-rfkill.nix
     ./nginx.nix
     ./nhgc.nix
     ./nix-builder.nix
