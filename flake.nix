@@ -134,7 +134,7 @@
           dir = ./nixos;
           filename = "configuration.nix";
         });
-        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./extraModules/nixos;});
+        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./modules/nixos;});
       in
         self.lib.unionOfDisjointAttrsList [
           {inherit default;}
@@ -150,7 +150,7 @@
           dir = ./home-manager;
           filename = "home.nix";
         });
-        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./extraModules/home-maanager;});
+        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./modules/home-manager;});
       in
         self.lib.unionOfDisjointAttrsList [
           {inherit default;}
