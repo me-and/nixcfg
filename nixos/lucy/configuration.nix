@@ -11,6 +11,7 @@
     ./media.nix
     ./scantocomms.nix
     ./servegnucash.nix
+    ./taskserver
     flake.nixos-hardware.nixosModules.raspberry-pi-4
   ];
 
@@ -37,13 +38,6 @@
       from = 60000;
       to = 60019;
     };
-  };
-
-  services.taskserver = {
-    enable = true;
-    fqdn = "taskwarrior.dinwoodie.org";
-    listenPort = 50340;
-    generateAcmeCert = true;
   };
 
   services.openssh.ports = [22 44035];

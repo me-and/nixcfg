@@ -24,7 +24,6 @@ in {
     ./plasma.nix
     ./root.nix
     ./systemd.nix
-    ./taskserver.nix
     ./user.nix
     ./vim.nix
   ];
