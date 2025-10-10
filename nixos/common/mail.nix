@@ -14,7 +14,14 @@
     services.postfix.enable = true;
 
     # Always want to be able to use `mail` to send emails.
-    programs.mailutils.enable = true;
+    environment.systemPackages = [pkgs.mailutils];
+    environment.etc = lib.mkIf hasFqdn {
+      "mailutils.conf".text = ''
+        address {
+          email-domain ${fqdn};
+        };
+      '';
+    };
   };
 
   # If there's no relay host but we do have an FQDN, we should be able to send
