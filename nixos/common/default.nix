@@ -20,6 +20,7 @@ in {
     ./mosh.nix
     ./nginx.nix
     ./nix-index.nix
+    ./pd
     ./plasma.nix
     ./root.nix
     ./sudo.nix
