@@ -11,59 +11,64 @@
   toil,
   stdenvNoCC,
   makeBinaryWrapper,
-}:
-stdenvNoCC.mkDerivation {
-  pname = "tmux-taskloop";
-  version = "0.1.0";
-  src = ./.;
-  buildInputs = [
-    bashInteractive
-    makeBinaryWrapper
-  ];
-  preferLocalBuild = true;
-  installPhase = let
-    taskloopPath = lib.makeBinPath [
+  python3,
+  asmodeus,
+}: let
+  python = python3.withPackages (pp: [(asmodeus.override {python3Packages = pp;})]);
+in
+  stdenvNoCC.mkDerivation {
+    pname = "tmux-taskloop";
+    version = "0.1.0";
+    src = ./.;
+    buildInputs = [
       bashInteractive
-      coreutils
-      mtimewait
-      taskwarrior2
-      toil
-      jq
-      ncurses
+      makeBinaryWrapper
     ];
-  in ''
-    mkdir -p $out/bin $out/lib $out/libexec
+    preferLocalBuild = true;
+    installPhase = let
+      taskloopPath = lib.makeBinPath [
+        bashInteractive
+        coreutils
+        mtimewait
+        taskwarrior2
+        toil
+        jq
+        ncurses
+        python
+      ];
+    in ''
+      mkdir -p $out/bin $out/lib $out/libexec
 
-    cp taskloop $out/libexec
-    substituteInPlace $out/libexec/taskloop \
-        --replace-fail \
-            '@@PATH@@' \
-            ${lib.escapeShellArg taskloopPath}
+      cp taskloop $out/libexec
+      substituteInPlace $out/libexec/taskloop \
+          --replace-fail \
+              '@@PATH@@' \
+              ${lib.escapeShellArg taskloopPath}
 
-    cp tmux-taskloop $out/bin
-    substituteInPlace $out/bin/tmux-taskloop \
-        --replace-fail \
-            'source-file tmux-taskloop.conf' \
-            "source-file $out/lib/tmux-taskloop.conf" \
-        --replace-fail \
-            '@@TMUX@@' \
-            '${tmux}/bin/tmux' \
-        --replace-fail \
-            '@@RM@@' \
-            '${coreutils}/bin/rm' \
-        --replace-fail \
-            '@@MKTEMP@@' \
-            '${coreutils}/bin/mktemp'
+      cp tmux-taskloop $out/bin
+      substituteInPlace $out/bin/tmux-taskloop \
+          --replace-fail \
+              'source-file tmux-taskloop.conf' \
+              "source-file $out/lib/tmux-taskloop.conf" \
+          --replace-fail \
+              '@@TMUX@@' \
+              '${tmux}/bin/tmux' \
+          --replace-fail \
+              '@@RM@@' \
+              '${coreutils}/bin/rm' \
+          --replace-fail \
+              '@@MKTEMP@@' \
+              '${coreutils}/bin/mktemp'
 
 
-    cp *.conf $out/lib
-    substituteInPlace $out/lib/tmux-taskloop.conf \
-        --replace-fail /usr/bin/bash ${bashInteractive}/bin/bash \
-        --replace-fail \
-            'source-file tmux-taskloop-resize.conf' \
-            "source-file $out/lib/tmux-taskloop-resize.conf" \
-        --replace-fail \
-            '@@TASKLOOP@@' \
-            "$out/libexec/taskloop"
-  '';
-}
+      cp *.conf $out/lib
+      substituteInPlace $out/lib/tmux-taskloop.conf \
+          --replace-fail /usr/bin/bash ${bashInteractive}/bin/bash \
+          --replace-fail \
+              'source-file tmux-taskloop-resize.conf' \
+              "source-file $out/lib/tmux-taskloop-resize.conf" \
+          --replace-fail \
+              '@@TASKLOOP@@' \
+              "$out/libexec/taskloop"
+    '';
+  }
