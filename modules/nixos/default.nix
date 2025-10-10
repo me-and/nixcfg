@@ -9,7 +9,6 @@
     ./pd
     ./postfix.nix
     ./rclone.nix
-    ./sudo.nix
     ./syncthing.nix
     ./user.nix
   ];
