@@ -128,7 +128,7 @@
 
       nixosModules = let
         default = {
-          imports = [./nixos/common];
+          imports = [./nixpkgs.nix ./nixos/common];
         };
         systemModules = mapAttrs (n: v: import v) (self.lib.subdirfiles {
           dir = ./nixos;
@@ -144,7 +144,7 @@
 
       hmModules = let
         default = {
-          imports = [./home-manager/common];
+          imports = [./nixpkgs.nix ./home-manager/common];
         };
         systemModules = mapAttrs (n: v: import v) (self.lib.subdirfiles {
           dir = ./home-manager;

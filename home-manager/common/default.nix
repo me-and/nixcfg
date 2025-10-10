@@ -7,7 +7,6 @@
 }: let
 in {
   imports = [
-    ../../common
     ./bash
     ./email.nix
     ./firefox.nix
