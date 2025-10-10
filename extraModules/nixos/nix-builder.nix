@@ -1,7 +1,5 @@
-{
-  # List all keys here: if I'm using this machine as a build server, I'm okay
-  # for any of my machines to use it.
-  nix.localBuildServer.permittedSshKeys = [
+let
+  permittedSshKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJz5LaXgqbOYRmIcj6oMXYQ930S6owQyb4BkSKEb12ve root@saw"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKpGUZf2mU5UVGORjA1fR9ezfEEtgGMmgUkcI7PXVbGv root@titmouse"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII7DD6pt5usNU2K6M0dRUK3EXJI0jFG3rYnoeIOCY/z1 root@ruddyduck"
@@ -14,4 +12,21 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGWRtr9wrN7XBCAof2ePaxdTQYjftV9vDp+vLW2sZZ86 root@stilt"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIITc1n9QPj1OdRb2v7KXdhXGHT4y2PMcr1CEXVZVqEdU AdamDinwoodie@desktop-4d6hh84-nixos"
   ];
+in {
+  users.users.nixremote = {
+    isNormalUser = true;
+    description = "Remote nix build account";
+    openssh.authorizedKeys.keys =
+      map (key: "command=\"/run/current-system/sw/bin/nix-store --serve --write\" ${key}") permittedSshKeys;
+    group = "nixremote";
+  };
+  users.groups.nixremote = {};
+
+  nix.settings.trusted-users = ["nixremote"];
+  nix.sshServe = {
+    enable = true;
+    write = true;
+    trusted = true;
+    keys = permittedSshKeys;
+  };
 }

@@ -9,6 +9,7 @@
     ./pd.nix
     flake.nixos-hardware.nixosModules.framework-16-7040-amd
     flake.self.nixosModules.winapps
+    flake.self.nixosModules.nix-builder
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -87,8 +88,6 @@
     if pkgs.linuxPackages.kernelAtLeast "6.10"
     then pkgs.linuxPackages
     else pkgs.linuxKernel.packages.linux_6_12;
-
-  nix.localBuildServer.enable = true;
 
   nix.settings = {
     max-jobs = 4;
