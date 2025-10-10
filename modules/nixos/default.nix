@@ -14,7 +14,6 @@
     ./rclone.nix
     ./sudo.nix
     ./syncthing.nix
-    ./taskserver
     ./user.nix
   ];
 }
