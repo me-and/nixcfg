@@ -12,7 +12,6 @@
     ./pi.nix
     ./postfix.nix
     ./rclone.nix
-    ./scantocomms.nix
     ./servegnucash.nix
     ./sudo.nix
     ./syncthing.nix

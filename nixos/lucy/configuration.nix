@@ -9,6 +9,7 @@
     ./hardware-configuration.nix
     ./jellyfin.nix
     ./media.nix
+    ./scantocomms.nix
     flake.nixos-hardware.nixosModules.raspberry-pi-4
   ];
 
@@ -88,16 +89,6 @@
     cache.minFree = "100m";
     # TODO add resolver config to use the AAISP resolvers, assuming I don't
     # manage to get this working with the default system resolver?
-  };
-
-  services.scanToOneDrive = {
-    enable = true;
-    ftpPasvPortRange = {
-      from = 56615;
-      to = 56624;
-    };
-    scannerUser = "ida";
-    scannerHashedPasswordFile = "/etc/nixos/secrets/ida";
   };
 
   services.gnucashFileServer = {
