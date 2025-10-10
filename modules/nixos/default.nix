@@ -2,7 +2,6 @@
   imports = [
     ./framework-rfkill.nix
     ./mailutils.nix
-    ./mosh.nix
     ./nginx.nix
     ./nhgc.nix
     ./nix-builder.nix
