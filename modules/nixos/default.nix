@@ -7,7 +7,6 @@
     ./nixbuild.net.nix
     ./pd
     ./postfix.nix
-    ./rclone.nix
     ./syncthing.nix
     ./user.nix
   ];

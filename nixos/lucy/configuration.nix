@@ -9,6 +9,7 @@
     ./hardware-configuration.nix
     ./jellyfin.nix
     ./media.nix
+    ./rclone.nix
     ./scantocomms.nix
     ./servegnucash.nix
     ./taskserver
