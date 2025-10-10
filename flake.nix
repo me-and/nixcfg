@@ -126,25 +126,37 @@
         )
         boxen;
 
-      nixosModules =
-        {
-          default.imports = [./nixos/common];
-        }
-        // mapAttrs (name: value: import value) (self.lib.subdirfiles {
+      nixosModules = let
+        default = {
+          imports = [./nixos/common];
+        };
+        systemModules = mapAttrs (n: v: import v) (self.lib.subdirfiles {
           dir = ./nixos;
           filename = "configuration.nix";
-        })
-        // mapAttrs (name: value: import value) (self.lib.dirfiles {dir = ./extraModules/nixos;});
+        });
+        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./extraModules/nixos;});
+      in
+        self.lib.unionOfDisjointAttrsList [
+          {inherit default;}
+          systemModules
+          optionalModules
+        ];
 
-      hmModules =
-        {
-          default.imports = [./home-manager/common];
-        }
-        // mapAttrs (name: value: import value) (self.lib.subdirfiles {
+      hmModules = let
+        default = {
+          imports = [./home-manager/common];
+        };
+        systemModules = mapAttrs (n: v: import v) (self.lib.subdirfiles {
           dir = ./home-manager;
           filename = "home.nix";
-        })
-        // mapAttrs (name: value: import value) (self.lib.dirfiles {dir = ./extraModules/home-manager;});
+        });
+        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./extraModules/home-maanager;});
+      in
+        self.lib.unionOfDisjointAttrsList [
+          {inherit default;}
+          systemModules
+          optionalModules
+        ];
 
       overlays =
         builtins.mapAttrs
