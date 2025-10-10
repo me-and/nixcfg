@@ -18,6 +18,7 @@ in {
     ./gnome.nix
     ./gui-common.nix
     ./mail.nix
+    ./mosh.nix
     ./nginx.nix
     ./nix-builder.nix
     ./nix-index.nix
