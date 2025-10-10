@@ -7,7 +7,6 @@
     ./nix-builder.nix
     ./nix-cache.nix
     ./nixbuild.net.nix
-    ./openvpn.nix
     ./pd
     ./postfix.nix
     ./rclone.nix
