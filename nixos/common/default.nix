@@ -19,6 +19,7 @@ in {
     ./mail.nix
     ./mosh.nix
     ./nginx.nix
+    ./nixbuild.net.nix
     ./nix-index.nix
     ./pd
     ./plasma.nix
