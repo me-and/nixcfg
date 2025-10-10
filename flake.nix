@@ -128,10 +128,7 @@
 
       nixosModules =
         {
-          default.imports = [
-            ./common
-            ./nixos/common
-          ];
+          default.imports = [./nixos/common];
         }
         // mapAttrs (name: value: import value) (self.lib.subdirfiles {
           dir = ./nixos;
@@ -141,10 +138,7 @@
 
       hmModules =
         {
-          default.imports = [
-            ./common
-            ./home-manager/common
-          ];
+          default.imports = [./home-manager/common];
         }
         // mapAttrs (name: value: import value) (self.lib.subdirfiles {
           dir = ./home-manager;
