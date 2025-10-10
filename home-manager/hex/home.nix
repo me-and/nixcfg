@@ -30,12 +30,14 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [
-    ./fonts.nix
-    ./keepassxc.nix
-    flake.self.hmModules.mypy
-  ];
-
+  imports =
+    [
+      flake.self.hmModules.mypy
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["home.nix"];
+    });
   home.stateVersion = "24.11";
 
   home.packages = with pkgs;
