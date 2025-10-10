@@ -951,6 +951,13 @@ in {
         }
       ];
 
+      # I want the Jellyfin service to be higher priority than standard user
+      # services.
+      services.jellyfin.niceness = -5;
+
+      # I should be able to do stuff with the Jellyfin-managed files.
+      users.users."${config.users.me}".extraGroups = [config.services.jellyfin.group];
+
       # Run the configure script with root permissions so it can access
       # password files.
       systemd.services.jellyfin-configure = {

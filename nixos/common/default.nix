@@ -13,7 +13,6 @@ in {
     ../../common
     ./avahi.nix
     ./emergency.nix
-    ./jellyfin.nix
     ./garbage.nix
     ./gnome.nix
     ./gui-common.nix

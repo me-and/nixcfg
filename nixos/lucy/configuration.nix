@@ -7,6 +7,7 @@
   imports = [
     ./archives.nix
     ./hardware-configuration.nix
+    ./jellyfin.nix
     ./media.nix
     flake.nixos-hardware.nixosModules.raspberry-pi-4
   ];
