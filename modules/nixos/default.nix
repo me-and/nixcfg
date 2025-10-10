@@ -9,7 +9,6 @@
     ./nixbuild.net.nix
     ./openvpn.nix
     ./pd
-    ./pi.nix
     ./postfix.nix
     ./rclone.nix
     ./sudo.nix
