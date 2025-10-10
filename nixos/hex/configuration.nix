@@ -4,13 +4,16 @@
   flake,
   ...
 }: {
-  imports = [
-    ./hardware-configuration.nix
-    ./pd.nix
-    flake.nixos-hardware.nixosModules.framework-16-7040-amd
-    flake.self.nixosModules.winapps
-    flake.self.nixosModules.nix-builder
-  ];
+  imports =
+    [
+      flake.nixos-hardware.nixosModules.framework-16-7040-amd
+      flake.self.nixosModules.winapps
+      flake.self.nixosModules.nix-builder
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["configuration.nix"];
+    });
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

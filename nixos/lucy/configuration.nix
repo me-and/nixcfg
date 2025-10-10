@@ -4,17 +4,14 @@
   flake,
   ...
 }: {
-  imports = [
-    ./archives.nix
-    ./hardware-configuration.nix
-    ./jellyfin.nix
-    ./media.nix
-    ./rclone.nix
-    ./scantocomms.nix
-    ./servegnucash.nix
-    ./taskserver
-    flake.nixos-hardware.nixosModules.raspberry-pi-4
-  ];
+  imports =
+    [
+      flake.nixos-hardware.nixosModules.raspberry-pi-4
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["configuration.nix"];
+    });
 
   boot.initrd.systemd.enable = true;
   boot.initrd.systemd.tpm2.enable = false;

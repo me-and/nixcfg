@@ -6,24 +6,10 @@
   ...
 }: let
 in {
-  imports = [
-    ./bash
-    ./email.nix
-    ./firefox.nix
-    ./forward.nix
-    ./garbage.nix
-    ./git.nix
-    ./homeshick.nix
-    ./host.nix
-    ./jq
-    ./latex.nix
-    ./python.nix
-    ./rclone.nix
-    ./syncthing.nix
-    ./systemd.nix
-    ./taskwarrior
-    ./vim.nix
-  ];
+  imports = builtins.attrValues (flake.self.lib.dirfiles {
+    dir = ./.;
+    excludes = ["default.nix"];
+  });
 
   home = {
     homeDirectory = lib.mkDefault "/home/${config.home.username}";

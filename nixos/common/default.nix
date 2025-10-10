@@ -8,25 +8,10 @@
 }: let
   defaultPrio = (lib.mkOptionDefault null).priority;
 in {
-  imports = [
-    ./avahi.nix
-    ./emergency.nix
-    ./garbage.nix
-    ./gnome.nix
-    ./gui-common.nix
-    ./mail.nix
-    ./mosh.nix
-    ./nginx.nix
-    ./nixbuild.net.nix
-    ./nix-index.nix
-    ./pd
-    ./plasma.nix
-    ./root.nix
-    ./sudo.nix
-    ./systemd.nix
-    ./user.nix
-    ./vim.nix
-  ];
+  imports = builtins.attrValues (flake.self.lib.dirfiles {
+    dir = ./.;
+    excludes = ["default.nix"];
+  });
 
   # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
   # Nix builds -- notably install images -- from being able to complete.

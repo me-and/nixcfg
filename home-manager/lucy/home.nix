@@ -1,4 +1,5 @@
 {
+  flake,
   config,
   lib,
   pkgs,
@@ -40,7 +41,14 @@
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./calendar-emails.nix];
+  imports =
+    [
+      ./calendar-emails.nix
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["home.nix"];
+    });
 
   home.stateVersion = "24.11";
 
