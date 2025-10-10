@@ -21,7 +21,7 @@ in {
           The systems for which to use nixbuild.net as a build machine.
         '';
         default = buildSystems;
-        example = [(builtins.elemAt buildSystems 0)];
+        example = [(builtins.head buildSystems)];
       };
     };
 
@@ -116,7 +116,7 @@ in {
             systems = cfg.builds.systems;
             supportedFeatures = ["benchmark" "big-parallel" "kvm" "nixos-test"];
             sshKey = cfg.sshKeyPath;
-            maxJobs = 1000;
+            maxJobs = 10000;
           }
         ];
       };
