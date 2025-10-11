@@ -175,6 +175,8 @@
       in {
         legacyPackages = import ./. {inherit pkgs;};
         packages = lib.filterAttrs (n: v: lib.isDerivation v) self.legacyPackages."${system}";
+
+        formatter = pkgs.nixfmt-tree;
       }
     );
 }

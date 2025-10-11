@@ -20,7 +20,6 @@ in {
     # there's a new NixOS release.
     packages = with pkgs;
       [
-        alejandra
         ascii
         bintools
         dig.dnsutils
@@ -39,6 +38,7 @@ in {
         ncdu
         nix-diff
         nix-output-monitor
+        nixfmt-tree
         nixos-generators
         nixpkgs-review
         psmisc
