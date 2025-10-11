@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   fqdn = config.networking.fqdn;
   hasFqdn = (builtins.tryEval fqdn).success;
 
@@ -20,7 +21,7 @@
     };
 
     # Always want to be able to use `mail` to send emails.
-    environment.systemPackages = [pkgs.mailutils];
+    environment.systemPackages = [ pkgs.mailutils ];
     environment.etc = lib.mkIf hasFqdn {
       "mailutils.conf".text = ''
         address {
@@ -32,22 +33,19 @@
 
   # If there's no relay host but we do have an FQDN, we should be able to send
   # mail to remote SMTP servers directly.  Configure that.
-  postfixLocalSendConfig =
-    lib.mkIf (
-      cfg.enable
-      && hasFqdn
-      && (cfg.relayHost == "")
-    ) {
-      # Create certificates for the server.
-      security.acme.certs."${fqdn}" = {};
+  postfixLocalSendConfig = lib.mkIf (cfg.enable && hasFqdn && (cfg.relayHost == "")) {
+    # Create certificates for the server.
+    security.acme.certs."${fqdn}" = { };
 
-      services.postfix = let
+    services.postfix =
+      let
         certDir = config.security.acme.certs."${fqdn}".directory;
-      in {
+      in
+      {
         sslKey = "${certDir}/key.pem";
         sslCert = "${certDir}/cert.pem";
       };
-    };
+  };
 
   # Stuff for configuring authentication to a relay server.  Most of this could
   # be configured using services.postfix.mapFiles, but that would put secrets
@@ -71,27 +69,32 @@
         ExecStart = pkgs.mypkgs.writeCheckedShellScript {
           name = "postfix-configure-auth.sh";
           purePath = true;
-          runtimeInputs = [pkgs.coreutils];
-          text = let
-            authFilePath = "/etc/nixos/secrets/sasl_passwd";
-          in ''
-            umask 0027
-            mkdir -p /etc/postfix
-            cp -- \
-                ${lib.strings.escapeShellArg authFilePath} \
-                /etc/postfix/sasl_passwd
-            ${pkgs.postfix}/bin/postmap /etc/postfix/sasl_passwd
-          '';
+          runtimeInputs = [ pkgs.coreutils ];
+          text =
+            let
+              authFilePath = "/etc/nixos/secrets/sasl_passwd";
+            in
+            ''
+              umask 0027
+              mkdir -p /etc/postfix
+              cp -- \
+                  ${lib.strings.escapeShellArg authFilePath} \
+                  /etc/postfix/sasl_passwd
+              ${pkgs.postfix}/bin/postmap /etc/postfix/sasl_passwd
+            '';
         };
       };
-      requiredBy = ["postfix.service" "postfix-setup.service"];
-      before = ["postfix.service"];
-      after = ["postfix-setup.service"];
+      requiredBy = [
+        "postfix.service"
+        "postfix-setup.service"
+      ];
+      before = [ "postfix.service" ];
+      after = [ "postfix-setup.service" ];
 
       # postfix-setup.service will wipe the postfix directory, so the
       # postfix-configure-smtp service needs to be restarted if postfix-setup
       # is restarted.
-      bindsTo = ["postfix-setup.service"];
+      bindsTo = [ "postfix-setup.service" ];
     };
 
     # Restart postfix to pick up new authentication data if and when it
@@ -101,8 +104,8 @@
     ];
   };
 in
-  lib.mkMerge [
-    commonConfig
-    postfixLocalSendConfig
-    postfixRelayConfig
-  ]
+lib.mkMerge [
+  commonConfig
+  postfixLocalSendConfig
+  postfixRelayConfig
+]

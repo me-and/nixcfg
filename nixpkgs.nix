@@ -1,5 +1,7 @@
-{lib, ...}: {
-  nixpkgs.config.allowUnfreePredicate = pkg:
+{ lib, ... }:
+{
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
     builtins.elem (lib.getName pkg) [
       "albertus-fonts"
       "azuredatastudio"

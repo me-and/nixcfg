@@ -7,13 +7,14 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   options.programs.latex.enable = lib.mkEnableOption "LaTeX";
 
-  config = let
-    latex = pkgs.texliveMinimal.withPackages (
-      ps:
-        with ps; [
+  config =
+    let
+      latex = pkgs.texliveMinimal.withPackages (
+        ps: with ps; [
           babel-english
           collection-basic
           collection-latex
@@ -26,9 +27,9 @@
           nth
           xurl
         ]
-    );
-  in
+      );
+    in
     lib.mkIf config.programs.latex.enable {
-      home.packages = [latex];
+      home.packages = [ latex ];
     };
 }

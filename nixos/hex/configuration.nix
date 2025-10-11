@@ -3,17 +3,19 @@
   pkgs,
   flake,
   ...
-}: {
-  imports =
-    [
-      flake.nixos-hardware.nixosModules.framework-16-7040-amd
-      flake.self.nixosModules.winapps
-      flake.self.nixosModules.nix-builder
-    ]
-    ++ builtins.attrValues (flake.self.lib.dirfiles {
+}:
+{
+  imports = [
+    flake.nixos-hardware.nixosModules.framework-16-7040-amd
+    flake.self.nixosModules.winapps
+    flake.self.nixosModules.nix-builder
+  ]
+  ++ builtins.attrValues (
+    flake.self.lib.dirfiles {
       dir = ./.;
-      excludes = ["configuration.nix"];
-    });
+      excludes = [ "configuration.nix" ];
+    }
+  );
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -88,9 +90,10 @@
   # https://github.com/FrameworkComputer/framework-system/issues/43
   # https://github.com/NixOS/nixpkgs/issues/365709
   boot.kernelPackages =
-    if pkgs.linuxPackages.kernelAtLeast "6.10"
-    then pkgs.linuxPackages
-    else pkgs.linuxKernel.packages.linux_6_12;
+    if pkgs.linuxPackages.kernelAtLeast "6.10" then
+      pkgs.linuxPackages
+    else
+      pkgs.linuxKernel.packages.linux_6_12;
 
   nix.settings = {
     max-jobs = 4;

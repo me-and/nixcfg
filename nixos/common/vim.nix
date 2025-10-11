@@ -3,7 +3,8 @@
   lib,
   options,
   ...
-}: {
+}:
+{
   programs.vim = {
     enable = true;
     defaultEditor = true;

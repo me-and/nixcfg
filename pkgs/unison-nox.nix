@@ -1,1 +1,1 @@
-{unison}: unison.override {enableX11 = false;}
+{ unison }: unison.override { enableX11 = false; }

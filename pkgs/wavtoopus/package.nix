@@ -10,6 +10,9 @@ substCheckedShellApplication {
   src = ./wavtoopus.sh;
   substitutions = {
     inherit runtimeShell;
-    PATH = lib.makeBinPath [coreutils opusTools];
+    PATH = lib.makeBinPath [
+      coreutils
+      opusTools
+    ];
   };
 }

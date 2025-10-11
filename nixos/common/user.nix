@@ -2,18 +2,20 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.users;
-in {
+in
+{
   options.users.me = lib.mkOption {
     type = lib.types.str;
     description = "My username";
-    apply = username: let
-      normalUsers =
-        builtins.filter (user: user.isNormalUser)
-        (builtins.attrValues config.users.users);
-      normalUserNames = map (user: user.name) normalUsers;
-    in
+    apply =
+      username:
+      let
+        normalUsers = builtins.filter (user: user.isNormalUser) (builtins.attrValues config.users.users);
+        normalUserNames = map (user: user.name) normalUsers;
+      in
       username;
   };
 
@@ -25,7 +27,10 @@ in {
     users.users."${cfg.me}" = {
       isNormalUser = true;
       description = "Adam Dinwoodie";
-      extraGroups = ["wheel" "cdrom"];
+      extraGroups = [
+        "wheel"
+        "cdrom"
+      ];
       linger = true;
       # TODO How do I check this file exists in a way
       # that's compatible with both the file being in
@@ -37,9 +42,10 @@ in {
       # the file expects to find it in a chroot and/or
       # after rebooting with the current /mnt now at
       # /).
-      hashedPasswordFile = let
-        filePath = "/etc/nixos/secrets/adam";
-      in
+      hashedPasswordFile =
+        let
+          filePath = "/etc/nixos/secrets/adam";
+        in
         #assert builtins.pathExists filePath;
         filePath;
     };

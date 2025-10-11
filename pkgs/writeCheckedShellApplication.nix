@@ -1,2 +1,3 @@
-{writeCheckedShellScript}: {name, ...} @ args:
-writeCheckedShellScript ({destination = "/bin/${name}";} // args)
+{ writeCheckedShellScript }:
+{ name, ... }@args:
+writeCheckedShellScript ({ destination = "/bin/${name}"; } // args)

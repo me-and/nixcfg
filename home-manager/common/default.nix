@@ -4,12 +4,16 @@
   lib,
   pkgs,
   ...
-}: let
-in {
-  imports = builtins.attrValues (flake.self.lib.dirfiles {
-    dir = ./.;
-    excludes = ["default.nix"];
-  });
+}:
+let
+in
+{
+  imports = builtins.attrValues (
+    flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = [ "default.nix" ];
+    }
+  );
 
   home = {
     homeDirectory = lib.mkDefault "/home/${config.home.username}";
@@ -18,9 +22,9 @@ in {
     # want to use the system home-manager installation.  In particular, that
     # avoids inconsistent Home Manager and NixOS installation versions when
     # there's a new NixOS release.
-    packages = with pkgs;
+    packages =
+      with pkgs;
       [
-        alejandra
         ascii
         bintools
         dig.dnsutils
@@ -39,6 +43,7 @@ in {
         ncdu
         nix-diff
         nix-output-monitor
+        nixfmt-tree
         nixos-generators
         nixpkgs-review
         psmisc
@@ -105,23 +110,22 @@ in {
       Type = "oneshot";
       ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "rm-nix-profiles";
-        text = let
-          nixPackage =
-            if config.nix.package == null
-            then pkgs.nix
-            else config.nix.package;
-        in ''
-          for p in ${lib.escapeShellArg config.xdg.stateHome}/nix/profiles/*; do
-              if [[ "$p" =~ (.*)-[0-9]+-link ]] &&
-                  [[ -e "''${BASH_REMATCH[1]}" ]]
-              then
-                  # This is a version of a profile, so ignore it
-                  :
-              else
-                  ${nixPackage}/bin/nix-env --delete-generations 180d -p "$p"
-              fi
-          done
-        '';
+        text =
+          let
+            nixPackage = if config.nix.package == null then pkgs.nix else config.nix.package;
+          in
+          ''
+            for p in ${lib.escapeShellArg config.xdg.stateHome}/nix/profiles/*; do
+                if [[ "$p" =~ (.*)-[0-9]+-link ]] &&
+                    [[ -e "''${BASH_REMATCH[1]}" ]]
+                then
+                    # This is a version of a profile, so ignore it
+                    :
+                else
+                    ${nixPackage}/bin/nix-env --delete-generations 180d -p "$p"
+                fi
+            done
+          '';
       };
     };
   };

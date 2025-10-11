@@ -2,7 +2,8 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   home.file =
     # TODO Move these files into Home Manager more competently; this directory
     # was just a lift-and-shift from my Homeshick castle.
@@ -10,10 +11,9 @@
     # Handle each file separately, rather than just linking the entire
     # directory, so that it's possible for other Home Manager config to add
     # files as well.
-    (lib.mapAttrs'
-      (name: value:
-        lib.nameValuePair ".bashrc.d/${name}" {source = ./bashrc.d + "/${name}";})
-      (builtins.readDir ./bashrc.d))
+    (lib.mapAttrs' (
+      name: value: lib.nameValuePair ".bashrc.d/${name}" { source = ./bashrc.d + "/${name}"; }
+    ) (builtins.readDir ./bashrc.d))
     // {
       # This gets sourced automatically if Bash completion is enabled.
       # TODO Move this config into Home Manager more competently, or just retire it
@@ -34,7 +34,7 @@
   programs.bash = {
     enable = true;
 
-    historyControl = ["ignoreboth"];
+    historyControl = [ "ignoreboth" ];
 
     shellAliases = {
       # Use colour.

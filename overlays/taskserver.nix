@@ -1,23 +1,26 @@
-final: prev: let
+final: prev:
+let
   inherit (final) patch patchutils writeShellApplication;
-in {
+in
+{
   taskserver = prev.taskserver.overrideAttrs (oldAttrs: {
     version = "1.1.0-unstable-2016-10-31";
     # The upstream repository has a now-dead URL for the submodule.  The
     # submodule is now available on GitHub, so wrap Git with a version that
     # includes rewriting the URL for the submodule.
-    src = let
-      git = writeShellApplication {
-        name = "git";
-        text = ''
-          exec ${final.git}/bin/git \
-              -c 'url.https://github.com/GothenburgBitFactory/.insteadOf=https://git.tasktools.org/scm/tm/' \
-              "$@"
-        '';
-      };
-      fetchgit = final.fetchgit.override {inherit git;};
-      fetchFromGitHub = final.fetchFromGitHub.override {inherit fetchgit;};
-    in
+    src =
+      let
+        git = writeShellApplication {
+          name = "git";
+          text = ''
+            exec ${final.git}/bin/git \
+                -c 'url.https://github.com/GothenburgBitFactory/.insteadOf=https://git.tasktools.org/scm/tm/' \
+                "$@"
+          '';
+        };
+        fetchgit = final.fetchgit.override { inherit git; };
+        fetchFromGitHub = final.fetchFromGitHub.override { inherit fetchgit; };
+      in
       fetchFromGitHub {
         owner = "GothenburgBitFactory";
         repo = "taskserver";
@@ -38,14 +41,15 @@ in {
     # I'd expect.  I suspect I want to delete the patchPhase attr (is that
     # possible in an override?) and put their patchPhase code in a
     # post-patch hook.
-    patchPhase = let
-      patchFile = final.mypkgs.fetchGitHubPatch {
-        owner = "GothenburgBitFactory";
-        repo = "taskserver";
-        commit = "bbd42468d284a3a954bdb233211a17b598036e98";
-        hash = "sha256-518qF8ui5GMmsdQRTm75zrBgMhlhB7ffi3B+plzlWKQ=";
-      };
-    in
+    patchPhase =
+      let
+        patchFile = final.mypkgs.fetchGitHubPatch {
+          owner = "GothenburgBitFactory";
+          repo = "taskserver";
+          commit = "bbd42468d284a3a954bdb233211a17b598036e98";
+          hash = "sha256-518qF8ui5GMmsdQRTm75zrBgMhlhB7ffi3B+plzlWKQ=";
+        };
+      in
       # Don't patch the changelog, partly because we don't need to, and
       # partly because the patch doesn't apply.
       ''

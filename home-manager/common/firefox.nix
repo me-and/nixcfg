@@ -3,9 +3,10 @@
   lib,
   options,
   ...
-}: {
+}:
+{
   programs.firefox = {
-    languagePacks = ["en-GB"];
+    languagePacks = [ "en-GB" ];
 
     profiles.default = {
       containersForce = true;

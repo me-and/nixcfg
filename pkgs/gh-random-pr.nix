@@ -8,7 +8,12 @@
 writeCheckedShellApplication {
   name = "gh-random-pr";
   purePath = true;
-  runtimeInputs = [jq gh coreutils file-age];
+  runtimeInputs = [
+    jq
+    gh
+    coreutils
+    file-age
+  ];
   text = ''
     declare -ir EX_USAGE=64
 

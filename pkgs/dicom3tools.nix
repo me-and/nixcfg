@@ -23,7 +23,7 @@
   xorg,
   # If you have your own UIDs allocated, this is the place to define them, e.g.
   # by adding `"-DDefaultUIDRoot=1.2.840.99999"`.
-  imakeConfigurationArgs ? [],
+  imakeConfigurationArgs ? [ ],
 }:
 stdenv.mkDerivation rec {
   pname = "dicom3tools";
@@ -52,8 +52,11 @@ stdenv.mkDerivation rec {
     imake -I./config ${lib.escapeShellArgs imakeConfigurationArgs}
     runHook postConfigure
   '';
-  buildFlags = ["World"];
-  installFlags = ["install" "install.man"];
+  buildFlags = [ "World" ];
+  installFlags = [
+    "install"
+    "install.man"
+  ];
 
   meta = {
     description = "Command line utilities for creating, modifying, dumping and validating files of DICOM attributes, and conversion of proprietary image formats to DICOM.";
@@ -67,7 +70,7 @@ stdenv.mkDerivation rec {
       deprecated = false;
       url = "https://www.dclunie.com/dicom3tools/COPYRIGHT";
     };
-    maintainers = [lib.maintainers.me-and];
-    sourceProvenance = [lib.sourceTypes.fromSource];
+    maintainers = [ lib.maintainers.me-and ];
+    sourceProvenance = [ lib.sourceTypes.fromSource ];
   };
 }

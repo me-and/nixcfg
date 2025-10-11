@@ -9,74 +9,94 @@
   writeTextFile,
   stdenv,
   shellcheck-minimal,
-}: let
+}:
+let
   runtimeShell' = runtimeShell;
 in
-  {
-    name,
-    text,
-    runtimeInputs ? [],
-    runtimeEnv ? {},
-    runtimeShell ? runtimeShell',
-    meta ? {},
-    checkPhase ? null,
-    excludeShellChecks ? ["SC2016"],
-    optionalShellChecks ? [
-      "check-extra-masked-returns"
-      "check-set-e-suppressed"
-      "deprecate-which"
-      "require-double-brackets"
-      "quote-safe-variables"
-    ],
-    extraShellCheckFlags ? [],
-    bashOptions ? ["errexit" "nounset" "pipefail"],
-    derivationArgs ? {},
-    destination ? "",
-    purePath ? false,
-  }: let
-    shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
-  in
-    writeTextFile {
-      inherit name meta destination derivationArgs;
-      executable = true;
+{
+  name,
+  text,
+  runtimeInputs ? [ ],
+  runtimeEnv ? { },
+  runtimeShell ? runtimeShell',
+  meta ? { },
+  checkPhase ? null,
+  excludeShellChecks ? [ "SC2016" ],
+  optionalShellChecks ? [
+    "check-extra-masked-returns"
+    "check-set-e-suppressed"
+    "deprecate-which"
+    "require-double-brackets"
+    "quote-safe-variables"
+  ],
+  extraShellCheckFlags ? [ ],
+  bashOptions ? [
+    "errexit"
+    "nounset"
+    "pipefail"
+  ],
+  derivationArgs ? { },
+  destination ? "",
+  purePath ? false,
+}:
+let
+  shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
+in
+writeTextFile {
+  inherit
+    name
+    meta
+    destination
+    derivationArgs
+    ;
+  executable = true;
 
-      text =
-        ''
-          #!${runtimeShell}
-        ''
-        + lib.optionalString (bashOptions != []) ''
-          shopt -so ${lib.escapeShellArgs bashOptions}
-        ''
-        + lib.concatStrings (lib.mapAttrsToList (name: value: ''
-            ${lib.toShellVar name value}
-            export ${name}
-          '')
-          runtimeEnv)
-        + lib.optionalString purePath ''
-          export PATH=
-        ''
-        + lib.optionalString (runtimeInputs != []) ''
-          export PATH=${lib.makeBinPath runtimeInputs}''${PATH:+:$PATH}
-        ''
-        + ''
-          ${text}
-        '';
+  text = ''
+    #!${runtimeShell}
+  ''
+  + lib.optionalString (bashOptions != [ ]) ''
+    shopt -so ${lib.escapeShellArgs bashOptions}
+  ''
+  + lib.concatStrings (
+    lib.mapAttrsToList (name: value: ''
+      ${lib.toShellVar name value}
+      export ${name}
+    '') runtimeEnv
+  )
+  + lib.optionalString purePath ''
+    export PATH=
+  ''
+  + lib.optionalString (runtimeInputs != [ ]) ''
+    export PATH=${lib.makeBinPath runtimeInputs}''${PATH:+:$PATH}
+  ''
+  + ''
+    ${text}
+  '';
 
-      checkPhase = let
-        excludeFlags = lib.optionals (excludeShellChecks != []) ["--exclude" (lib.concatStringsSep "," excludeShellChecks)];
-        optionalFlags = lib.optionals (optionalShellChecks != []) ["--enable" (lib.concatStringsSep "," optionalShellChecks)];
-      in
-        if checkPhase == null
-        then
-          ''
-            runHook preCheck
-            ${stdenv.shellDryRun} "$target"
-          ''
-          + lib.optionalString shellcheckSupported ''
-            ${lib.getExe shellcheck-minimal} ${lib.escapeShellArgs (excludeFlags ++ optionalFlags ++ extraShellCheckFlags)} "$target"
-          ''
-          + ''
-            runHook postCheck
-          ''
-        else checkPhase;
-    }
+  checkPhase =
+    let
+      excludeFlags = lib.optionals (excludeShellChecks != [ ]) [
+        "--exclude"
+        (lib.concatStringsSep "," excludeShellChecks)
+      ];
+      optionalFlags = lib.optionals (optionalShellChecks != [ ]) [
+        "--enable"
+        (lib.concatStringsSep "," optionalShellChecks)
+      ];
+    in
+    if checkPhase == null then
+      ''
+        runHook preCheck
+        ${stdenv.shellDryRun} "$target"
+      ''
+      + lib.optionalString shellcheckSupported ''
+        ${lib.getExe shellcheck-minimal} ${
+          lib.escapeShellArgs (excludeFlags ++ optionalFlags ++ extraShellCheckFlags)
+        } "$target"
+      ''
+      + ''
+        runHook postCheck
+      ''
+    else
+      checkPhase;
+}

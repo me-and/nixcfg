@@ -1,10 +1,17 @@
-{fetchpatch}: {
+{ fetchpatch }:
+{
   owner,
   repo,
   commit,
   ...
-} @ args:
+}@args:
 fetchpatch (
-  {url = "https://github.com/${owner}/${repo}/commit/${commit}.patch";}
-  // builtins.removeAttrs args ["owner" "repo" "commit"]
+  {
+    url = "https://github.com/${owner}/${repo}/commit/${commit}.patch";
+  }
+  // builtins.removeAttrs args [
+    "owner"
+    "repo"
+    "commit"
+  ]
 )

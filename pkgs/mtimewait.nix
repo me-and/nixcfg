@@ -15,11 +15,11 @@ stdenvNoCC.mkDerivation rec {
     hash = "sha256-7usTM6pKv6toLs61RGVtOHC4Yzh1YIgqFclA265vmtg=";
   };
   preferLocalBuild = true;
-  nativeBuildInputs = [makeWrapper];
+  nativeBuildInputs = [ makeWrapper ];
   installPhase = ''
     mkdir -p $out/bin
     cp mtimewait $out/bin/mtimewait
     wrapProgram $out/bin/mtimewait \
-        --set PATH ${lib.makeBinPath [coreutils]}
+        --set PATH ${lib.makeBinPath [ coreutils ]}
   '';
 }

@@ -1,9 +1,16 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   systemd.services.rclone-onedrive-check-archives = {
     description = "rclone check archives directory is in sync";
-    wants = ["network-online.target" "time-sync.target"];
-    after = ["network-online.target" "time-sync.target"];
-    unitConfig.RequiresMountsFor = ["/usr/local/share/archives"];
+    wants = [
+      "network-online.target"
+      "time-sync.target"
+    ];
+    after = [
+      "network-online.target"
+      "time-sync.target"
+    ];
+    unitConfig.RequiresMountsFor = [ "/usr/local/share/archives" ];
     serviceConfig = {
       User = "rclone";
       Group = "rclone";
@@ -34,15 +41,21 @@
       RandomizedOffsetSec = "1w";
       RandomizedDelaySec = "1h";
     };
-    wantedBy = ["timers.target"];
+    wantedBy = [ "timers.target" ];
   };
 
   systemd.services.rclone-onedrive-bisync-archives = {
     description = "rclone bisync of the archives directory";
-    wants = ["network-online.target" "time-sync.target"];
-    after = ["network-online.target" "time-sync.target"];
-    before = ["rclone-onedrive-check-archives.service"];
-    unitConfig.RequiresMountsFor = ["/usr/local/share/archives"];
+    wants = [
+      "network-online.target"
+      "time-sync.target"
+    ];
+    after = [
+      "network-online.target"
+      "time-sync.target"
+    ];
+    before = [ "rclone-onedrive-check-archives.service" ];
+    unitConfig.RequiresMountsFor = [ "/usr/local/share/archives" ];
     serviceConfig = {
       User = "rclone";
       Group = "rclone";

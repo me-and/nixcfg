@@ -6,11 +6,9 @@
 # when using `task count`.
 final: prev: {
   taskwarrior2 = prev.taskwarrior2.overrideAttrs (prevAttrs: {
-    patches =
-      (prevAttrs.patches or [])
-      ++ [
-        ./no-dep-repair.diff
-        ./count-parents.diff
-      ];
+    patches = (prevAttrs.patches or [ ]) ++ [
+      ./no-dep-repair.diff
+      ./count-parents.diff
+    ];
   });
 }

@@ -5,13 +5,17 @@
   options,
   pkgs,
   ...
-}: let
+}:
+let
   defaultPrio = (lib.mkOptionDefault null).priority;
-in {
-  imports = builtins.attrValues (flake.self.lib.dirfiles {
-    dir = ./.;
-    excludes = ["default.nix"];
-  });
+in
+{
+  imports = builtins.attrValues (
+    flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = [ "default.nix" ];
+    }
+  );
 
   # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
   # Nix builds -- notably install images -- from being able to complete.
@@ -27,7 +31,7 @@ in {
   console.useXkbConfig = true;
 
   # Always want a /mnt directory.
-  systemd.tmpfiles.rules = ["d /mnt"];
+  systemd.tmpfiles.rules = [ "d /mnt" ];
 
   # Always want screen.  Including this here looks like it also sets up some
   # PAM configuration, which is presumably relevant...
@@ -61,12 +65,16 @@ in {
 
   # Set up the Nix daemon to be able to access environment variables for
   # things like access to private GitHub repositories.
-  systemd.services.nix-daemon.serviceConfig.EnvironmentFile = "-/etc/nixos/secrets/nix-daemon-environment";
+  systemd.services.nix-daemon.serviceConfig.EnvironmentFile =
+    "-/etc/nixos/secrets/nix-daemon-environment";
 
   nix.settings = {
-    trusted-users = ["@wheel"];
+    trusted-users = [ "@wheel" ];
     sandbox = "relaxed";
-    experimental-features = ["nix-command" "flakes"];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
   };
 
   # Prioritize non-build work.
@@ -96,11 +104,14 @@ in {
   ];
 
   services.openssh.knownHosts = {
-    "cygwin.com".publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKoejTnTCbXaIIMYfbX7t4tYUOQ2bTxZC3e/td3BageF";
+    "cygwin.com".publicKey =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKoejTnTCbXaIIMYfbX7t4tYUOQ2bTxZC3e/td3BageF";
     # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
-    "github.com".publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
+    "github.com".publicKey =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
     # https://docs.gitlab.com/user/gitlab_com/
-    "gitlab.com".publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf";
+    "gitlab.com".publicKey =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf";
   };
 
   # Using flakes so have no need for channels.

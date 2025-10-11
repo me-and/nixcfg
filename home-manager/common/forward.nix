@@ -3,19 +3,25 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   # Home Manager checks there is only a single primary email account, so we
   # don't need to repeat that check here.
-  primaryEmailAccount =
-    lib.lists.findSingle (acc: acc.primary) null null
-    (builtins.attrValues config.accounts.email.accounts);
+  primaryEmailAccount = lib.lists.findSingle (acc: acc.primary) null null (
+    builtins.attrValues config.accounts.email.accounts
+  );
   primaryEmailAddress = primaryEmailAccount.address;
-in {
+in
+{
   imports = [
-    (lib.mkRemovedOptionModule ["accounts" "email" "forwardLocal"] "If it is useful, consider returning the config from your Git history!")
+    (lib.mkRemovedOptionModule [
+      "accounts"
+      "email"
+      "forwardLocal"
+    ] "If it is useful, consider returning the config from your Git history!")
   ];
 
-  home.activation.dotForward = lib.hm.dag.entryAfter ["writeBoundary"] ''
+  home.activation.dotForward = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     email_address=${lib.escapeShellArg primaryEmailAddress}
     forward_file=${lib.escapeShellArg config.home.homeDirectory}/.forward
 

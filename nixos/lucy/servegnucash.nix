@@ -3,12 +3,14 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   nginxCfg = config.services.nginx;
 
   filePath = "/home/adam/Documents/Gnucash/gnucash.gnucash";
   fqdn = config.networking.fqdn;
-in {
+in
+{
   environment.etc."nginx/auth/${fqdn}" = {
     user = nginxCfg.user;
     group = nginxCfg.group;
@@ -18,9 +20,9 @@ in {
 
   systemd.services.gnucash-to-nginx = {
     description = "Move GnuCash file into place for service by Nginx";
-    path = [pkgs.mypkgs.mtimewait];
-    wantedBy = ["nginx.service"];
-    before = ["nginx.service"];
+    path = [ pkgs.mypkgs.mtimewait ];
+    wantedBy = [ "nginx.service" ];
+    before = [ "nginx.service" ];
     environment = {
       SOURCE = filePath;
       DST_DIR = "/run/nginx-gnucash";
@@ -45,10 +47,10 @@ in {
 
   systemd.paths.gnucash-to-nginx = {
     description = "Move GnuCash file into place when it changes";
-    wantedBy = ["nginx.service"];
-    before = ["nginx.service"];
+    wantedBy = [ "nginx.service" ];
+    before = [ "nginx.service" ];
     pathConfig.PathChanged = filePath;
-    unitConfig.RequiresMountsFor = [filePath];
+    unitConfig.RequiresMountsFor = [ filePath ];
   };
 
   services.nginx = {

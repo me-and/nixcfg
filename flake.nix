@@ -26,155 +26,174 @@
     };
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    nixos-hardware,
-    home-manager,
-    winapps,
-    private,
-    user-systemd-config,
-  } @ flake: let
-    inherit (nixpkgs.lib.attrsets) mapAttrs mapAttrs' nameValuePair optionalAttrs;
-    inherit (nixpkgs.lib.lists) optional optionals;
-    inherit (nixpkgs.lib.strings) removeSuffix;
-
-    boxen = {
-      hex = {
-        system = "x86_64-linux";
-        me = "adam";
-      };
-
-      lucy = {
-        system = "aarch64-linux";
-        me = "adam";
-      };
-    };
-  in
+  outputs =
     {
-      nixosConfigurations =
-        mapAttrs (
-          name: {
-            system,
-            me,
-            includePersonal ? true,
-            ...
-          }:
-            nixpkgs.lib.nixosSystem {
-              specialArgs = {
-                inherit flake;
-              };
-              modules = let
+      self,
+      nixpkgs,
+      flake-utils,
+      nixos-hardware,
+      home-manager,
+      winapps,
+      private,
+      user-systemd-config,
+    }@flake:
+    let
+      inherit (nixpkgs.lib.attrsets)
+        mapAttrs
+        mapAttrs'
+        nameValuePair
+        optionalAttrs
+        ;
+      inherit (nixpkgs.lib.lists) optional optionals;
+      inherit (nixpkgs.lib.strings) removeSuffix;
+
+      boxen = {
+        hex = {
+          system = "x86_64-linux";
+          me = "adam";
+        };
+
+        lucy = {
+          system = "aarch64-linux";
+          me = "adam";
+        };
+      };
+    in
+    {
+      nixosConfigurations = mapAttrs (
+        name:
+        {
+          system,
+          me,
+          includePersonal ? true,
+          ...
+        }:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit flake;
+          };
+          modules =
+            let
+              allModules = source: [
+                (source.nixosModules.default or { })
+                (source.nixosModules."${name}" or { })
+                (optionalAttrs includePersonal (source.nixosModules.personal or { }))
+              ];
+            in
+            [
+              {
+                users.me = me;
+                networking.hostName = name;
+              }
+              home-manager.nixosModules.default
+            ]
+            ++ allModules self
+            ++ allModules private;
+        }
+      ) boxen;
+
+      homeConfigurations = mapAttrs' (
+        name:
+        {
+          system,
+          me,
+          includePersonal ? true,
+          ...
+        }:
+        nameValuePair "${me}@${name}" (
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = nixpkgs.legacyPackages."${system}";
+            extraSpecialArgs = {
+              inherit flake;
+            };
+            modules =
+              let
+                # TODO Looks like some things included in this list might
+                # get evaluated twice, which is *mostly* fine unless there
+                # are multiple config options that get added to a
+                # configured list.
                 allModules = source: [
-                  (source.nixosModules.default or {})
-                  (source.nixosModules."${name}" or {})
-                  (optionalAttrs includePersonal (source.nixosModules.personal or {}))
+                  (source.hmModules.default or { })
+                  (source.hmModules."${me}" or { })
+                  (source.hmModules."${name}" or { })
+                  (source.hmModules."${me}@${name}" or { })
+                  (optionalAttrs includePersonal (source.hmModules.personal or { }))
                 ];
               in
-                [
-                  {
-                    users.me = me;
-                    networking.hostName = name;
-                  }
-                  home-manager.nixosModules.default
-                ]
-                ++ allModules self
-                ++ allModules private;
+              [
+                {
+                  home.username = me;
+                  home.hostName = name;
+                }
+              ]
+              ++ allModules self
+              ++ allModules private;
+          }
+        )
+      ) boxen;
+
+      nixosModules =
+        let
+          default = {
+            imports = [
+              ./nixpkgs.nix
+              ./nixos/common
+            ];
+          };
+          systemModules = mapAttrs (n: v: import v) (
+            self.lib.subdirfiles {
+              dir = ./nixos;
+              filename = "configuration.nix";
             }
-        )
-        boxen;
-
-      homeConfigurations =
-        mapAttrs' (
-          name: {
-            system,
-            me,
-            includePersonal ? true,
-            ...
-          }:
-            nameValuePair "${me}@${name}"
-            (
-              home-manager.lib.homeManagerConfiguration {
-                pkgs = nixpkgs.legacyPackages."${system}";
-                extraSpecialArgs = {
-                  inherit flake;
-                };
-                modules = let
-                  # TODO Looks like some things included in this list might
-                  # get evaluated twice, which is *mostly* fine unless there
-                  # are multiple config options that get added to a
-                  # configured list.
-                  allModules = source: [
-                    (source.hmModules.default or {})
-                    (source.hmModules."${me}" or {})
-                    (source.hmModules."${name}" or {})
-                    (source.hmModules."${me}@${name}" or {})
-                    (optionalAttrs includePersonal (source.hmModules.personal or {}))
-                  ];
-                in
-                  [
-                    {
-                      home.username = me;
-                      home.hostName = name;
-                    }
-                  ]
-                  ++ allModules self
-                  ++ allModules private;
-              }
-            )
-        )
-        boxen;
-
-      nixosModules = let
-        default = {
-          imports = [./nixpkgs.nix ./nixos/common];
-        };
-        systemModules = mapAttrs (n: v: import v) (self.lib.subdirfiles {
-          dir = ./nixos;
-          filename = "configuration.nix";
-        });
-        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./modules/nixos;});
-      in
+          );
+          optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./modules/nixos; });
+        in
         self.lib.unionOfDisjointAttrsList [
-          {inherit default;}
+          { inherit default; }
           systemModules
           optionalModules
         ];
 
-      hmModules = let
-        default = {
-          imports = [./nixpkgs.nix ./home-manager/common];
-        };
-        systemModules = mapAttrs (n: v: import v) (self.lib.subdirfiles {
-          dir = ./home-manager;
-          filename = "home.nix";
-        });
-        optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles {dir = ./modules/home-manager;});
-      in
+      hmModules =
+        let
+          default = {
+            imports = [
+              ./nixpkgs.nix
+              ./home-manager/common
+            ];
+          };
+          systemModules = mapAttrs (n: v: import v) (
+            self.lib.subdirfiles {
+              dir = ./home-manager;
+              filename = "home.nix";
+            }
+          );
+          optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./modules/home-manager; });
+        in
         self.lib.unionOfDisjointAttrsList [
-          {inherit default;}
+          { inherit default; }
           systemModules
           optionalModules
         ];
 
-      overlays =
-        builtins.mapAttrs
-        (n: v: import v)
-        (self.lib.dirfiles {dir = ./overlays;});
+      overlays = builtins.mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./overlays; });
 
-      lib = import ./lib.nix {inherit (nixpkgs) lib;};
+      lib = import ./lib.nix { inherit (nixpkgs) lib; };
     }
     // flake-utils.lib.eachDefaultSystem (
-      system: let
+      system:
+      let
         pkgs = import nixpkgs {
           inherit system;
           overlays = builtins.attrValues self.overlays;
         };
         lib = pkgs.lib;
-      in {
-        legacyPackages = import ./. {inherit pkgs;};
+      in
+      {
+        legacyPackages = import ./. { inherit pkgs; };
         packages = lib.filterAttrs (n: v: lib.isDerivation v) self.legacyPackages."${system}";
+
+        formatter = pkgs.nixfmt-tree;
       }
     );
 }
