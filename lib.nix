@@ -3,6 +3,6 @@
 in
   lib.packagesFromDirectoryRecursive {
     callPackage = lib.callPackageWith packagesForCall;
-    newScope = extra: lib.callPackageWith (packagesForCall // extra);
+    newScope = extra: lib.callPackageWith (lib.attrsets.unionOfDisjoint packagesForCall extra);
     directory = ./lib;
   }
