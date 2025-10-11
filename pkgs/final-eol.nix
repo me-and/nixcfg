@@ -6,43 +6,53 @@
   vim,
   stdenv,
   shellcheck-minimal,
-}: let
-  script = {
-    onFinalEol,
-    noFinalEol,
-  }: ''
-    #!${runtimeShell}
-    shopt -so errexit nounset pipefail
+}:
+let
+  script =
+    {
+      onFinalEol,
+      noFinalEol,
+    }:
+    ''
+      #!${runtimeShell}
+      shopt -so errexit nounset pipefail
 
-    PATH=${lib.makeBinPath [coreutils vim.xxd]}
-    export PATH
+      PATH=${
+        lib.makeBinPath [
+          coreutils
+          vim.xxd
+        ]
+      }
+      export PATH
 
-    if (( $# == 0 )); then
-        echo 'No files specified' >&2
-        exit 1
-    fi
+      if (( $# == 0 )); then
+          echo 'No files specified' >&2
+          exit 1
+      fi
 
-    rc=0
-    for f; do
-        final_byte="$(xxd -p -s-1 -- "$f")"
-        if [[ "$final_byte" = '0a' ]]; then
-            ${onFinalEol}
-        else
-            ${noFinalEol}
-        fi
-    done
+      rc=0
+      for f; do
+          final_byte="$(xxd -p -s-1 -- "$f")"
+          if [[ "$final_byte" = '0a' ]]; then
+              ${onFinalEol}
+          else
+              ${noFinalEol}
+          fi
+      done
 
-    exit "$rc"
-  '';
+      exit "$rc"
+    '';
   skipCmd = ''
     printf 'Skipped %s\n' "$f" >&2
     rc=1
   '';
 in
-  runCommand
-  "final-eol"
+runCommand "final-eol"
   {
-    passAsFile = ["addFinalEol" "rmFinalEol"];
+    passAsFile = [
+      "addFinalEol"
+      "rmFinalEol"
+    ];
     addFinalEol = script {
       onFinalEol = skipCmd;
       noFinalEol = ''
@@ -55,9 +65,10 @@ in
       '';
       noFinalEol = skipCmd;
     };
-    checkPhase = let
-      shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
-    in
+    checkPhase =
+      let
+        shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
+      in
       ''
         runHook preCheck
         for f in "$out"/bin/add-final-eol "$out"/bin/rm-final-eol; do

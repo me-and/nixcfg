@@ -1,2 +1,3 @@
-{substCheckedShellScript}: {name, ...} @ args:
-substCheckedShellScript ({destination = "/bin/${name}";} // args)
+{ substCheckedShellScript }:
+{ name, ... }@args:
+substCheckedShellScript ({ destination = "/bin/${name}"; } // args)

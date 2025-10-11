@@ -2,9 +2,11 @@
 # it.  Use a downloaded version of the database rather than building locally,
 # because building locally is at best memory hungry, and at worst seems to take
 # my Raspberry Pi offline due to it running out of memory.
-{pkgs, ...}: let
+{ pkgs, ... }:
+let
   nix_index_dir = "/var/cache/nix-index";
-in {
+in
+{
   programs.nix-index.enable = true;
   programs.nix-index.enableBashIntegration = true;
   programs.command-not-found.enable = false;
@@ -12,8 +14,8 @@ in {
 
   systemd.services.nix-index = {
     environment.NIX_INDEX_DATABASE = nix_index_dir;
-    wants = ["network-online.target"];
-    after = ["network-online.target"];
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
     serviceConfig.Type = "oneshot";
     serviceConfig.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
       name = "update-nix-index.sh";
@@ -55,7 +57,7 @@ in {
     };
   };
   systemd.timers.nix-index = {
-    wantedBy = ["timers.target"];
+    wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "daily";
       AccuracySec = "24h";

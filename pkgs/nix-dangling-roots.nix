@@ -11,7 +11,10 @@
 writeCheckedShellApplication {
   name = "nix-dangling-roots";
   purePath = true;
-  runtimeInputs = [findutils coreutils];
+  runtimeInputs = [
+    findutils
+    coreutils
+  ];
   text = ''
     exclude_args=(
         \! -lname '/home/*/.cache/nix/flake-registry.json'

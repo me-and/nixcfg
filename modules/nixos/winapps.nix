@@ -18,10 +18,12 @@
   pkgs,
   flake,
   ...
-}: let
+}:
+let
   system = config.nixpkgs.hostPlatform.system;
   winappsPkgs = flake.winapps.packages."${system}";
-in {
+in
+{
   virtualisation.podman.enable = true;
   environment.systemPackages = [
     pkgs.podman-compose
@@ -30,7 +32,7 @@ in {
   ];
 
   nix.settings = {
-    substituters = ["https://winapps.cachix.org/"];
-    trusted-public-keys = ["winapps.cachix.org-1:HI82jWrXZsQRar/PChgIx1unmuEsiQMQq+zt05CD36g="];
+    substituters = [ "https://winapps.cachix.org/" ];
+    trusted-public-keys = [ "winapps.cachix.org-1:HI82jWrXZsQRar/PChgIx1unmuEsiQMQq+zt05CD36g=" ];
   };
 }

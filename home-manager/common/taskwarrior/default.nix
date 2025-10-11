@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.programs.taskwarrior;
 
   # TODO Finish converting the config from the original taskrc file currently
@@ -76,65 +77,194 @@
       blocks.type = "string";
     };
 
-    report = let
-      oldOrNewColumnConfig = {
-        columns = ["id" "start.age" "entry.age" "modified.age" "depends.indicator" "status.short" "priority" "project" "tags" "recur.indicator" "wait.remaining" "scheduled.relative" "due.relative" "until.relative" "description.count" "urgency"];
-        labels = ["ID" "Active" "Age" "Mod" "D" "S" "P" "Proj" "Tag" "R" "Wait" "Sch" "Due" "Until" "Description" "Urg"];
-        filter = "status:pending or status:waiting";
-        context = false;
-      };
-    in {
-      next = {
-        columns = ["id" "start.age" "entry.age" "depends" "priority" "project" "tags" "recur" "scheduled.countdown" "due.relative" "until.remaining" "description.count" "urgency"];
-        labels = ["ID" "Act" "Age" "Deps" "P" "Project" "Tag" "R" "S" "Due" "Unt" "Description" "Urg"];
-        filter = "-COMPLETED -DELETED -PARENT ( ( -WAITING -waitingfor -BLOCKED ) or ( +OVERDUE hiddenTags.noword:overdueallowed ) or +inbox )";
-      };
-
-      waitingfor = {
-        description = "Tasks where I'm waiting on others";
-        filter = "+waitingfor status:pending -BLOCKED -inbox";
-        columns = ["id" "project" "due.relative" "until.remaining" "description.count"];
-        labels = ["ID" "Proj" "Due" "Until" "Description"];
-        context = false;
-        sort = ["due+"];
-      };
-
-      waitingfor-full = {
-        description = "All tasks where I'm waiting on others";
-        filter = "+waitingfor (status:pending or status:waiting)";
-        columns = ["id" "start.age" "project" "tags" "depends" "wait.remaining" "due.relative" "until.remaining" "description"];
-        labels = ["ID" "Age" "Proj" "Tag" "Dep" "Wait" "Due" "Until" "Description"];
-        context = false;
-        sort = ["due+"];
-      };
-
-      oldest = oldOrNewColumnConfig;
-      newest = oldOrNewColumnConfig;
-      byid =
-        oldOrNewColumnConfig
-        // {
-          description = "By ID for ease of wrangling";
-          sort = ["id"];
+    report =
+      let
+        oldOrNewColumnConfig = {
+          columns = [
+            "id"
+            "start.age"
+            "entry.age"
+            "modified.age"
+            "depends.indicator"
+            "status.short"
+            "priority"
+            "project"
+            "tags"
+            "recur.indicator"
+            "wait.remaining"
+            "scheduled.relative"
+            "due.relative"
+            "until.relative"
+            "description.count"
+            "urgency"
+          ];
+          labels = [
+            "ID"
+            "Active"
+            "Age"
+            "Mod"
+            "D"
+            "S"
+            "P"
+            "Proj"
+            "Tag"
+            "R"
+            "Wait"
+            "Sch"
+            "Due"
+            "Until"
+            "Description"
+            "Urg"
+          ];
+          filter = "status:pending or status:waiting";
+          context = false;
         };
-      all.context = false;
-      completed.context = false;
+      in
+      {
+        next = {
+          columns = [
+            "id"
+            "start.age"
+            "entry.age"
+            "depends"
+            "priority"
+            "project"
+            "tags"
+            "recur"
+            "scheduled.countdown"
+            "due.relative"
+            "until.remaining"
+            "description.count"
+            "urgency"
+          ];
+          labels = [
+            "ID"
+            "Act"
+            "Age"
+            "Deps"
+            "P"
+            "Project"
+            "Tag"
+            "R"
+            "S"
+            "Due"
+            "Unt"
+            "Description"
+            "Urg"
+          ];
+          filter = "-COMPLETED -DELETED -PARENT ( ( -WAITING -waitingfor -BLOCKED ) or ( +OVERDUE hiddenTags.noword:overdueallowed ) or +inbox )";
+        };
 
-      # More useful "completed" report details, which shows less extraneous
-      # detail and prioritises showing the most recently completed tasks.
-      completed = {
-        columns = ["id" "uuid.short" "end.age" "priority" "project" "tags" "due" "description"];
-        labels = ["ID" "UUID" "Done" "P" "Proj" "Tags" "Due" "Description"];
-        sort = ["end-"];
+        waitingfor = {
+          description = "Tasks where I'm waiting on others";
+          filter = "+waitingfor status:pending -BLOCKED -inbox";
+          columns = [
+            "id"
+            "project"
+            "due.relative"
+            "until.remaining"
+            "description.count"
+          ];
+          labels = [
+            "ID"
+            "Proj"
+            "Due"
+            "Until"
+            "Description"
+          ];
+          context = false;
+          sort = [ "due+" ];
+        };
+
+        waitingfor-full = {
+          description = "All tasks where I'm waiting on others";
+          filter = "+waitingfor (status:pending or status:waiting)";
+          columns = [
+            "id"
+            "start.age"
+            "project"
+            "tags"
+            "depends"
+            "wait.remaining"
+            "due.relative"
+            "until.remaining"
+            "description"
+          ];
+          labels = [
+            "ID"
+            "Age"
+            "Proj"
+            "Tag"
+            "Dep"
+            "Wait"
+            "Due"
+            "Until"
+            "Description"
+          ];
+          context = false;
+          sort = [ "due+" ];
+        };
+
+        oldest = oldOrNewColumnConfig;
+        newest = oldOrNewColumnConfig;
+        byid = oldOrNewColumnConfig // {
+          description = "By ID for ease of wrangling";
+          sort = [ "id" ];
+        };
+        all.context = false;
+        completed.context = false;
+
+        # More useful "completed" report details, which shows less extraneous
+        # detail and prioritises showing the most recently completed tasks.
+        completed = {
+          columns = [
+            "id"
+            "uuid.short"
+            "end.age"
+            "priority"
+            "project"
+            "tags"
+            "due"
+            "description"
+          ];
+          labels = [
+            "ID"
+            "UUID"
+            "Done"
+            "P"
+            "Proj"
+            "Tags"
+            "Due"
+            "Description"
+          ];
+          sort = [ "end-" ];
+        };
+
+        # Include waiting tasks in the built-in reports I use, as I don't
+        # want those to be hidden.
+        overdue.filter = "( status:pending or status:waiting ) +OVERDUE";
+        recurring.filter = "( ( status:pending or status:waiting ) +CHILD ) or ( status:recurring +PARENT )";
+
+        # Show full project names in the "all" report.
+        all.columns = [
+          "id"
+          "status.short"
+          "uuid.short"
+          "start.age"
+          "entry.age"
+          "end.age"
+          "depends.indicator"
+          "priority"
+          "project"
+          "tags"
+          "recur.indicator"
+          "wait.relative"
+          "scheduled.relative"
+          "due.relative"
+          "until.relative"
+          "description"
+        ];
       };
-
-      # Include waiting tasks in the built-in reports I use, as I don't
-      # want those to be hidden.
-      overdue.filter = "( status:pending or status:waiting ) +OVERDUE";
-      recurring.filter = "( ( status:pending or status:waiting ) +CHILD ) or ( status:recurring +PARENT )";
-
-      # Show full project names in the "all" report.
-      all.columns = ["id" "status.short" "uuid.short" "start.age" "entry.age" "end.age" "depends.indicator" "priority" "project" "tags" "recur.indicator" "wait.relative" "scheduled.relative" "due.relative" "until.relative" "description"];
-    };
 
     # Default to a report that'll show blocked and waiting tasks.
     default.command = "oldest";
@@ -194,49 +324,51 @@
     # I have a big shell prompt, so allow multiple lines for it.
     reserved.lines = 3;
 
-    context = let
-      readFilter = s: "( ${s} ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )";
-    in {
-      evening-weekend.read = readFilter "-business -southport -dadford -work -office";
-      allotment.read = readFilter "-home -southport -dadford -enfield -work -office";
-      day-off = {
-        # Prioritise things that can only be done in business hours.
-        read = readFilter "-southport -dadford -work -office";
-        rc.urgency.user.tag.business.coefficient = 6;
-      };
-      work = {
-        # Prioritise things that can only be done at work or in business
-        # hours.
-        read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex";
-        rc.urgency.user.tag = {
-          work.coefficient = 6;
-          business.coefficient = 4;
+    context =
+      let
+        readFilter = s: "( ${s} ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )";
+      in
+      {
+        evening-weekend.read = readFilter "-business -southport -dadford -work -office";
+        allotment.read = readFilter "-home -southport -dadford -enfield -work -office";
+        day-off = {
+          # Prioritise things that can only be done in business hours.
+          read = readFilter "-southport -dadford -work -office";
+          rc.urgency.user.tag.business.coefficient = 6;
+        };
+        work = {
+          # Prioritise things that can only be done at work or in business
+          # hours.
+          read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex";
+          rc.urgency.user.tag = {
+            work.coefficient = 6;
+            business.coefficient = 4;
+          };
+        };
+        dadford = {
+          # Prioritise things that can only be done on site, and filter out
+          # things that aren't urgent and aren't PD related.
+          read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
+          write = "+dadford";
+          rc.urgency.user.tag.dadford.coefficient = 10;
+        };
+        southport = {
+          # Prioritise things that can only be done in Southport.
+          read = readFilter "-allotment -enfield -dadford -home -work -office";
+          rc.urgency.user.tag.southport.coefficient = 20;
+        };
+        bike.read = readFilter "-home -southport -dadford -enfield -work -office -car -multivac -cornwall -phone -alex";
+        bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -office -pc -multivac -hex -audio -business -alex -car -cornwall -phone -surface";
+        office = {
+          # Prioritise things that can only be done in the office.
+          read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex -home -car";
+          rc.urgency.user.tag = {
+            business.coefficient = 2;
+            work.coefficient = 6;
+            office.coefficient = 10;
+          };
         };
       };
-      dadford = {
-        # Prioritise things that can only be done on site, and filter out
-        # things that aren't urgent and aren't PD related.
-        read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
-        write = "+dadford";
-        rc.urgency.user.tag.dadford.coefficient = 10;
-      };
-      southport = {
-        # Prioritise things that can only be done in Southport.
-        read = readFilter "-allotment -enfield -dadford -home -work -office";
-        rc.urgency.user.tag.southport.coefficient = 20;
-      };
-      bike.read = readFilter "-home -southport -dadford -enfield -work -office -car -multivac -cornwall -phone -alex";
-      bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -office -pc -multivac -hex -audio -business -alex -car -cornwall -phone -surface";
-      office = {
-        # Prioritise things that can only be done in the office.
-        read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex -home -car";
-        rc.urgency.user.tag = {
-          business.coefficient = 2;
-          work.coefficient = 6;
-          office.coefficient = 10;
-        };
-      };
-    };
 
     urgency.user.tag = {
       # Default urgency coefficients for things that have context-specific
@@ -259,7 +391,20 @@
 
     # Remove "special" from the set of verbose values, since I know what
     # "next" does and I don't use any of the other special tags.
-    verbose = ["affected" "blank" "context" "edit" "header" "footnote" "label" "new-id" "project" "sync" "override" "recur"];
+    verbose = [
+      "affected"
+      "blank"
+      "context"
+      "edit"
+      "header"
+      "footnote"
+      "label"
+      "new-id"
+      "project"
+      "sync"
+      "override"
+      "recur"
+    ];
   };
 
   # Disable the built-in aliases by configuring them to be themselves.  If I
@@ -277,7 +422,12 @@
   # Rejig priorities: I want L to mean "explicitly low", and to rescore
   # accordingly.
   priorityConfig = {
-    uda.priority.values = ["H" "M" "" "L"];
+    uda.priority.values = [
+      "H"
+      "M"
+      ""
+      "L"
+    ];
     urgency.uda.priority = {
       H.coefficient = 6;
       M.coefficient = 1.8;
@@ -347,7 +497,7 @@
           RandomizedDelaySec = "10min";
           Persistent = true;
         };
-        Install.WantedBy = ["timers.target"];
+        Install.WantedBy = [ "timers.target" ];
       };
     };
   };
@@ -363,14 +513,24 @@
       trust = "strict";
     };
   };
-in {
+in
+{
   imports = [
-    (lib.mkRenamedOptionModule ["programs" "taskwarrior" "createRecurringTasks"] ["programs" "taskwarrior" "config" "recurrence"])
-    (lib.mkRemovedOptionModule ["programs" "taskwarrior" "sync"] "Instead, set programs.taskwarrior.config.taskd as required.")
+    (lib.mkRenamedOptionModule
+      [ "programs" "taskwarrior" "createRecurringTasks" ]
+      [ "programs" "taskwarrior" "config" "recurrence" ]
+    )
+    (lib.mkRemovedOptionModule [
+      "programs"
+      "taskwarrior"
+      "sync"
+    ] "Instead, set programs.taskwarrior.config.taskd as required.")
   ];
 
   options.programs.taskwarrior = {
-    autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = true;};
+    autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {
+      default = true;
+    };
 
     onedriveBackup = lib.mkEnableOption "backup of Taskwarrior data to OneDrive";
   };
@@ -390,26 +550,26 @@ in {
         ];
       };
 
-      home.packages = [pkgs.mypkgs.task-project-report];
+      home.packages = [ pkgs.mypkgs.task-project-report ];
 
       # TODO Patch these properly to use a Nix-appropriate shebang.
-      home.file =
-        lib.mapAttrs'
-        (
-          k: v:
-            lib.attrsets.nameValuePair
-            "${cfg.config.hooks.location}/${k}"
-            {source = ./hooks + "/${k}";}
-        )
-        (builtins.readDir ./hooks);
+      home.file = lib.mapAttrs' (
+        k: v: lib.attrsets.nameValuePair "${cfg.config.hooks.location}/${k}" { source = ./hooks + "/${k}"; }
+      ) (builtins.readDir ./hooks);
 
       systemd.user = {
         services = {
           "resolve-host-a@" = {
             Unit = {
               Description = "Check %I resolves";
-              Wants = ["network.target" "network-online.target"];
-              After = ["network.target" "network-online.target"];
+              Wants = [
+                "network.target"
+                "network-online.target"
+              ];
+              After = [
+                "network.target"
+                "network-online.target"
+              ];
             };
             Service = {
               Type = "oneshot";
@@ -436,21 +596,32 @@ in {
           taskwarrior-gc-stable = {
             Unit = {
               Description = "Perform Taskwarrior garbage collection once the undo file is stable";
-              Wants = ["taskwarrior-wait-for-stability.service"];
-              After = ["taskwarrior-wait-for-stability.service"];
+              Wants = [ "taskwarrior-wait-for-stability.service" ];
+              After = [ "taskwarrior-wait-for-stability.service" ];
             };
             Service = config.systemd.user.services.taskwarrior-gc.Service;
           };
 
           taskwarrior-sync = {
-            Unit = let
-              domain = lib.head (lib.splitString ":" config.programs.taskwarrior.config.taskd.server);
-            in {
-              Description = "Sync Taskwarrior data";
-              Wants = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
-              After = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];
-              Before = ["taskwarrior-gc.service" "taskwarrior-gc-stable.service"];
-            };
+            Unit =
+              let
+                domain = lib.head (lib.splitString ":" config.programs.taskwarrior.config.taskd.server);
+              in
+              {
+                Description = "Sync Taskwarrior data";
+                Wants = [
+                  "resolve-host-a@${domain}.service"
+                  "taskwarrior-wait-for-stability.service"
+                ];
+                After = [
+                  "resolve-host-a@${domain}.service"
+                  "taskwarrior-wait-for-stability.service"
+                ];
+                Before = [
+                  "taskwarrior-gc.service"
+                  "taskwarrior-gc-stable.service"
+                ];
+              };
             Service = {
               Type = "oneshot";
               ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
@@ -465,7 +636,7 @@ in {
           taskwarrior-gc = {
             Unit.Description = "Perform Taskwarrior garbage collection at start of day";
             Timer.OnStartupSec = "0s";
-            Install.WantedBy = ["timers.target"];
+            Install.WantedBy = [ "timers.target" ];
           };
 
           taskwarrior-gc-stable = {
@@ -474,7 +645,7 @@ in {
               OnCalendar = "02:00";
               AccuracySec = "4h";
             };
-            Install.WantedBy = ["timers.target"];
+            Install.WantedBy = [ "timers.target" ];
           };
 
           # Use a timer to start taskwarrior-sync at start of day rather than
@@ -484,7 +655,7 @@ in {
             Unit.Description = "Sync Taskwarrior data at start of day";
             Timer.OnStartupSec = "0s";
             Timer.Unit = "taskwarrior-sync.service";
-            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
+            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync [ "timers.target" ];
           };
 
           taskwarrior-sync = {
@@ -494,7 +665,7 @@ in {
               RandomizedDelaySec = "15m";
               AccuracySec = "15m";
             };
-            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync ["timers.target"];
+            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync [ "timers.target" ];
           };
         };
       };

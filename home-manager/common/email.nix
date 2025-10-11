@@ -1,4 +1,5 @@
-{config, ...}: {
+{ config, ... }:
+{
   # Configure accounts.email.accounts.*.address in private config flake.
   accounts.email.accounts.main = {
     primary = true;

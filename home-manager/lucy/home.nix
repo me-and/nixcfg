@@ -4,51 +4,53 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
-    ".config/systemd/user/${from}.wants/${instanceUnit}".source = config.home.file.".config/systemd".source + "/user/${baseUnit}";
+    ".config/systemd/user/${from}.wants/${instanceUnit}".source =
+      config.home.file.".config/systemd".source + "/user/${baseUnit}";
   };
   systemdWants = unit: systemdWantsAlias unit unit;
-  systemdWantsInstance = unit: instance: let
-    instanceUnit = builtins.replaceStrings ["@."] ["@${instance}."] unit;
-  in
+  systemdWantsInstance =
+    unit: instance:
+    let
+      instanceUnit = builtins.replaceStrings [ "@." ] [ "@${instance}." ] unit;
+    in
     systemdWantsAlias unit instanceUnit;
 
   systemdWantsService = name: systemdWants "${name}.service" "default.target";
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
-  systemdServiceSymlinks = map systemdWantsService [];
+  systemdServiceSymlinks = map systemdWantsService [ ];
   systemdTimerSymlinks =
-    (
-      map systemdWantsTimer [
-        "disk-usage-report"
-        "report-onedrive-conflicts"
-        "taskwarrior-inbox"
-        "taskwarrior-monthly"
-        "taskwarrior-project-check"
-      ]
-    )
-    ++ [(systemdWantsInstance "offlineimap-full@.timer" "main" "timers.target")];
+    (map systemdWantsTimer [
+      "disk-usage-report"
+      "report-onedrive-conflicts"
+      "taskwarrior-inbox"
+      "taskwarrior-monthly"
+      "taskwarrior-project-check"
+    ])
+    ++ [ (systemdWantsInstance "offlineimap-full@.timer" "main" "timers.target") ];
   systemdPathSymlinks = map systemdWantsPath [
     "taskwarrior-dinwoodie.org-emails"
     "sign-petitions"
   ];
 
   systemdSymlinks = lib.mergeAttrsList (
-    systemdServiceSymlinks
-    ++ systemdTimerSymlinks
-    ++ systemdPathSymlinks
+    systemdServiceSymlinks ++ systemdTimerSymlinks ++ systemdPathSymlinks
   );
-in {
-  imports =
-    [
-      ./calendar-emails.nix
-    ]
-    ++ builtins.attrValues (flake.self.lib.dirfiles {
+in
+{
+  imports = [
+    ./calendar-emails.nix
+  ]
+  ++ builtins.attrValues (
+    flake.self.lib.dirfiles {
       dir = ./.;
-      excludes = ["home.nix"];
-    });
+      excludes = [ "home.nix" ];
+    }
+  );
 
   home.stateVersion = "24.11";
 
@@ -58,7 +60,7 @@ in {
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
   # Add the wavtoopus utility.
-  home.packages = [pkgs.mypkgs.wavtoopus];
+  home.packages = [ pkgs.mypkgs.wavtoopus ];
 
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
@@ -71,7 +73,7 @@ in {
       Service.Type = "oneshot";
       Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "flag-stale-active-tasks.sh";
-        runtimeInputs = [config.programs.taskwarrior.package];
+        runtimeInputs = [ config.programs.taskwarrior.package ];
         text = ''
           task_quick_quiet () {
               task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 "$@"
@@ -91,14 +93,14 @@ in {
   systemd.user.timers = {
     taskwarrior-create-recurring-tasks = {
       Unit.Description = "Create recurring Taskwarrior tasks daily";
-      Install.WantedBy = ["timers.target"];
+      Install.WantedBy = [ "timers.target" ];
       Timer.OnCalendar = "01:00";
       Timer.AccuracySec = "6h";
       Timer.Persistent = true;
     };
     taskwarrior-check-active-tasks = {
       Unit.Description = "Daily check for tasks that have been active too long";
-      Install.WantedBy = ["timers.target"];
+      Install.WantedBy = [ "timers.target" ];
       Timer.OnCalendar = "01:00";
       Timer.AccuracySec = "6h";
       Timer.RandomizedDelaySec = "1h";

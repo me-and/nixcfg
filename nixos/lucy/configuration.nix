@@ -3,15 +3,17 @@
   pkgs,
   flake,
   ...
-}: {
-  imports =
-    [
-      flake.nixos-hardware.nixosModules.raspberry-pi-4
-    ]
-    ++ builtins.attrValues (flake.self.lib.dirfiles {
+}:
+{
+  imports = [
+    flake.nixos-hardware.nixosModules.raspberry-pi-4
+  ]
+  ++ builtins.attrValues (
+    flake.self.lib.dirfiles {
       dir = ./.;
-      excludes = ["configuration.nix"];
-    });
+      excludes = [ "configuration.nix" ];
+    }
+  );
 
   boot.initrd.systemd.enable = true;
   boot.initrd.systemd.tpm2.enable = false;
@@ -26,7 +28,13 @@
   };
 
   # Allow working with all LVM features I sometimes use.
-  boot.initrd.kernelModules = ["dm-snapshot" "dm-raid" "dm-mirror" "dm-cache" "dm-cache-smq"];
+  boot.initrd.kernelModules = [
+    "dm-snapshot"
+    "dm-raid"
+    "dm-mirror"
+    "dm-cache"
+    "dm-cache-smq"
+  ];
 
   system.stateVersion = "24.11";
   networking.domain = "dinwoodie.org";
@@ -39,7 +47,10 @@
     };
   };
 
-  services.openssh.ports = [22 44035];
+  services.openssh.ports = [
+    22
+    44035
+  ];
 
   # TODO This isn't working; can I fix it?
   systemd.watchdog = {
@@ -50,10 +61,10 @@
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
 
-  fileSystems."/home/adam/.cache/mail".options = ["noexec"];
+  fileSystems."/home/adam/.cache/mail".options = [ "noexec" ];
   services.snapper.configs.mail = {
     SUBVOLUME = "/home/adam/.cache/mail";
-    ALLOW_USERS = [config.users.me];
+    ALLOW_USERS = [ config.users.me ];
     SYNC_ACL = true;
     BACKGROUND_COMPARISON = true;
     TIMELINE_CREATE = true;

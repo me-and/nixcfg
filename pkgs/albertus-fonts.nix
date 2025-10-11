@@ -2,7 +2,8 @@
   lib,
   requireFile,
   runCommandLocal,
-}: let
+}:
+let
   fontTarball = requireFile {
     name = "Albertus.tar.xz";
     message = ''
@@ -12,7 +13,7 @@
     sha1 = "3f9d0a8ffd2b0627f9c2279fcc8f7146a64997a5";
   };
 in
-  runCommandLocal "albertus-fonts"
+runCommandLocal "albertus-fonts"
   {
     meta.license = lib.licenses.unfree;
   }

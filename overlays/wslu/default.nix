@@ -6,6 +6,6 @@
 # context when I can just remember the standard Bash features.
 final: prev: {
   wslu = prev.wslu.overrideAttrs (prevAttrs: {
-    patches = (prevAttrs.patches or []) ++ [./set-x.diff];
+    patches = (prevAttrs.patches or [ ]) ++ [ ./set-x.diff ];
   });
 }

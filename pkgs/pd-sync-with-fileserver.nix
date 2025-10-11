@@ -5,7 +5,7 @@
 }:
 writeCheckedShellApplication {
   name = "pd-sync-with-fileserver";
-  runtimeInputs = [coreutils];
+  runtimeInputs = [ coreutils ];
   text = ''
     declare -r SOURCE=/usr/share/gonzo
     declare -r DEST="$HOME/Profound Decisions"

@@ -1,4 +1,5 @@
-{lib, ...}: {
+{ lib, ... }:
+{
   services.syncthing = {
     overrideDevices = lib.mkDefault true;
     overrideFolders = lib.mkDefault true;

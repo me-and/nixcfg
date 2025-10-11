@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.nix.nixBuildDotNet;
 
   buildSystems = [
@@ -11,7 +12,8 @@
     "aarch64-linux"
     "armv7l-linux"
   ];
-in {
+in
+{
   options.nix.nixBuildDotNet = {
     builds = {
       enable = lib.mkEnableOption "using nixbuild.net as a build system";
@@ -21,7 +23,7 @@ in {
           The systems for which to use nixbuild.net as a build machine.
         '';
         default = buildSystems;
-        example = [(builtins.head buildSystems)];
+        example = [ (builtins.head buildSystems) ];
       };
     };
 
@@ -49,91 +51,97 @@ in {
   };
 
   imports = [
-    (
-      lib.mkRenamedOptionModule
-      ["nix" "nixBuildDotNet" "enable"]
-      ["nix" "nixBuildDotNet" "builds" "enable"]
+    (lib.mkRenamedOptionModule
+      [ "nix" "nixBuildDotNet" "enable" ]
+      [ "nix" "nixBuildDotNet" "builds" "enable" ]
     )
-    (
-      lib.mkChangedOptionModule
-      ["nix" "nixBuildDotNet" "enableBuildSystems"]
-      ["nix" "nixBuildDotNet" "builds"]
+    (lib.mkChangedOptionModule
+      [ "nix" "nixBuildDotNet" "enableBuildSystems" ]
+      [ "nix" "nixBuildDotNet" "builds" ]
       (
         config:
-          if config.nix.nixBuildDotNet.enableBuildSystems == []
-          then {
+        if config.nix.nixBuildDotNet.enableBuildSystems == [ ] then
+          {
             enable = false;
           }
-          else {
+        else
+          {
             enable = true;
             systems = config.nix.nixBuildDotNet.enableBuildSystems;
           }
       )
     )
-    (
-      lib.mkRenamedOptionModule
-      ["nix" "nixBuildDotNet" "enableSubstituter"]
-      ["nix" "nixBuildDotNet" "substituter" "enable"]
+    (lib.mkRenamedOptionModule
+      [ "nix" "nixBuildDotNet" "enableSubstituter" ]
+      [ "nix" "nixBuildDotNet" "substituter" "enable" ]
     )
-    (
-      lib.mkRemovedOptionModule
-      ["nix" "nixBuildDotNet" "substituterOrder"]
-      ''
-        The previous configuration did not reliably affect the order with which
-        Nix would use substituters.  That's what the priority argument is for,
-        which can be set with nix.nixBuildDotNet.substituter.priority.
-      ''
-    )
+    (lib.mkRemovedOptionModule [ "nix" "nixBuildDotNet" "substituterOrder" ] ''
+      The previous configuration did not reliably affect the order with which
+      Nix would use substituters.  That's what the priority argument is for,
+      which can be set with nix.nixBuildDotNet.substituter.priority.
+    '')
   ];
 
-  config = let
-    sharedConfig = lib.mkIf (cfg.builds.enable || cfg.substituter.enable) {
-      programs.ssh.extraConfig = ''
-        Host eu.nixbuild.net
-            PubkeyAcceptedKeyTypes ssh-ed25519
-            ServerAliveInterval 60
-            IPQoS throughput
-      '';
-      programs.ssh.knownHosts = {
-        nixbuild = {
-          hostNames = ["eu.nixbuild.net"];
-          publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPIQCZc54poJ8vqawd8TraNryQeJnvH1eLpIDgbiqymM";
+  config =
+    let
+      sharedConfig = lib.mkIf (cfg.builds.enable || cfg.substituter.enable) {
+        programs.ssh.extraConfig = ''
+          Host eu.nixbuild.net
+              PubkeyAcceptedKeyTypes ssh-ed25519
+              ServerAliveInterval 60
+              IPQoS throughput
+        '';
+        programs.ssh.knownHosts = {
+          nixbuild = {
+            hostNames = [ "eu.nixbuild.net" ];
+            publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPIQCZc54poJ8vqawd8TraNryQeJnvH1eLpIDgbiqymM";
+          };
         };
       };
-    };
 
-    builderConfig = lib.mkIf cfg.builds.enable {
-      nix = {
-        # Ideally this would only be set for these specific builders rather
-        # than changing the global default, but that doesn't seem to be
-        # possible.
-        settings.builders-use-substitutes = lib.mkDefault true;
-        distributedBuilds = true;
+      builderConfig = lib.mkIf cfg.builds.enable {
+        nix = {
+          # Ideally this would only be set for these specific builders rather
+          # than changing the global default, but that doesn't seem to be
+          # possible.
+          settings.builders-use-substitutes = lib.mkDefault true;
+          distributedBuilds = true;
 
-        buildMachines = [
-          {
-            hostName = "eu.nixbuild.net";
-            systems = cfg.builds.systems;
-            supportedFeatures = ["benchmark" "big-parallel" "kvm" "nixos-test"];
-            sshKey = cfg.sshKeyPath;
-            maxJobs = 10000;
-          }
-        ];
+          buildMachines = [
+            {
+              hostName = "eu.nixbuild.net";
+              systems = cfg.builds.systems;
+              supportedFeatures = [
+                "benchmark"
+                "big-parallel"
+                "kvm"
+                "nixos-test"
+              ];
+              sshKey = cfg.sshKeyPath;
+              maxJobs = 10000;
+            }
+          ];
+        };
       };
-    };
 
-    substituterConfig = let
-      storeUrl =
-        if cfg.substituter.priority == null
-        then "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}"
-        else "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}&priority=${toString cfg.substituter.priority}";
+      substituterConfig =
+        let
+          storeUrl =
+            if cfg.substituter.priority == null then
+              "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}"
+            else
+              "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}&priority=${toString cfg.substituter.priority}";
+        in
+        lib.mkIf cfg.substituter.enable {
+          nix.settings = {
+            substituters = [ storeUrl ];
+            trusted-public-keys = [ "nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio=" ];
+          };
+        };
     in
-      lib.mkIf cfg.substituter.enable {
-        nix.settings = {
-          substituters = [storeUrl];
-          trusted-public-keys = ["nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio="];
-        };
-      };
-  in
-    lib.mkMerge [sharedConfig builderConfig substituterConfig];
+    lib.mkMerge [
+      sharedConfig
+      builderConfig
+      substituterConfig
+    ];
 }

@@ -4,43 +4,48 @@
   pkgs,
   flake,
   ...
-}: let
+}:
+let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
-    ".config/systemd/user/${from}.wants/${instanceUnit}".source = config.home.file.".config/systemd".source + "/user/${baseUnit}";
+    ".config/systemd/user/${from}.wants/${instanceUnit}".source =
+      config.home.file.".config/systemd".source + "/user/${baseUnit}";
   };
   systemdWants = unit: systemdWantsAlias unit unit;
-  systemdWantsInstance = unit: instance: let
-    instanceUnit = builtins.replaceStrings ["@."] ["@${instance}."] unit;
-  in
+  systemdWantsInstance =
+    unit: instance:
+    let
+      instanceUnit = builtins.replaceStrings [ "@." ] [ "@${instance}." ] unit;
+    in
     systemdWantsAlias unit instanceUnit;
 
   systemdWantsService = name: systemdWants "${name}.service" "default.target";
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
-  systemdServiceSymlinks = map systemdWantsService [];
+  systemdServiceSymlinks = map systemdWantsService [ ];
   systemdTimerSymlinks = map systemdWantsTimer [
     "disk-usage-report"
   ];
-  systemdPathSymlinks = [];
+  systemdPathSymlinks = [ ];
 
   systemdSymlinks = lib.mergeAttrsList (
-    systemdServiceSymlinks
-    ++ systemdTimerSymlinks
-    ++ systemdPathSymlinks
+    systemdServiceSymlinks ++ systemdTimerSymlinks ++ systemdPathSymlinks
   );
-in {
-  imports =
-    [
-      flake.self.hmModules.mypy
-    ]
-    ++ builtins.attrValues (flake.self.lib.dirfiles {
+in
+{
+  imports = [
+    flake.self.hmModules.mypy
+  ]
+  ++ builtins.attrValues (
+    flake.self.lib.dirfiles {
       dir = ./.;
-      excludes = ["home.nix"];
-    });
+      excludes = [ "home.nix" ];
+    }
+  );
   home.stateVersion = "24.11";
 
-  home.packages = with pkgs;
+  home.packages =
+    with pkgs;
     [
       abcde
       android-tools # adb

@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   # Disable Gnome packages I don't want.
   environment.gnome.excludePackages = with pkgs; [
     gnome-tour

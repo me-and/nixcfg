@@ -12,19 +12,21 @@
   makeBinaryWrapper,
   python3,
   asmodeus,
-}: let
-  python = python3.withPackages (pp: [(asmodeus.override {python3Packages = pp;})]);
+}:
+let
+  python = python3.withPackages (pp: [ (asmodeus.override { python3Packages = pp; }) ]);
 in
-  stdenvNoCC.mkDerivation {
-    pname = "tmux-taskloop";
-    version = "0.1.0";
-    src = ./.;
-    buildInputs = [
-      bashInteractive
-      makeBinaryWrapper
-    ];
-    preferLocalBuild = true;
-    installPhase = let
+stdenvNoCC.mkDerivation {
+  pname = "tmux-taskloop";
+  version = "0.1.0";
+  src = ./.;
+  buildInputs = [
+    bashInteractive
+    makeBinaryWrapper
+  ];
+  preferLocalBuild = true;
+  installPhase =
+    let
       taskloopPath = lib.makeBinPath [
         bashInteractive
         coreutils
@@ -34,7 +36,8 @@ in
         ncurses
         python
       ];
-    in ''
+    in
+    ''
       mkdir -p $out/bin $out/lib $out/libexec
 
       cp taskloop $out/libexec
@@ -69,4 +72,4 @@ in
               '@@TASKLOOP@@' \
               "$out/libexec/taskloop"
     '';
-  }
+}

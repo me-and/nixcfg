@@ -2,9 +2,11 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.programs.mosh;
-in {
+in
+{
   options.programs.mosh.portRange = lib.mkOption {
     type = lib.types.nullOr (lib.types.attrsOf lib.types.port);
     default = null;
@@ -18,6 +20,6 @@ in {
     # Don't use the default port configuration.
     programs.mosh.openFirewall = false;
 
-    networking.firewall.allowedUDPPortRanges = [cfg.portRange];
+    networking.firewall.allowedUDPPortRanges = [ cfg.portRange ];
   };
 }

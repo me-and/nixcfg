@@ -17,13 +17,24 @@ stdenvNoCC.mkDerivation {
     hash = "sha256-DfKGIgb4OR528bebyaqhacqXpeANpIiSVH+98v1hHuM=";
   };
   preferLocalBuild = true;
-  nativeBuildInputs = [makeWrapper];
+  nativeBuildInputs = [ makeWrapper ];
   installPhase = ''
     mkdir -p $out/bin
     cp aaisp-quota month-left $out/bin
     wrapProgram $out/bin/aaisp-quota \
-        --set PATH ${lib.makeBinPath [coreutils jq curl]}
+        --set PATH ${
+          lib.makeBinPath [
+            coreutils
+            jq
+            curl
+          ]
+        }
     wrapProgram $out/bin/month-left \
-        --set PATH ${lib.makeBinPath [coreutils gnused]}
+        --set PATH ${
+          lib.makeBinPath [
+            coreutils
+            gnused
+          ]
+        }
   '';
 }

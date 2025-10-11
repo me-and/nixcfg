@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   # Check times all randomly generated.
   mediaDirectories = [
     {
@@ -47,9 +48,12 @@
         mountDirPerms = "0775";
         mountFilePerms = "0664";
         cacheMode = "writes";
-        extraRcloneArgs = ["--vfs-fast-fingerprint" "--vfs-cache-min-free-space=1G"];
+        extraRcloneArgs = [
+          "--vfs-fast-fingerprint"
+          "--vfs-cache-min-free-space=1G"
+        ];
         extraUnitConfig = {
-          unitConfig.RequiresMountsFor = ["/run/av"];
+          unitConfig.RequiresMountsFor = [ "/run/av" ];
           serviceConfig.ExecStartPre = [
             "${pkgs.coreutils}/bin/mkdir -p /usr/local/share/av/${d.local}"
           ];
@@ -58,10 +62,10 @@
     ];
 
     services.jellyfin = {
-      requiredSystemdUnits = ["rclone-mount@usr-local-share-av-${d.local}.service"];
+      requiredSystemdUnits = [ "rclone-mount@usr-local-share-av-${d.local}.service" ];
       libraries."${d.libraryName}" = {
         type = d.libraryType;
-        paths = ["/usr/local/share/av/${d.local}"];
+        paths = [ "/usr/local/share/av/${d.local}" ];
         includePhotos = d.includePhotos;
       };
     };
@@ -69,9 +73,15 @@
     # Config for checking the local files match the ones on OneDrive.
     systemd.services."rclone-onedrive-check-${d.local}" = {
       description = "rclone check ${d.local} directory is in sync";
-      wants = ["network-online.target" "time-sync.target"];
-      after = ["network-online.target" "time-sync.target"];
-      unitConfig.RequiresMountsFor = ["/run/av/${d.local}"];
+      wants = [
+        "network-online.target"
+        "time-sync.target"
+      ];
+      after = [
+        "network-online.target"
+        "time-sync.target"
+      ];
+      unitConfig.RequiresMountsFor = [ "/run/av/${d.local}" ];
       serviceConfig = {
         User = "rclone";
         Group = "rclone";
@@ -102,15 +112,21 @@
         RandomizedOffsetSec = "1w";
         RandomizedDelaySec = "1h";
       };
-      wantedBy = ["timers.target"];
+      wantedBy = [ "timers.target" ];
     };
 
     systemd.services."rclone-onedrive-bisync-${d.local}" = {
       description = "rclone bisync of the ${d.local} directory";
-      wants = ["network-online.target" "time-sync.target"];
-      after = ["network-online.target" "time-sync.target"];
-      before = ["rclone-onedrive-check-${d.local}.service"];
-      unitConfig.RequiresMountsFor = ["/run/av/${d.local}"];
+      wants = [
+        "network-online.target"
+        "time-sync.target"
+      ];
+      after = [
+        "network-online.target"
+        "time-sync.target"
+      ];
+      before = [ "rclone-onedrive-check-${d.local}.service" ];
+      unitConfig.RequiresMountsFor = [ "/run/av/${d.local}" ];
       serviceConfig = {
         User = "rclone";
         Group = "rclone";
@@ -170,10 +186,10 @@
       TIMELINE_CREATE = true;
       TIMELINE_CLEANUP = true;
       SUBVOLUME = "/run/av";
-      ALLOW_USERS = [config.users.me];
+      ALLOW_USERS = [ config.users.me ];
       SYNC_ACL = true;
       EMPTY_PRE_POST_CLEANUP = true;
     };
   };
 in
-  lib.mkMerge ([commonConfig] ++ (map perMediaDirConfig mediaDirectories))
+lib.mkMerge ([ commonConfig ] ++ (map perMediaDirConfig mediaDirectories))

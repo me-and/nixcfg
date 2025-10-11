@@ -5,7 +5,10 @@
 }:
 writeCheckedShellApplication {
   name = "wait-for-host";
-  runtimeInputs = [dig.host coreutils];
+  runtimeInputs = [
+    dig.host
+    coreutils
+  ];
   purePath = true;
   text = ''
     waitforhost () {

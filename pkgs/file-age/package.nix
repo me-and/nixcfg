@@ -9,6 +9,6 @@ substCheckedShellApplication {
   src = ./file-age.sh;
   substitutions = {
     inherit runtimeShell;
-    PATH = lib.makeBinPath [coreutils];
+    PATH = lib.makeBinPath [ coreutils ];
   };
 }

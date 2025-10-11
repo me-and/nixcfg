@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (builtins) toString;
 
   ftpPasvPortRange = {
@@ -12,7 +13,8 @@
   };
   scannerUserGroup = "ida";
   scannerDestDir = "/var/tmp/${scannerUserGroup}";
-in {
+in
+{
   # Set up the user account the scanner will use to log in with, and make
   # sure I have access to the uploaded files.
   users.users."${scannerUserGroup}" = {
@@ -21,14 +23,14 @@ in {
     group = scannerUserGroup;
     hashedPasswordFile = "/etc/nixos/secrets/ida";
   };
-  users.groups."${scannerUserGroup}".members = [config.users.me];
+  users.groups."${scannerUserGroup}".members = [ config.users.me ];
 
   # Set up the FTP server that the scanner will log into.
   services.vsftpd = {
     enable = true;
     writeEnable = true;
     userlistEnable = true;
-    userlist = [scannerUserGroup];
+    userlist = [ scannerUserGroup ];
     localUsers = true;
     extraConfig = ''
       connect_from_port_20=YES
@@ -41,10 +43,13 @@ in {
   # Set up the firewall so the connections work.
   networking.firewall = {
     # Standard ftp ports
-    allowedTCPPorts = [20 21];
+    allowedTCPPorts = [
+      20
+      21
+    ];
 
     # Ports for PASV ftp connections
-    allowedTCPPortRanges = [ftpPasvPortRange];
+    allowedTCPPortRanges = [ ftpPasvPortRange ];
   };
 
   # Set up the subdirectory that the scanner will upload files to, creating
@@ -56,7 +61,7 @@ in {
   ];
 
   # Make sure my user account can access the scanner directory.
-  users.users."${config.users.me}".extraGroups = [scannerUserGroup];
+  users.users."${config.users.me}".extraGroups = [ scannerUserGroup ];
 
   # Set up the systemd service that will copy files from the FTP directory to
   # my documents folder
@@ -205,7 +210,7 @@ in {
   # uploaded.
   systemd.paths.scan-to-docs = {
     description = "monitoring for scanned documents to move";
-    wantedBy = ["paths.target"];
+    wantedBy = [ "paths.target" ];
     unitConfig.RequiresMountsFor = scannerDestDir;
     pathConfig.PathExistsGlob = [
       "${scannerDestDir}/*.pdf"

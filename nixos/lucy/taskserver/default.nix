@@ -2,9 +2,11 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.services.taskserver;
-in {
+in
+{
   services.taskserver = {
     enable = true;
 
@@ -15,16 +17,18 @@ in {
     listenPort = 50340;
 
     # I already have a CA certificate for clients to connect.
-    pki.manual = let
-      dir = "/var/lib/acme/${cfg.fqdn}";
-    in {
-      ca.cert = ./ca.cert.pem;
-      server.cert = "${dir}/fullchain.pem";
-      server.key = "${dir}/key.pem";
-    };
+    pki.manual =
+      let
+        dir = "/var/lib/acme/${cfg.fqdn}";
+      in
+      {
+        ca.cert = ./ca.cert.pem;
+        server.cert = "${dir}/fullchain.pem";
+        server.key = "${dir}/key.pem";
+      };
 
-    organisations.adam.users = ["adam"];
-    organisations.adam.groups = ["users"];
+    organisations.adam.users = [ "adam" ];
+    organisations.adam.groups = [ "users" ];
   };
 
   # https://github.com/NixOS/nixpkgs/pull/369509

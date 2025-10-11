@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   options.nix.nhgc.minimumFreeSpace = lib.mkOption {
     description = ''
       Minimum amount of disk space, in bytes, that the garbage collector should
@@ -30,21 +31,20 @@
 
     warnings =
       lib.optional
-      ((config.nix.settings.keep-outputs or false)
-        && (config.nix.settings.keep-derivations or true))
-      ''
-        You have nix.settings.keep-outputs and nix.settings.keep-derivations.
-        Nix Heuristic GC doesn't cope well with this setup, because of the
-        likelihood of circular dependencies, so you may need to run regular Nix
-        garbage collection tools as well.
-      '';
+        ((config.nix.settings.keep-outputs or false) && (config.nix.settings.keep-derivations or true))
+        ''
+          You have nix.settings.keep-outputs and nix.settings.keep-derivations.
+          Nix Heuristic GC doesn't cope well with this setup, because of the
+          likelihood of circular dependencies, so you may need to run regular Nix
+          garbage collection tools as well.
+        '';
 
     # Use Nix Heuristic Garbage Collection to actually collect garbage.
     systemd.services.nix-nhgc = {
       description = "Nix Heuristic Garbage Collection";
-      before = ["nix-optimise.service"];
+      before = [ "nix-optimise.service" ];
       serviceConfig.Type = "oneshot";
-      path = [pkgs.nix-heuristic-gc];
+      path = [ pkgs.nix-heuristic-gc ];
       script = ''
         bytes_free="$(df -B1 --output=avail /nix/store | grep -v Avail)"
         bytes_to_free=$(( ${builtins.toString config.nix.nhgc.minimumFreeSpace} - bytes_free ))
@@ -61,7 +61,7 @@
         RandomizedDelaySec = "1h";
         RandomizedOffsetSec = "1w";
       };
-      wantedBy = ["timers.target"];
+      wantedBy = [ "timers.target" ];
     };
 
     # I expect to have lots of duplication in the store, so avoid that.
