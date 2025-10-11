@@ -1,4 +1,5 @@
 {
+  flake,
   config,
   lib,
   pkgs,
@@ -13,16 +14,11 @@
   in
     systemdWantsAlias unit instanceUnit;
 
-  homeshickReportWants = dir: systemdWantsInstance "homeshick-pull@.service" dir "homeshick-report.service";
-
   systemdWantsService = name: systemdWants "${name}.service" "default.target";
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
   systemdServiceSymlinks = map systemdWantsService [];
-  systemdHomeshickReportSymlinks = map homeshickReportWants [
-    "homeshick"
-  ];
   systemdTimerSymlinks =
     (
       map systemdWantsTimer [
@@ -41,11 +37,19 @@
 
   systemdSymlinks = lib.mergeAttrsList (
     systemdServiceSymlinks
-    ++ systemdHomeshickReportSymlinks
     ++ systemdTimerSymlinks
     ++ systemdPathSymlinks
   );
 in {
+  imports =
+    [
+      ./calendar-emails.nix
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["home.nix"];
+    });
+
   home.stateVersion = "24.11";
 
   # Enable all the systemd units I want running.  These are mostly coming from
@@ -54,7 +58,7 @@ in {
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
   # Add the wavtoopus utility.
-  home.packages = [pkgs.wavtoopus];
+  home.packages = [pkgs.mypkgs.wavtoopus];
 
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
@@ -65,7 +69,7 @@ in {
     taskwarrior-check-active-tasks = {
       Unit.Description = "Check for Taskwarrior tasks that have been active too long";
       Service.Type = "oneshot";
-      Service.ExecStart = pkgs.writeCheckedShellScript {
+      Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "flag-stale-active-tasks.sh";
         runtimeInputs = [config.programs.taskwarrior.package];
         text = ''
@@ -108,19 +112,8 @@ in {
   };
 
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-  accounts.email.forwardLocal.enable = true;
   programs.offlineimap.enable = true;
   programs.neomutt.enable = true;
-
-  services.calendarEmails = {
-    enable = true;
-    calendars = [
-      config.accounts.email.accounts.main.address
-      "Adam Dinwoodie's Facebook Events"
-    ];
-  };
-
-  pd.enable = true;
 
   services.syncthing.enable = true;
 

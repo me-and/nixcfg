@@ -1,7 +1,11 @@
-lib: dir: filename: let
+{lib}: {
+  dir,
+  filename,
+  excludes ? [],
+}: let
   inherit (builtins) pathExists readDir;
   inherit (lib.attrsets) filterAttrs mapAttrs;
 
-  possibleFiles = mapAttrs (name: _: dir + "/${name}/${filename}") (readDir dir);
+  possibleFiles = mapAttrs (n: v: dir + "/${n}/${filename}") (readDir dir);
 in
-  filterAttrs (_: value: pathExists value) possibleFiles
+  filterAttrs (n: v: pathExists v && !builtins.elem n excludes) possibleFiles

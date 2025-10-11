@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   home.file =
     # TODO Move these files into Home Manager more competently; this directory
     # was just a lift-and-shift from my Homeshick castle.
@@ -24,9 +28,6 @@
                 fi
             done
         fi
-      '';
-      ".bash_completion.d/homeshick-completion.bash".text = ''
-        . ~/.homesick/repos/homeshick/completions/homeshick-completion.bash
       '';
     };
 
@@ -106,13 +107,6 @@
                       printf '%s\n' "$1"
               fi
       }
-
-      # Set up Homeshick.
-      if [[ -r ~/.homesick/repos/homeshick/homeshick.sh ]]; then
-              . ~/.homesick/repos/homeshick/homeshick.sh
-      else
-              wrap_message <<<'homeshick unavailable' >&2
-      fi
 
       # Utility function to make tracing other Bash functions easier.
       tracewrap () {
@@ -274,6 +268,11 @@
                       fi
               done
       fi
+
+      # Set up the Git Bash prompt.
+      GIT_PROMPT_THEME_FILE=${./git-prompt-colors.sh}
+      GIT_PROMPT_THEME=Custom
+      . ${pkgs.mypkgs.bash-git-prompt}/gitprompt.sh
     '';
   };
 
@@ -287,10 +286,5 @@
   programs.dircolors = {
     enable = true;
     enableBashIntegration = true;
-  };
-
-  programs.bash-git-prompt = {
-    enable = true;
-    customThemeFile = ./git-prompt-colors.sh;
   };
 }

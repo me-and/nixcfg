@@ -1,12 +1,19 @@
 {
   lib,
   pkgs,
+  flake,
   ...
 }: {
-  imports = [
-    ./hardware-configuration.nix
-    ./pd.nix
-  ];
+  imports =
+    [
+      flake.nixos-hardware.nixosModules.framework-16-7040-amd
+      flake.self.nixosModules.winapps
+      flake.self.nixosModules.nix-builder
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["configuration.nix"];
+    });
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -75,8 +82,6 @@
 
   system.stateVersion = "24.05";
 
-  hardware.frameworkBluetoothWorkaround = true;
-
   # Need at least kernel 6.10 for framework-tool to work.  6.10 is out of
   # support, so use 6.12 as a more recent LTS kernel.
   #
@@ -87,16 +92,12 @@
     then pkgs.linuxPackages
     else pkgs.linuxKernel.packages.linux_6_12;
 
-  nix.localBuildServer.enable = true;
-
   nix.settings = {
     max-jobs = 4;
     cores = 8;
   };
 
   nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 200; # 200GB
-
-  programs.winapps.enable = true;
 
   services.nix-serve.enable = true;
 }

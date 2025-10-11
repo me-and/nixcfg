@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  flake,
   ...
 }: let
   systemdWantsAlias = baseUnit: instanceUnit: from: {
@@ -13,16 +14,11 @@
   in
     systemdWantsAlias unit instanceUnit;
 
-  homeshickReportWants = dir: systemdWantsInstance "homeshick-pull@.service" dir "homeshick-report.service";
-
   systemdWantsService = name: systemdWants "${name}.service" "default.target";
   systemdWantsTimer = name: systemdWants "${name}.timer" "timers.target";
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
   systemdServiceSymlinks = map systemdWantsService [];
-  systemdHomeshickReportSymlinks = map homeshickReportWants [
-    "homeshick"
-  ];
   systemdTimerSymlinks = map systemdWantsTimer [
     "disk-usage-report"
   ];
@@ -30,45 +26,53 @@
 
   systemdSymlinks = lib.mergeAttrsList (
     systemdServiceSymlinks
-    ++ systemdHomeshickReportSymlinks
     ++ systemdTimerSymlinks
     ++ systemdPathSymlinks
   );
 in {
-  imports = [./fonts.nix];
-
+  imports =
+    [
+      flake.self.hmModules.mypy
+    ]
+    ++ builtins.attrValues (flake.self.lib.dirfiles {
+      dir = ./.;
+      excludes = ["home.nix"];
+    });
   home.stateVersion = "24.11";
 
-  home.packages = with pkgs; [
-    abcde
-    android-tools # adb
-    azuredatastudio
-    cardimpose
-    cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
-    discord
-    freecad
-    gh-random-pr
-    gnucash
-    gnome-calculator # Prefer this to the KDE options
-    jellyfin-media-player
-    hunspell
-    hunspellDicts.en-gb-ise
-    inkscape
-    libreoffice
-    makemkv
-    unison-nox
-    openscad
-    pd-sync-with-fileserver
-    poppler_utils
-    prusa-slicer
-    qalculate-gtk
-    scribus
-    signal-desktop
-    telegram-desktop
-    vlc
-    whatsapp-for-linux
-    zoom-us
-  ];
+  home.packages = with pkgs;
+    [
+      abcde
+      android-tools # adb
+      azuredatastudio
+      cardimpose
+      cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
+      discord
+      freecad
+      gnucash
+      gnome-calculator # Prefer this to the KDE options
+      jellyfin-media-player
+      hunspell
+      hunspellDicts.en-gb-ise
+      inkscape
+      libreoffice
+      makemkv
+      openscad
+      poppler_utils
+      prusa-slicer
+      qalculate-gtk
+      scribus
+      signal-desktop
+      telegram-desktop
+      vlc
+      whatsapp-for-linux
+      zoom-us
+    ]
+    ++ (with pkgs.mypkgs; [
+      gh-random-pr
+      pd-sync-with-fileserver
+      unison-nox
+    ]);
 
   programs.firefox.enable = true;
 
@@ -102,13 +106,7 @@ in {
     realName = "Adam Dinwoodie";
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-  accounts.email.forwardLocal.enable = true;
 
-  programs.keepassxc.enable = true;
-
-  pd.enable = true;
-
-  programs.mypy.enable = true;
   programs.latex.enable = true;
 
   services.syncthing = {

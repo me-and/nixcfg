@@ -11,6 +11,7 @@
   # TODO Make the config much more modular, DRY, and readable
   mainConfig = {
     hooks.location = "${config.xdg.configHome}/task/hooks";
+    recurrence = false;
     "recurrence.limit" = 2;
     color = {
       recurring = null;
@@ -307,7 +308,7 @@
         Unit.Description = "Backup Taskwarrior data to OneDrive";
         Service = {
           Type = "oneshot";
-          ExecStart = pkgs.writeCheckedShellScript {
+          ExecStart = pkgs.mypkgs.writeCheckedShellScript {
             name = "taskwarrior-to-onedrive";
             runtimeInputs = [
               cfg.package
@@ -350,9 +351,26 @@
       };
     };
   };
+
+  # Configure programs.taskwarrior.config.taskd.credentials in the private
+  # config flake.  Not sure this is necessary, but I'd rather have it private
+  # than not.
+  taskdConfig = {
+    taskd = {
+      server = "taskwarrior.dinwoodie.org:50340";
+      certificate = "${config.xdg.configHome}/task/adam.cert.pem";
+      key = "${config.xdg.configHome}/task/adam.key.pem";
+      trust = "strict";
+    };
+  };
 in {
+  imports = [
+    (lib.mkRenamedOptionModule ["programs" "taskwarrior" "createRecurringTasks"] ["programs" "taskwarrior" "config" "recurrence"])
+    (lib.mkRemovedOptionModule ["programs" "taskwarrior" "sync"] "Instead, set programs.taskwarrior.config.taskd as required.")
+  ];
+
   options.programs.taskwarrior = {
-    autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = config.programs.taskwarrior.sync.enable;};
+    autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {default = true;};
 
     onedriveBackup = lib.mkEnableOption "backup of Taskwarrior data to OneDrive";
   };
@@ -364,24 +382,15 @@ in {
         # Not using taskwarrior3 until its performance is more tolerable for my use
         # case.
         package = pkgs.taskwarrior2;
-        sync = lib.mkDefault {
-          # Configure programs.taskwarrior.sync.credentials in the private config
-          # flake.  Not sure this is necessary, but I'd rather have it private
-          # than not.
-          enable = true;
-          address = "taskwarrior.dinwoodie.org";
-          port = 50340;
-          certPath = "${config.xdg.configHome}/task/adam.cert.pem";
-          keyPath = "${config.xdg.configHome}/task/adam.key.pem";
-        };
         config = lib.mkMerge [
           mainConfig
           aliasConfig
           priorityConfig
+          taskdConfig
         ];
       };
 
-      home.packages = [pkgs.task-project-report];
+      home.packages = [pkgs.mypkgs.task-project-report];
 
       # TODO Patch these properly to use a Nix-appropriate shebang.
       home.file =
@@ -404,7 +413,7 @@ in {
             };
             Service = {
               Type = "oneshot";
-              ExecStart = "${pkgs.wait-for-host}/bin/wait-for-host %I";
+              ExecStart = "${pkgs.mypkgs.wait-for-host}/bin/wait-for-host %I";
             };
           };
 
@@ -412,7 +421,7 @@ in {
             Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
             Service = {
               Type = "oneshot";
-              ExecStart = "${pkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
+              ExecStart = "${pkgs.mypkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
             };
           };
 
@@ -435,7 +444,7 @@ in {
 
           taskwarrior-sync = {
             Unit = let
-              domain = config.programs.taskwarrior.sync.address;
+              domain = lib.head (lib.splitString ":" config.programs.taskwarrior.config.taskd.server);
             in {
               Description = "Sync Taskwarrior data";
               Wants = ["resolve-host-a@${domain}.service" "taskwarrior-wait-for-stability.service"];

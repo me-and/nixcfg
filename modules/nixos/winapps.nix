@@ -15,38 +15,22 @@
 # - Running the winapps installer to set up links to the Windows applications.
 {
   config,
-  lib,
   pkgs,
-  winapps-pkgs,
+  flake,
   ...
 }: let
-  cfg = config.programs.winapps;
+  system = config.nixpkgs.hostPlatform.system;
+  winappsPkgs = flake.winapps.packages."${system}";
 in {
-  options.programs.winapps = {
-    enable = lib.mkEnableOption "winapps";
-    backend = lib.mkOption {
-      description = ''
-        Backend to use for Winapps.
+  virtualisation.podman.enable = true;
+  environment.systemPackages = [
+    pkgs.podman-compose
+    winappsPkgs.winapps
+    winappsPkgs.winapps-launcher
+  ];
 
-        Currently only podman is supported; using any other backend will
-        require you to set it up yourself.
-      '';
-      type = lib.types.enum ["podman"];
-      default = "podman";
-    };
-  };
-
-  config = lib.mkIf cfg.enable {
-    virtualisation.podman.enable = true;
-    environment.systemPackages = [
-      pkgs.podman-compose
-      winapps-pkgs.winapps
-      winapps-pkgs.winapps-launcher
-    ];
-
-    nix.settings = {
-      substituters = ["https://winapps.cachix.org/"];
-      trusted-public-keys = ["winapps.cachix.org-1:HI82jWrXZsQRar/PChgIx1unmuEsiQMQq+zt05CD36g="];
-    };
+  nix.settings = {
+    substituters = ["https://winapps.cachix.org/"];
+    trusted-public-keys = ["winapps.cachix.org-1:HI82jWrXZsQRar/PChgIx1unmuEsiQMQq+zt05CD36g="];
   };
 }

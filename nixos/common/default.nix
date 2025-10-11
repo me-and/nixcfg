@@ -1,4 +1,5 @@
 {
+  flake,
   config,
   lib,
   options,
@@ -7,27 +8,10 @@
 }: let
   defaultPrio = (lib.mkOptionDefault null).priority;
 in {
-  imports = [
-    ../../modules/nixos
-    ../../modules/shared
-    ../../common
-    ./avahi.nix
-    ./emergency.nix
-    ./jellyfin.nix
-    ./garbage.nix
-    ./gnome.nix
-    ./gui-common.nix
-    ./mail.nix
-    ./nginx.nix
-    ./nix-builder.nix
-    ./nix-index.nix
-    ./plasma.nix
-    ./root.nix
-    ./systemd.nix
-    ./taskserver.nix
-    ./user.nix
-    ./vim.nix
-  ];
+  imports = builtins.attrValues (flake.self.lib.dirfiles {
+    dir = ./.;
+    excludes = ["default.nix"];
+  });
 
   # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
   # Nix builds -- notably install images -- from being able to complete.
@@ -89,11 +73,6 @@ in {
   nix.daemonIOSchedPriority = 7;
   nix.daemonCPUSchedPolicy = "batch";
 
-  services.nixBinaryCache.serverAliases = [
-    "127.0.0.1"
-    "::1"
-  ];
-
   # Set up basic ACME certificate configuration.
   security.acme = {
     acceptTerms = true;
@@ -139,4 +118,6 @@ in {
     openFirewall = true;
     secretKeyFile = "/home/adam/store-secret";
   };
+
+  nixpkgs.overlays = builtins.attrValues flake.self.overlays;
 }

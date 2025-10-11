@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
@@ -7,10 +8,20 @@
   # affecting the general Python installation.
   python = pkgs.python3.withPackages (pp: [
     pp.requests # Needed for petition signing script
-    (pkgs.asmodeus.override {python3Packages = pp;})
+    (pkgs.mypkgs.asmodeus.override {python3Packages = pp;})
   ]);
 in {
+  imports = [
+    (lib.mkRemovedOptionModule ["programs" "mypy"] "")
+    (lib.mkRemovedOptionModule ["pd"] "")
+  ];
+
   home.packages = [python];
 
-  programs.mypy.config.mypy.cache_dir = "${config.xdg.cacheHome}/mypy";
+  # Needed for, in particular, the Python mssql module to work, which I need
+  # for accessing the PD database.
+  #
+  # TODO This should be handled more sensibly by my Python installation
+  # and/or scripts.
+  home.sessionVariables.LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.zlib];
 }

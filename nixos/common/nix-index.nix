@@ -15,7 +15,7 @@ in {
     wants = ["network-online.target"];
     after = ["network-online.target"];
     serviceConfig.Type = "oneshot";
-    serviceConfig.ExecStart = pkgs.writeCheckedShellScript {
+    serviceConfig.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
       name = "update-nix-index.sh";
       text = ''
         target="$NIX_INDEX_DATABASE"/files
