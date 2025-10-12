@@ -133,7 +133,6 @@
       },
       "original": {
         "owner": "me-and",
-        "ref": "rearrange",
         "repo": "nixcfg-private",
         "type": "github"
       }

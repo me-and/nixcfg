@@ -17,7 +17,7 @@
     };
 
     private = {
-      url = "github:me-and/nixcfg-private/rearrange";
+      url = "github:me-and/nixcfg-private";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     user-systemd-config = {
