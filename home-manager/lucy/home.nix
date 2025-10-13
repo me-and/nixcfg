@@ -1,5 +1,5 @@
 {
-  flake,
+  inputs,
   config,
   lib,
   pkgs,
@@ -46,7 +46,7 @@ in
     ./calendar-emails.nix
   ]
   ++ builtins.attrValues (
-    flake.self.lib.dirfiles {
+    inputs.self.lib.dirfiles {
       dir = ./.;
       excludes = [ "home.nix" ];
     }

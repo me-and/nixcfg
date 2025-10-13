@@ -36,7 +36,7 @@
       winapps,
       private,
       user-systemd-config,
-    }@flake:
+    }@inputs:
     let
       inherit (nixpkgs.lib.attrsets)
         mapAttrs
@@ -70,7 +70,7 @@
         }:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit flake;
+            inherit inputs;
           };
           modules =
             let
@@ -108,7 +108,7 @@
               config = import ./config.nix;
             };
             extraSpecialArgs = {
-              inherit flake;
+              inherit inputs;
             };
             modules =
               let

@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  flake,
   ...
 }:
 let
@@ -44,7 +43,7 @@ in
       calConfig =
         cal:
         let
-          escapedCal = flake.self.lib.escapeSystemdString cal;
+          escapedCal = pkgs.mylib.escapeSystemdString cal;
         in
         {
           timers."report-calendar@${escapedCal}" = {

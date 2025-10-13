@@ -4,7 +4,6 @@
   config,
   lib,
   pkgs,
-  flake,
   ...
 }:
 let
@@ -153,7 +152,7 @@ let
       };
 
       config = {
-        unitName = lib.mkDefault "rclone-mount@${flake.self.lib.escapeSystemdPath config.where}";
+        unitName = lib.mkDefault "rclone-mount@${pkgs.mylib.escapeSystemdPath config.where}";
         unitFullName = systemdServiceCfg."${config.unitName}".name;
 
         rcloneArgs = lib.mkDefault (

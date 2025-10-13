@@ -1,15 +1,15 @@
 {
+  inputs,
   config,
   lib,
   pkgs,
-  flake,
   ...
 }:
 let
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
   # Manager.
-  systemdHomeshick = flake.user-systemd-config;
+  systemdHomeshick = inputs.user-systemd-config;
 in
 lib.mkMerge [
   {

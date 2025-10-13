@@ -1,8 +1,8 @@
 {
+  inputs,
   config,
   lib,
   pkgs,
-  flake,
   ...
 }:
 let
@@ -34,10 +34,10 @@ let
 in
 {
   imports = [
-    flake.self.hmModules.mypy
+    inputs.self.hmModules.mypy
   ]
   ++ builtins.attrValues (
-    flake.self.lib.dirfiles {
+    inputs.self.lib.dirfiles {
       dir = ./.;
       excludes = [ "home.nix" ];
     }

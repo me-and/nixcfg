@@ -1,17 +1,17 @@
 {
+  inputs,
   lib,
   pkgs,
-  flake,
   ...
 }:
 {
   imports = [
-    flake.nixos-hardware.nixosModules.framework-16-7040-amd
-    flake.self.nixosModules.winapps
-    flake.self.nixosModules.nix-builder
+    inputs.nixos-hardware.nixosModules.framework-16-7040-amd
+    inputs.self.nixosModules.winapps
+    inputs.self.nixosModules.nix-builder
   ]
   ++ builtins.attrValues (
-    flake.self.lib.dirfiles {
+    inputs.self.lib.dirfiles {
       dir = ./.;
       excludes = [ "configuration.nix" ];
     }

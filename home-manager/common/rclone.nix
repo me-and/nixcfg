@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  flake,
   ...
 }:
 let
@@ -11,7 +10,7 @@ let
   mountToService =
     mountpoint: target:
     let
-      escapedMountpoint = flake.self.lib.escapeSystemdPath mountpoint;
+      escapedMountpoint = pkgs.mypkgs.escapeSystemdPath mountpoint;
     in
     {
       "rclone-mount@${escapedMountpoint}" = {

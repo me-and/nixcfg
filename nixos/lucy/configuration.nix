@@ -1,15 +1,15 @@
 {
+  inputs,
   config,
   pkgs,
-  flake,
   ...
 }:
 {
   imports = [
-    flake.nixos-hardware.nixosModules.raspberry-pi-4
+    inputs.nixos-hardware.nixosModules.raspberry-pi-4
   ]
   ++ builtins.attrValues (
-    flake.self.lib.dirfiles {
+    inputs.self.lib.dirfiles {
       dir = ./.;
       excludes = [ "configuration.nix" ];
     }
