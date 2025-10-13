@@ -137,8 +137,9 @@
           default = {
             imports = [
               ./nixpkgs.nix
-              ./nixos/common
-            ];
+            ] ++ builtins.attrValues (self.lib.dirfiles {
+              dir = ./nixos/common;
+            });
           };
           systemModules = mapAttrs (n: v: import v) (
             self.lib.subdirfiles {
@@ -159,8 +160,9 @@
           default = {
             imports = [
               ./nixpkgs.nix
-              ./home-manager/common
-            ];
+            ] ++ builtins.attrValues (self.lib.dirfiles {
+              dir = ./home-manager/common;
+            });
           };
           systemModules = mapAttrs (n: v: import v) (
             self.lib.subdirfiles {

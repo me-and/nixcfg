@@ -10,13 +10,6 @@ let
   defaultPrio = (lib.mkOptionDefault null).priority;
 in
 {
-  imports = builtins.attrValues (
-    flake.self.lib.dirfiles {
-      dir = ./.;
-      excludes = [ "default.nix" ];
-    }
-  );
-
   # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
   # Nix builds -- notably install images -- from being able to complete.
   boot.tmp.cleanOnBoot = true;

@@ -8,13 +8,6 @@
 let
 in
 {
-  imports = builtins.attrValues (
-    flake.self.lib.dirfiles {
-      dir = ./.;
-      excludes = [ "default.nix" ];
-    }
-  );
-
   home = {
     homeDirectory = lib.mkDefault "/home/${config.home.username}";
 
