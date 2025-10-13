@@ -122,6 +122,4 @@ in
     openFirewall = true;
     secretKeyFile = "/home/adam/store-secret";
   };
-
-  nixpkgs.overlays = builtins.attrValues flake.self.overlays;
 }

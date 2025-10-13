@@ -102,7 +102,11 @@
         }:
         nameValuePair "${me}@${name}" (
           home-manager.lib.homeManagerConfiguration {
-            pkgs = nixpkgs.legacyPackages."${system}";
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = builtins.attrValues self.overlays;
+              config = import ./config.nix;
+            };
             extraSpecialArgs = {
               inherit flake;
             };
@@ -135,11 +139,14 @@
       nixosModules =
         let
           default = {
-            imports = [
-              ./nixpkgs.nix
-            ] ++ builtins.attrValues (self.lib.dirfiles {
-              dir = ./nixos/common;
-            });
+            imports = builtins.attrValues (
+              self.lib.dirfiles {
+                dir = ./nixos/common;
+              }
+            );
+
+            nixpkgs.config = import ./config.nix;
+            nixpkgs.overlays = builtins.attrValues self.overlays;
           };
           systemModules = mapAttrs (n: v: import v) (
             self.lib.subdirfiles {
@@ -157,12 +164,15 @@
 
       hmModules =
         let
+          # Don't need to specify overlay or nixpkgs configuration here, as
+          # that's given in the arguments to the homeManagerConfiguration
+          # function.
           default = {
-            imports = [
-              ./nixpkgs.nix
-            ] ++ builtins.attrValues (self.lib.dirfiles {
-              dir = ./home-manager/common;
-            });
+            imports = builtins.attrValues (
+              self.lib.dirfiles {
+                dir = ./home-manager/common;
+              }
+            );
           };
           systemModules = mapAttrs (n: v: import v) (
             self.lib.subdirfiles {

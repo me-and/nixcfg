@@ -132,6 +132,4 @@ in
       RandomizedOffsetSec = "1w";
     };
   };
-
-  nixpkgs.overlays = builtins.attrValues flake.self.overlays;
 }
