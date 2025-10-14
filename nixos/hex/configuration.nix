@@ -9,13 +9,7 @@
     inputs.nixos-hardware.nixosModules.framework-16-7040-amd
     inputs.self.nixosModules.winapps
     inputs.self.nixosModules.nix-builder
-  ]
-  ++ builtins.attrValues (
-    inputs.self.lib.dirfiles {
-      dir = ./.;
-      excludes = [ "configuration.nix" ];
-    }
-  );
+  ];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

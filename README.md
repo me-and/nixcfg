@@ -35,12 +35,13 @@ Be warned: this config gets used as much as a playground and a learning opportun
 *   `pkgs`: contains definitions for Nix derivations.  This is imported using Nixpkgs' `lib.packagesFromDirectoryRecursive`, prepopulated with Nixpkgs' `pkgs` with my overlays already applied.
 *   `config.nix`: this is my common Nixpkgs config.
 *   `nixos`:
-    *   `common`: this contains a series of NixOS modules, imported automatically by `default.nix`, that is common to all my NixOS configs.
-    *   `<hostname>`: this contains the configuration for each system's NixOS configuration, set in `configuration.nix`.
+    *   `default`: this contains a series of NixOS modules that is common to all my NixOS configs.
+    *   `<hostname>`: this contains the configuration for each system's NixOS configuration.
+    *   `<taskname>`: this contains configuration that can be imported for performing some specific task.
 *   `home-manager`:
-    *   `common`: this contains a series of Home Manager modules, imported automatically by `default.nix`, that is common to all my Home Manager configs.
+    *   `default`: this contains a series of Home Manager modules that is common to all my Home Manager configs.
     *   `<username>`, `<hostname>` or `<username>@hostname`: this contains the configuration for each system's Home Manager configuration, set in `home.nix`.
-*   `modules`: this contains the NixOS and Home Manager modules that can be imported for specific system tasks.
+    *   `<taskname>`: this contains configuration that can be imported for performing some specific task.
 
 ## Secrets and privacy
 

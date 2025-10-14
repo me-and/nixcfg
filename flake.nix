@@ -49,8 +49,7 @@
         nameValuePair
         optionalAttrs
         ;
-      inherit (nixpkgs.lib.lists) optional optionals;
-      inherit (nixpkgs.lib.strings) removeSuffix;
+      inherit (self.lib) dirmodules;
 
       boxen = {
         hex = {
@@ -89,6 +88,8 @@
               {
                 users.me = me;
                 networking.hostName = name;
+                nixpkgs.config = import ./config.nix;
+                nixpkgs.overlays = builtins.attrValues self.overlays;
               }
               home-manager.nixosModules.default
             ]
@@ -141,57 +142,9 @@
         )
       ) boxen;
 
-      nixosModules =
-        let
-          default = {
-            imports = builtins.attrValues (
-              self.lib.dirfiles {
-                dir = ./nixos/common;
-              }
-            );
+      nixosModules = dirmodules { dir = ./nixos; };
 
-            nixpkgs.config = import ./config.nix;
-            nixpkgs.overlays = builtins.attrValues self.overlays;
-          };
-          systemModules = mapAttrs (n: v: import v) (
-            self.lib.subdirfiles {
-              dir = ./nixos;
-              filename = "configuration.nix";
-            }
-          );
-          optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./modules/nixos; });
-        in
-        self.lib.unionOfDisjointAttrsList [
-          { inherit default; }
-          systemModules
-          optionalModules
-        ];
-
-      hmModules =
-        let
-          # Don't need to specify overlay or nixpkgs configuration here, as
-          # that's given in the arguments to the homeManagerConfiguration
-          # function.
-          default = {
-            imports = builtins.attrValues (
-              self.lib.dirfiles {
-                dir = ./home-manager/common;
-              }
-            );
-          };
-          systemModules = mapAttrs (n: v: import v) (
-            self.lib.subdirfiles {
-              dir = ./home-manager;
-              filename = "home.nix";
-            }
-          );
-          optionalModules = mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./modules/home-manager; });
-        in
-        self.lib.unionOfDisjointAttrsList [
-          { inherit default; }
-          systemModules
-          optionalModules
-        ];
+      hmModules = dirmodules { dir = ./home-manager; };
 
       overlays = builtins.mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./overlays; });
 

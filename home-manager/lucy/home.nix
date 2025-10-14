@@ -42,16 +42,6 @@ let
   );
 in
 {
-  imports = [
-    ./calendar-emails.nix
-  ]
-  ++ builtins.attrValues (
-    inputs.self.lib.dirfiles {
-      dir = ./.;
-      excludes = [ "home.nix" ];
-    }
-  );
-
   home.stateVersion = "24.11";
 
   # Enable all the systemd units I want running.  These are mostly coming from

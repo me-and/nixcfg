@@ -7,13 +7,7 @@
 {
   imports = [
     inputs.nixos-hardware.nixosModules.raspberry-pi-4
-  ]
-  ++ builtins.attrValues (
-    inputs.self.lib.dirfiles {
-      dir = ./.;
-      excludes = [ "configuration.nix" ];
-    }
-  );
+  ];
 
   boot.initrd.systemd.enable = true;
   boot.initrd.systemd.tpm2.enable = false;

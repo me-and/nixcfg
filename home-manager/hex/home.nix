@@ -35,13 +35,7 @@ in
 {
   imports = [
     inputs.self.hmModules.mypy
-  ]
-  ++ builtins.attrValues (
-    inputs.self.lib.dirfiles {
-      dir = ./.;
-      excludes = [ "home.nix" ];
-    }
-  );
+  ];
   home.stateVersion = "24.11";
 
   home.packages =
