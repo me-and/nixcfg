@@ -15,6 +15,10 @@
       url = "github:winapps-org/winapps";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -34,6 +38,7 @@
       nixos-hardware,
       home-manager,
       winapps,
+      wsl,
       private,
       user-systemd-config,
     }@inputs:
