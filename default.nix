@@ -16,10 +16,12 @@ let
   pkgs' =
     assert !toilEval.success;
     builtins.removeAttrs pkgs [ "toil" ];
+
   packagesForCall = lib.attrsets.unionOfDisjoint pkgs' { inherit mylib; };
+  scope = lib.packagesFromDirectoryRecursive {
+    callPackage = lib.callPackageWith packagesForCall;
+    newScope = extra: lib.callPackageWith (lib.attrsets.unionOfDisjoint packagesForCall extra);
+    directory = ./pkgs;
+  };
 in
-lib.packagesFromDirectoryRecursive {
-  callPackage = lib.callPackageWith packagesForCall;
-  newScope = extra: lib.callPackageWith (lib.attrsets.unionOfDisjoint packagesForCall extra);
-  directory = ./pkgs;
-}
+scope.packages scope
