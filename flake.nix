@@ -23,6 +23,7 @@
     private = {
       url = "github:me-and/nixcfg-private";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.personalCfg.follows = "";
     };
     user-systemd-config = {
       url = "github:me-and/user-systemd-config";
