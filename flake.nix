@@ -45,12 +45,13 @@
     }@inputs:
     let
       inherit (nixpkgs.lib.attrsets)
+        filterAttrs
         mapAttrs
         mapAttrs'
         nameValuePair
         optionalAttrs
         ;
-      inherit (self.lib) dirmodules;
+      inherit (self.lib) dirmodules unionOfDisjointAttrsList;
 
       boxen = {
         hex = {
@@ -164,6 +165,16 @@
       {
         legacyPackages = import ./. { inherit pkgs; };
         packages = lib.filterAttrs (n: v: lib.isDerivation v) self.legacyPackages."${system}";
+
+        checks = let
+          checkableNixosImages = filterAttrs (n: v: v.pkgs.system == system) self.nixosConfigurations;
+          checkableHomeImages = filterAttrs (n: v: v.pkgs.system == system) self.homeConfigurations;
+        in
+        unionOfDisjointAttrsList [
+          self.packages."${system}"
+          (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
+          (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
+        ];
 
         formatter = pkgs.nixfmt-tree;
       }
