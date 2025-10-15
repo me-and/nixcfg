@@ -1,0 +1,22 @@
+name: Check style
+on:
+  - push
+  - pull_request
+
+jobs:
+  check-fmt:
+    name: Check formatting and evaluation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v20
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Check formatting
+        run: nix fmt -- --ci
+      - name: Check evaluation
+        run: nix flake check --no-build --all-systems --keep-going
