@@ -128,11 +128,11 @@
                 # are multiple config options that get added to a
                 # configured list.
                 allModules = source: [
-                  (source.hmModules.default or { })
-                  (source.hmModules."${me}" or { })
-                  (source.hmModules."${name}" or { })
-                  (source.hmModules."${me}@${name}" or { })
-                  (optionalAttrs includePersonal (source.hmModules.personal or { }))
+                  (source.homeModules.default or { })
+                  (source.homeModules."${me}" or { })
+                  (source.homeModules."${name}" or { })
+                  (source.homeModules."${me}@${name}" or { })
+                  (optionalAttrs includePersonal (source.homeModules.personal or { }))
                 ];
               in
               [
@@ -149,7 +149,7 @@
 
       nixosModules = dirmodules { dir = ./nixos; };
 
-      hmModules = dirmodules { dir = ./home-manager; };
+      homeModules = dirmodules { dir = ./home-manager; };
 
       overlays = builtins.mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./overlays; });
 
