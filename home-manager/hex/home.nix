@@ -34,7 +34,7 @@ let
 in
 {
   imports = [
-    inputs.self.hmModules.mypy
+    inputs.self.homeModules.mypy
   ];
   home.stateVersion = "24.11";
 
