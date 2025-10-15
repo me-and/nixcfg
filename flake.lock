@@ -135,16 +135,22 @@
     },
     "private": {
       "inputs": {
+        "flake-utils": [
+          "private",
+          "personalCfg",
+          "flake-utils"
+        ],
         "nixpkgs": [
           "nixpkgs"
-        ]
+        ],
+        "personalCfg": []
       },
       "locked": {
-        "lastModified": 1760016821,
-        "narHash": "sha256-eUEkkzH67cXJ4mNXEQomDkr9SgfpCAnhQd61YyMvAUo=",
+        "lastModified": 1760516450,
+        "narHash": "sha256-iJO5dQUqm9FvSgn1tLUUDDAv9kFwRi705K/7iZXtdWs=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "ca8474a13fb9c7c430c4f3c56f72d7c99716b226",
+        "rev": "7c283542077b78aa490608a22df434332077f6e2",
         "type": "github"
       },
       "original": {
