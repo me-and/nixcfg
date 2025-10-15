@@ -7,6 +7,8 @@
 let
   cfg = config.programs.taskwarrior;
 
+  syncConfigured = (cfg.config.taskd.server or "") != "";
+
   # TODO Finish converting the config from the original taskrc file currently
   # included as extraConfig.
   # TODO Make the config much more modular, DRY, and readable
@@ -529,7 +531,7 @@ in
 
   options.programs.taskwarrior = {
     autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {
-      default = true;
+      default = syncConfigured;
     };
 
     onedriveBackup = lib.mkEnableOption "backup of Taskwarrior data to OneDrive";
@@ -537,6 +539,16 @@ in
 
   config = lib.mkMerge [
     {
+      assertions = [
+        {
+          assertion = cfg.autoSync -> syncConfigured;
+          message = ''
+            programs.taskwarrior.autoSync requires
+            programs.taskwarrior.config.taskd to be configured
+          '';
+        }
+      ];
+
       programs.taskwarrior = {
         enable = true;
         # Not using taskwarrior3 until its performance is more tolerable for my use
@@ -602,7 +614,7 @@ in
             Service = config.systemd.user.services.taskwarrior-gc.Service;
           };
 
-          taskwarrior-sync = {
+          taskwarrior-sync = lib.mkIf syncConfigured {
             Unit =
               let
                 domain = lib.head (lib.splitString ":" config.programs.taskwarrior.config.taskd.server);
@@ -651,14 +663,14 @@ in
           # Use a timer to start taskwarrior-sync at start of day rather than
           # just having it wanted by default.target so that sd-switch doesn't
           # restart it when home-manager reloads.
-          taskwarrior-sync-start-of-day = {
+          taskwarrior-sync-start-of-day = lib.mkIf syncConfigured {
             Unit.Description = "Sync Taskwarrior data at start of day";
             Timer.OnStartupSec = "0s";
             Timer.Unit = "taskwarrior-sync.service";
             Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync [ "timers.target" ];
           };
 
-          taskwarrior-sync = {
+          taskwarrior-sync = lib.mkIf syncConfigured {
             Unit.Description = "Sync Taskwarrior data periodically";
             Timer = {
               OnUnitInactiveSec = "15m";
