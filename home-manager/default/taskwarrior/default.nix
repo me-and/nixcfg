@@ -601,7 +601,7 @@ in
             Unit.Description = "Perform Taskwarrior garbage collection";
             Service = {
               Type = "oneshot";
-              ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+              ExecStart = "${cfg.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
             };
           };
 
@@ -617,7 +617,7 @@ in
           taskwarrior-sync = lib.mkIf syncConfigured {
             Unit =
               let
-                domain = lib.head (lib.splitString ":" config.programs.taskwarrior.config.taskd.server);
+                domain = lib.head (lib.splitString ":" cfg.config.taskd.server);
               in
               {
                 Description = "Sync Taskwarrior data";
@@ -636,7 +636,7 @@ in
               };
             Service = {
               Type = "oneshot";
-              ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
+              ExecStart = "${cfg.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
             };
           };
         };
@@ -667,7 +667,7 @@ in
             Unit.Description = "Sync Taskwarrior data at start of day";
             Timer.OnStartupSec = "0s";
             Timer.Unit = "taskwarrior-sync.service";
-            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync [ "timers.target" ];
+            Install.WantedBy = lib.mkIf cfg.autoSync [ "timers.target" ];
           };
 
           taskwarrior-sync = lib.mkIf syncConfigured {
@@ -677,7 +677,7 @@ in
               RandomizedDelaySec = "15m";
               AccuracySec = "15m";
             };
-            Install.WantedBy = lib.mkIf config.programs.taskwarrior.autoSync [ "timers.target" ];
+            Install.WantedBy = lib.mkIf cfg.autoSync [ "timers.target" ];
           };
         };
       };
