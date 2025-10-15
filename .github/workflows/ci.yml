@@ -1,4 +1,4 @@
-name: Check style
+name: Check builds
 on:
   - push
   - pull_request
@@ -20,3 +20,24 @@ jobs:
         run: nix fmt -- --ci
       - name: Check evaluation
         run: nix flake check --no-build --all-systems --keep-going
+
+  run-checks:
+    name: Run checks
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v20
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Run checks
+        run: nix flake check
