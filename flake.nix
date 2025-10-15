@@ -63,6 +63,14 @@
           me = "adam";
         };
       };
+
+      makeNixpkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = builtins.attrValues self.overlays;
+          config = import ./config.nix;
+        };
     in
     {
       nixosConfigurations = mapAttrs (
@@ -109,11 +117,7 @@
         }:
         nameValuePair "${me}@${name}" (
           home-manager.lib.homeManagerConfiguration {
-            pkgs = import nixpkgs {
-              inherit system;
-              overlays = builtins.attrValues self.overlays;
-              config = import ./config.nix;
-            };
+            pkgs = makeNixpkgs system;
             extraSpecialArgs = {
               inherit inputs;
             };
@@ -154,10 +158,7 @@
     // flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = builtins.attrValues self.overlays;
-        };
+        pkgs = makeNixpkgs system;
         lib = pkgs.lib;
       in
       {
