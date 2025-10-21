@@ -11,8 +11,8 @@ buildPythonPackage {
   src = fetchFromGitHub {
     owner = "me-and";
     repo = "asmodeus";
-    rev = "3355cf49e7382ee9a50a26c89081420372dfdb80";
-    hash = "sha256-fdZV1NJGkPvL+P/PWYETKPNj4WOwi7xyeT8/HL5EPnM=";
+    rev = "2990f0a201b85c97ce45908752e568746143c910";
+    hash = "sha256-YeKws3LutRhoAUWVrcctrf5Km83h92WzSpBEwSMf/1E=";
   };
 
   pyproject = true;
