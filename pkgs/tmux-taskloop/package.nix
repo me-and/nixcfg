@@ -5,17 +5,11 @@
   coreutils,
   mtimewait,
   ncurses,
-  taskwarrior2,
   tmux,
   toil,
   stdenvNoCC,
   makeBinaryWrapper,
-  python3,
-  asmodeus,
 }:
-let
-  python = python3.withPackages (pp: [ (asmodeus.override { python3Packages = pp; }) ]);
-in
 stdenvNoCC.mkDerivation {
   pname = "tmux-taskloop";
   version = "0.1.0";
@@ -27,14 +21,15 @@ stdenvNoCC.mkDerivation {
   preferLocalBuild = true;
   installPhase =
     let
+      # Don't specify a taskwarrior package: if the user is calling this they
+      # presumably have one in their path already, and who knows whether it's
+      # v2, v3, or something else entirely...
       taskloopPath = lib.makeBinPath [
         bashInteractive
         coreutils
         mtimewait
-        taskwarrior2
         toil
         ncurses
-        python
       ];
     in
     ''
@@ -60,7 +55,6 @@ stdenvNoCC.mkDerivation {
           --replace-fail \
               '@@MKTEMP@@' \
               '${coreutils}/bin/mktemp'
-
 
       cp *.conf $out/lib
       substituteInPlace $out/lib/tmux-taskloop.conf \

@@ -564,10 +564,26 @@ in
 
       home.packages = [ pkgs.mypkgs.task-project-report ];
 
-      # TODO Patch these properly to use a Nix-appropriate shebang.
-      home.file = lib.mapAttrs' (
-        k: v: lib.attrsets.nameValuePair "${cfg.config.hooks.location}/${k}" { source = ./hooks + "/${k}"; }
-      ) (builtins.readDir ./hooks);
+      home.file =
+        let
+          makeHook =
+            name:
+            pkgs.runCommandLocal name
+              {
+                buildInputs = [
+                  (pkgs.python3.withPackages (python3Packages: [
+                    (pkgs.mypkgs.asmodeus.override { inherit python3Packages; })
+                  ]))
+                ];
+              }
+              ''
+                cp ${./hooks + "/${name}"} "$out"
+                patchShebangs "$out"
+              '';
+        in
+        lib.mapAttrs' (
+          k: v: lib.attrsets.nameValuePair "${cfg.config.hooks.location}/${k}" { source = makeHook k; }
+        ) (builtins.readDir ./hooks);
 
       systemd.user = {
         services = {

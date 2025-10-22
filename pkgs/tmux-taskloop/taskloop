@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export PATH=@@PATH@@
+export PATH=@@PATH@@"${PATH:+:"$PATH"}"
 
 umask 0077
 
