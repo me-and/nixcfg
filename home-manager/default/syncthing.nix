@@ -19,6 +19,7 @@
       ".rsync-partial"
       ".rsync-tmp"
       ".unison.*"
+      "*.download"
       "*.crdownload"
       ".Trash-*"
     ];
