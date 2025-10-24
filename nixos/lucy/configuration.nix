@@ -87,5 +87,8 @@
     enable = false;
   };
 
-  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 20; # 20GB
+  nix.nhgc = {
+    trigger.freePercent = 15;
+    target.freePercent = 25;
+  };
 }
