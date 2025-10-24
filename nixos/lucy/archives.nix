@@ -27,7 +27,6 @@
           --cache-dir="$CACHE_DIRECTORY" \
           --checksum \
           --modify-window=1s \
-          --verbose \
           /usr/local/share/archives \
           onedrive:Archives
     '';

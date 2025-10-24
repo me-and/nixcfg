@@ -98,7 +98,6 @@ let
             --cache-dir="$CACHE_DIRECTORY" \
             --checksum \
             --modify-window=1s \
-            --verbose \
             :hasher,remote=/,hashes=quickxor:/run/av/${lib.escapeShellArg d.local} \
             onedrive:${lib.escapeShellArg d.onedrive}
       '';
