@@ -9,62 +9,97 @@ let
 in
 {
   options.nix.nhgc = {
-    minimumFreeSpaceBytes = lib.mkOption {
-      description = ''
-        Minimum amount of disk space, in bytes, that the garbage collector should
-        aim to ensure is available in the /nix/store partition.
-      '';
-      type = lib.types.ints.unsigned;
-      example = "`1024 * 1024 * 1024 * 5`";
-      default = 0;
+    target = {
+      freeBytes = lib.mkOption {
+        description = ''
+          How much disk space, in bytes, that the garbage collector will aim to
+          ensure is available in the /nix/store partition.
+        '';
+        type = lib.types.ints.unsigned;
+        example = "`1024 * 1024 * 1024 * 5`";
+        default = 0;
+      };
+
+      freePercent = lib.mkOption {
+        description = ''
+          How much disk space, as a percentage of the total disk space, that
+          the garbage collector should aim to ensure is available in the
+          /nix/store partition.
+        '';
+        type = lib.types.numbers.between 0 100;
+        example = 25;
+        default = 0;
+      };
     };
 
-    minimumFreeSpacePercent = lib.mkOption {
-      description = ''
-        Minimum amount of disk space, as a percentage of the total disk space,
-        that the garbage collector should aim to ensure is available in the
-        /nix/store partition.
-      '';
-      type = lib.types.numbers.between 0 100;
-      example = 25;
-      default = 0;
-    };
+    trigger = {
+      freeBytes = lib.mkOption {
+        description = ''
+          The amount of disk space, in bytes, that needs to be available to
+          prevent the garbage collector running.
 
-    runFreeSpaceBytes = lib.mkOption {
-      description = ''
-        Amount of disk space, in bytes, that will trigger the garbage collector
-        to run.
-      '';
-      type = lib.types.ints.unsigned;
-      example = "`1024 * 1024 * 1024 * 3`";
-      default = cfg.minimumFreeSpaceBytes;
-    };
+          Set this to an amount lower than `nix.nhgc.target.freeBytes` to
+          ensure the garbage collector leaves plenty of free space and is less
+          likely to need to perform garbage collection next time it is
+          scheduled to check.
+        '';
+        type = lib.types.ints.unsigned;
+        example = "`1024 * 1024 * 1024 * 3`";
+        default = cfg.target.freeBytes;
+      };
 
-    runFreeSpacePercent = lib.mkOption {
-      description = ''
-        Amount of disk space, as a percentage of the total disk space, that
-        will trigger the garbage collector to run.
-      '';
-      type = lib.types.numbers.between 0 100;
-      example = 20;
-      default = cfg.minimumFreeSpacePercent;
+      freePercent = lib.mkOption {
+        description = ''
+          The amount of disk space, as a percentage of the total disk space,
+          that needs to be available to prevent the garbage collector running.
+
+          Set this to an amount lower than `nix.nhgc.target.freePercent` to
+          ensure the garbage collector leaves plenty of free space and is less
+          likely to need to perform garbage collection next time it is
+          scheduled to check.
+        '';
+        type = lib.types.numbers.between 0 100;
+        example = 20;
+        default = cfg.target.freePercent;
+      };
     };
   };
 
-  imports = [
-    (lib.mkRenamedOptionModule
-      [ "nix" "nhgc" "minimumFreeSpace" ]
-      [ "nix" "nhgc" "minimumFreeSpaceBytes" ]
-    )
-  ];
+  imports =
+    let
+      mkNhgcRename =
+        from: to:
+        lib.mkRenamedOptionModule
+          (
+            [
+              "nix"
+              "nhgc"
+            ]
+            ++ from
+          )
+          (
+            [
+              "nix"
+              "nhgc"
+            ]
+            ++ to
+          );
+    in
+    [
+      (mkNhgcRename [ "minimumFreeSpace" ] [ "target" "freeBytes" ])
+      (mkNhgcRename [ "minimumFreeSpaceBytes" ] [ "target" "freeBytes" ])
+      (mkNhgcRename [ "minimumFreeSpacePercent" ] [ "target" "freePercent" ])
+      (mkNhgcRename [ "runFreeSpaceBytes" ] [ "trigger" "freeBytes" ])
+      (mkNhgcRename [ "runFreeSpacePercent" ] [ "trigger" "freePercent" ])
+    ];
 
   config = {
     assertions = [
       {
-        assertion = (cfg.minimumFreeSpaceBytes > 0) || (cfg.minimumFreeSpacePercent > 0);
+        assertion = (cfg.target.freeBytes > 0) || (cfg.target.freePercent > 0);
         message = ''
-          You need to set either `nix.nhgc.minimumFreeSpaceBytes` or
-          `nix.nhgc.minimumFreeSpacePercent`.
+          You need to set either `nix.nhgc.target.freeBytes` or
+          `nix.nhgc.target.freePercent`.
         '';
       }
     ];
@@ -93,19 +128,18 @@ in
           garbage collection tools as well.
         ''
       )
-      ++ (lib.optional (cfg.runFreeSpacePercent > cfg.minimumFreeSpacePercent) ''
-        nix.nhgc.runFreeSpacePercent is higher than
-        nix.nhgc.minimumFreeSpacePercent.  This means Nix Heuristic GC will
+      ++ (lib.optional (cfg.trigger.freePercent > cfg.target.freePercent) ''
+        nix.nhgc.trigger.freePercent is higher than
+        nix.nhgc.target.freePercent.  This means Nix Heuristic GC will
         never free enough disk space that it doesn't need to run again next
-        time.  You should normally configure runFreeSpacePercent to be the
-        same or lower than minimumFreeSpacePercent.
+        time.  You should normally configure trigger.freePercent to be the
+        same or lower than target.freePercent.
       '')
-      ++ (lib.optional (cfg.runFreeSpaceBytes > cfg.minimumFreeSpaceBytes) ''
-        nix.nhgc.runFreeSpaceBytes is higher than
-        nix.nhgc.minimumFreeSpaceBytes.  This means Nix Heuristic GC will
-        never free enough disk space that it doesn't need to run again next
-        time.  You should normally configure runFreeSpaceBytes to be the same
-        or lower than minimumFreeSpaceBytes.
+      ++ (lib.optional (cfg.trigger.freeBytes > cfg.target.freeBytes) ''
+        nix.nhgc.trigger.freeBytes is higher than nix.nhgc.target.freeBytes.
+        This means Nix Heuristic GC will never free enough disk space that it
+        doesn't need to run again next time.  You should normally configure
+        trigger.freeBytes to be the same or lower than target.freeBytes.
       '');
 
     # Use Nix Heuristic Garbage Collection to actually collect garbage.
@@ -118,11 +152,11 @@ in
         pkgs.bc
       ];
       script = ''
-        minimum_free_bytes=${lib.escapeShellArg cfg.minimumFreeSpaceBytes}
-        minimum_free_percent=${lib.escapeShellArg cfg.minimumFreeSpacePercent}
+        minimum_free_bytes=${lib.escapeShellArg cfg.target.freeBytes}
+        minimum_free_percent=${lib.escapeShellArg cfg.target.freePercent}
 
-        run_free_bytes=${lib.escapeShellArg cfg.runFreeSpaceBytes}
-        run_free_percent=${lib.escapeShellArg cfg.runFreeSpacePercent}
+        run_free_bytes=${lib.escapeShellArg cfg.trigger.freeBytes}
+        run_free_percent=${lib.escapeShellArg cfg.trigger.freePercent}
 
         df -B1 --output=size,avail /nix/store |
             tail -n+2 |
