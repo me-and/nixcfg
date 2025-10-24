@@ -204,11 +204,11 @@
     "user-systemd-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1759255572,
-        "narHash": "sha256-X7NcBHc5dHxBJroTI8FMu8zP/hvumVowd5CNsiL8SCM=",
+        "lastModified": 1761293149,
+        "narHash": "sha256-1lZQbcywy8cb6V/NljWiPbVlukujAzPXd3WDYKIQ0n4=",
         "owner": "me-and",
         "repo": "user-systemd-config",
-        "rev": "c6d5107fe8380a936aa9e88feab7104ac280d7b5",
+        "rev": "957e65ac18aa0a05f38fdf0c047411d31ec2d2d9",
         "type": "github"
       },
       "original": {
