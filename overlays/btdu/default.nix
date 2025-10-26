@@ -20,12 +20,7 @@ final: prev: {
                 hash = "sha256-CLXzRTXRkdzaGg7qcERKNl5QtT0m08DsdHQY3RW6Yow=";
               };
 
-              dubLock = final.lib.importJSON (
-                final.fetchurl {
-                  url = "https://raw.githubusercontent.com/NixOS/nixpkgs/37f310fc3b4e34dbc8762654a4ec269cc93b8f51/pkgs/by-name/bt/btdu/dub-lock.json";
-                  hash = "sha256-PPQA5GWd7KqlZXRKAjPgSxh5S3wcW4XY1498Kau1eEs=";
-                }
-              );
+              dubLock = final.lib.importJSON ./dub-lock.json;
             }
           );
       };
