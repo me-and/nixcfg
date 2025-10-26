@@ -46,6 +46,7 @@
     let
       inherit (nixpkgs.lib.attrsets)
         filterAttrs
+        isDerivation
         mapAttrs
         mapAttrs'
         nameValuePair
@@ -160,11 +161,15 @@
       system:
       let
         pkgs = makeNixpkgs system;
-        lib = pkgs.lib;
       in
       {
-        legacyPackages = import ./. { inherit pkgs; };
-        packages = lib.filterAttrs (n: v: lib.isDerivation v) self.legacyPackages."${system}";
+        legacyPackages = import ./. {
+          inherit pkgs;
+          inherit (pkgs) lib;
+          inherit (self) overlays;
+          mylib = self.lib;
+        };
+        packages = filterAttrs (n: v: isDerivation v) self.legacyPackages."${system}";
 
         checks =
           let

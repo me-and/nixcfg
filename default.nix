@@ -1,12 +1,11 @@
-let
-  overlayDir = ./overlays;
-  overlayFileNames = builtins.attrNames (builtins.readDir overlayDir);
-  overlayFiles = map (v: overlayDir + ("/" + v)) overlayFileNames;
-in
 {
-  pkgs ? import <nixpkgs> { overlays = map import overlayFiles; },
-  lib ? pkgs.lib,
+  lib ? import <nixpkgs/lib>,
   mylib ? import ./lib.nix { inherit lib; },
+  overlays ? builtins.mapAttrs (n: v: import v) (mylib.dirfiles { dir = ./overlays; }),
+  pkgs ? import <nixpkgs> {
+    overlays = builtins.attrValues overlays;
+    config = import ./config.nix;
+  },
 }:
 let
   # Using unionOfDisjoint to make sure I don't override anything

@@ -1,5 +1,5 @@
 {
-  lib ? (import <nixpkgs> { }).lib,
+  lib ? import <nixpkgs/lib>,
 }:
 let
   packagesForCall = { inherit lib; };
