@@ -46,12 +46,12 @@
     let
       inherit (nixpkgs.lib.attrsets)
         filterAttrs
-        isDerivation
         mapAttrs
         mapAttrs'
         nameValuePair
         optionalAttrs
         ;
+      inherit (flake-utils.lib) flattenTree;
       inherit (self.lib) dirmodules unionOfDisjointAttrsList;
 
       boxen = {
@@ -168,7 +168,7 @@
           inherit (pkgs) lib;
           mylib = self.lib;
         };
-        packages = filterAttrs (n: v: isDerivation v) self.legacyPackages."${system}";
+        packages = flattenTree self.legacyPackages."${system}";
 
         checks =
           let
