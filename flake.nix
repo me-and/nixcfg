@@ -70,7 +70,7 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = builtins.attrValues self.overlays;
+          overlays = builtins.attrValues self.overlays ++ builtins.attrValues private.overlays;
           config = import ./config.nix;
         };
     in
@@ -100,7 +100,7 @@
                 users.me = me;
                 networking.hostName = name;
                 nixpkgs.config = import ./config.nix;
-                nixpkgs.overlays = builtins.attrValues self.overlays;
+                nixpkgs.overlays = builtins.attrValues self.overlays ++ builtins.attrValues private.overlays;
               }
               home-manager.nixosModules.default
             ]
@@ -166,7 +166,6 @@
         legacyPackages = import ./. {
           inherit pkgs;
           inherit (pkgs) lib;
-          inherit (self) overlays;
           mylib = self.lib;
         };
         packages = filterAttrs (n: v: isDerivation v) self.legacyPackages."${system}";
