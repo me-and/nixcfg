@@ -51,7 +51,7 @@
         nameValuePair
         optionalAttrs
         ;
-      inherit (flake-utils.lib) flattenTree;
+      inherit (flake-utils.lib) flattenTree eachSystem;
       inherit (self.lib) dirmodules unionOfDisjointAttrsList;
 
       boxen = {
@@ -157,7 +157,7 @@
 
       lib = import ./lib.nix { inherit (nixpkgs) lib; };
     }
-    // flake-utils.lib.eachDefaultSystem (
+    // eachSystem [ "x86_64-linux" "aarch64-linux" ] (
       system:
       let
         pkgs = makeNixpkgs system;
