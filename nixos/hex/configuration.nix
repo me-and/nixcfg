@@ -94,7 +94,10 @@
     cores = 8;
   };
 
-  nix.nhgc.minimumFreeSpace = 1024 * 1024 * 1024 * 200; # 200GB
+  nix.nhgc = {
+    target.freePercent = 25;
+    trigger.freePercent = 15;
+  };
 
   services.nix-serve.enable = true;
 }
