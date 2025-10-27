@@ -152,7 +152,7 @@ in
                 bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
                 if (( bytes_to_free > 0 )); then
-                    printf '%q\n' nix-heuristic-gc --penalize-substitutable "$bytes_to_free"
+                    nix-heuristic-gc --penalize-substitutable "$bytes_to_free"
                 fi
             done
       '';
