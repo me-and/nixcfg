@@ -39,6 +39,8 @@ jobs:
             cache-system: ARM64-Linux
 
     steps:
+      - name: Recover runner disk space
+        uses: wimpysworld/nothing-but-nix@v6
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Nix
