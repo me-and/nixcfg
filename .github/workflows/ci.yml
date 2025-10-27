@@ -1,0 +1,51 @@
+name: CI checks
+on:
+  - push
+  - pull_request
+
+jobs:
+  no-build-fmt:
+    name: Check formatting and evaluation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v20
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Check formatting
+        run: nix fmt -- --ci
+      - name: Check evaluation
+        run: nix flake check --no-build --all-systems --keep-going
+
+  build:
+    name: Build check derivations
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        arch:
+          - x86_64
+          - aarch64
+
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+            cache-system: X64-Linux
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            cache-system: ARM64-Linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v20
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Run checks
+        run: nix flake check --keep-going
