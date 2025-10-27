@@ -2,6 +2,9 @@
 
 This repository holds the main [NixOS][] and [Home Manager][] configurations I use.  It's very unlikely to be useful to anyone else as-is, but feel free to use as much of it as you'd like.
 
+[NixOS]: https://nixos.org
+[Home Manager]: https://home-manager.dev/
+
 Be warned: this config gets used as much as a playground and a learning opportunity as it does anything else.  As a result, a lot of approaches may be unnecessarily complex.  Sometimes my fun isn't finding a simple solution, but learning how to do things the complex way, so I know the possibilities when complexity is required.
 
 ## Structure
@@ -17,22 +20,27 @@ Be warned: this config gets used as much as a playground and a learning opportun
     *   `default`: my common NixOS configuration.  This is a mix of configuration I always want, and configuration controlled by options.
     *   `<hostname>`: the modules that define system-specific configurarion.
     *   `<taskname>`: modules for importing when I want a system to perform a particular task.
-*   `hmModules`:
+*   `homeModules`:
     *   `default`: my common Home Manager configuration.  This is a mix of configuration I always want, and configuration controlled by options.
     *   `<username>`: the modules that define configuation I want anywhere I'm using a given username.
     *   `<hostname>`: the modules that define system-specific configurarion.
     *   `<username>@<hostname>`: the modules that define configuration specific to a username and host combination.
     *   `<taskname>`: modules for importing when I want a system to perform a particular task.
-*   `overlays`: [Nixpkgs overlays]().  Mostly these change derivations to add patches or fixes I want, but `overlays.pkgs` adds the contents of `legacyPackages` as `pkgs.mypkgs`, and the contents of `lib` as `pkgs.mylib`.
+*   `overlays`: [Nixpkgs overlays][].  Mostly these change derivations to add patches or fixes I want, but `overlays.pkgs` adds the contents of `legacyPackages` as `pkgs.mypkgs`, and the contents of `lib` as `pkgs.mylib`.  Note the flake output is an attribute set, with the overlay functions as values, but most inputs that look for overlays expect a list of overlay functions.
+*   `checks`: the union of `packages`, `nixosConfigurations` and `homeConfigurations`, filtered to the appropriate architecture.
+*   `formatter`: [`pkgs.nixfmt-tree`][nixfmt-tree].
+
+[Nixpkgs overlays]: https://nixos.org/manual/nixpkgs/stable/#chap-overlays
+[nixfmt-tree]: https://search.nixos.org/packages?channel=unstable&show=nixfmt-tree
 
 ### File and directory structure
 
 *   `flake.nix`: sets up everything in the "Flake outputs" section above.
-*   `lib.nix`: sets up my Nix library functions for the `lib` flake output.
+*   `lib.nix`: sets up my Nix library functions for the `lib` flake output.  *Should* usefully evaluate as a stand-alone file without using flakes, although that's not something I test regularly.
 *   `lib`: contains definitions for my library functions.  This is imported using Nixpkgs' `lib.packagesFromDirectoryRecursive`, prepopulated with Nixpkgs' `lib`.
 *   `overlays`: contains all my Nixpkgs overlays.  Files ending in `.nix`, and folders containing a `default.nix`, will both be picked up automatically by my packages and flakes.
 *   `default.nix`: sets up my packages to build based on the `pkgs` directory.
-*   `pkgs`: contains definitions for Nix derivations.  This is imported using Nixpkgs' `lib.packagesFromDirectoryRecursive`, prepopulated with Nixpkgs' `pkgs` with my overlays already applied.
+*   `pkgs`: contains definitions for Nix derivations.  This is imported using Nixpkgs' `lib.packagesFromDirectoryRecursive`, prepopulated with Nixpkgs' `pkgs` with my overlays already applied, plus the other packages in the set.  *Should* usefully evaluate as a stand-alone file without using flakes, although that's not something I test regularly.
 *   `config.nix`: this is my common Nixpkgs config.
 *   `nixos`:
     *   `default`: this contains a series of NixOS modules that is common to all my NixOS configs.
