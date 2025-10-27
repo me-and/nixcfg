@@ -44,15 +44,17 @@
       user-systemd-config,
     }@inputs:
     let
+      inherit (builtins) attrValues mapAttrs;
+      inherit (nixpkgs.lib) nixosSystem;
       inherit (nixpkgs.lib.attrsets)
         filterAttrs
-        mapAttrs
         mapAttrs'
         nameValuePair
         optionalAttrs
         ;
       inherit (flake-utils.lib) flattenTree eachSystem;
-      inherit (self.lib) dirmodules unionOfDisjointAttrsList;
+      inherit (home-manager.lib) homeManagerConfiguration;
+      inherit (self.lib) dirfiles dirmodules unionOfDisjointAttrsList;
 
       boxen = {
         hex = {
@@ -70,7 +72,7 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = builtins.attrValues self.overlays ++ builtins.attrValues private.overlays;
+          overlays = attrValues self.overlays ++ attrValues private.overlays;
           config = import ./config.nix;
         };
     in
@@ -83,7 +85,7 @@
           includePersonal ? true,
           ...
         }:
-        nixpkgs.lib.nixosSystem {
+        nixosSystem {
           specialArgs = {
             inherit inputs;
           };
@@ -100,7 +102,7 @@
                 users.me = me;
                 networking.hostName = name;
                 nixpkgs.config = import ./config.nix;
-                nixpkgs.overlays = builtins.attrValues self.overlays ++ builtins.attrValues private.overlays;
+                nixpkgs.overlays = attrValues self.overlays ++ attrValues private.overlays;
               }
               home-manager.nixosModules.default
             ]
@@ -117,43 +119,45 @@
           includePersonal ? true,
           ...
         }:
-        nameValuePair "${me}@${name}" (
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = makeNixpkgs system;
-            extraSpecialArgs = {
-              inherit inputs;
-            };
-            modules =
-              let
-                # TODO Looks like some things included in this list might
-                # get evaluated twice, which is *mostly* fine unless there
-                # are multiple config options that get added to a
-                # configured list.
-                allModules = source: [
-                  (source.homeModules.default or { })
-                  (source.homeModules."${me}" or { })
-                  (source.homeModules."${name}" or { })
-                  (source.homeModules."${me}@${name}" or { })
-                  (optionalAttrs includePersonal (source.homeModules.personal or { }))
-                ];
-              in
-              [
-                {
-                  home.username = me;
-                  home.hostName = name;
-                }
-              ]
-              ++ allModules self
-              ++ allModules private;
-          }
-        )
+        nameValuePair "${me}@${name}" (homeManagerConfiguration {
+          pkgs = makeNixpkgs system;
+          extraSpecialArgs = {
+            inherit inputs;
+          };
+          modules =
+            let
+              # TODO Looks like some things included in this list might
+              # get evaluated twice, which is *mostly* fine unless there
+              # are multiple config options that get added to a
+              # configured list.
+              allModules = source: [
+                (source.homeModules.default or { })
+                (source.homeModules."${me}" or { })
+                (source.homeModules."${name}" or { })
+                (source.homeModules."${me}@${name}" or { })
+                (optionalAttrs includePersonal (source.homeModules.personal or { }))
+              ];
+            in
+            [
+              {
+                home.username = me;
+                home.hostName = name;
+              }
+            ]
+            ++ allModules self
+            ++ allModules private;
+        })
       ) boxen;
 
       nixosModules = dirmodules { dir = ./nixos; };
 
       homeModules = dirmodules { dir = ./home-manager; };
 
-      overlays = builtins.mapAttrs (n: v: import v) (self.lib.dirfiles { dir = ./overlays; });
+      overlays =
+        let
+          overlayFiles = dirfiles { dir = ./overlays; };
+        in
+        mapAttrs (n: v: import v) overlayFiles;
 
       lib = import ./lib.nix { inherit (nixpkgs) lib; };
     }
