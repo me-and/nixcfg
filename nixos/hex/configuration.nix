@@ -1,5 +1,6 @@
 {
   inputs,
+  config,
   lib,
   pkgs,
   ...
@@ -30,6 +31,7 @@
   networking.domain = "dinwoodie.org";
 
   networking.networkmanager.enable = true;
+  users.groups.networkmanager.members = [ config.users.me ];
 
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
