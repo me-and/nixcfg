@@ -60,8 +60,6 @@
     relayPort = 587;
   };
 
-  programs.steam.enable = true;
-
   programs.kdeconnect.enable = true;
 
   system.stateVersion = "24.05";
