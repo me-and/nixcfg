@@ -62,32 +62,7 @@
 
   programs.kdeconnect.enable = true;
 
-  # Work around https://github.com/NixOS/nixos-hardware/pull/1151
-  environment.etc."libinput/local-overrides.quirks".text = lib.mkForce ''
-    [Framework Laptop 16 Keyboard Module]
-    MatchName=Framework Laptop 16 Keyboard Module*
-    MatchUdevType=keyboard
-    MatchDMIModalias=dmi:*svnFramework:pnLaptop16*
-    AttrKeyboardIntegration=internal
-  '';
-
-  # https://github.com/NixOS/nixos-hardware/pull/1152
-  services.udev.extraRules = ''
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0012", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
-  '';
-
   system.stateVersion = "24.05";
-
-  # Need at least kernel 6.10 for framework-tool to work.  6.10 is out of
-  # support, so use 6.12 as a more recent LTS kernel.
-  #
-  # https://github.com/FrameworkComputer/framework-system/issues/43
-  # https://github.com/NixOS/nixpkgs/issues/365709
-  boot.kernelPackages =
-    if pkgs.linuxPackages.kernelAtLeast "6.10" then
-      pkgs.linuxPackages
-    else
-      pkgs.linuxKernel.packages.linux_6_12;
 
   nix.settings = {
     max-jobs = 4;
