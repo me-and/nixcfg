@@ -158,37 +158,58 @@ in
         run_free_bytes=${lib.escapeShellArg cfg.trigger.freeBytes}
         run_free_percent=${lib.escapeShellArg cfg.trigger.freePercent}
 
-        df -B1 --output=size,avail /nix/store |
-            tail -n+2 |
-            while read -r bytes_total bytes_free; do
-                if [[ "$run_free_percent" = 0 ]]; then
-                    :
-                else
-                    run_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$run_free_percent" | bc)"
-                    if (( run_free_bytes_percent > run_free_bytes )); then
-                        run_free_bytes="$run_free_bytes_percent"
-                    fi
-                fi
+        update_free_space () {
+            local -i free_blocks total_blocks block_size
 
-                if (( bytes_free >= run_free_bytes )); then
-                    exit 0
-                fi
+            free_blocks="$(stat --file-system --format=%f /nix/store)"
+            total_blocks="$(stat --file-system --format=%b /nix/store)"
+            block_size="$(stat --file-system --format=%S /nix/store)"
 
-                if [[ "$minimum_free_percent" = 0 ]]; then
-                    :
-                else
-                    minimum_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$minimum_free_percent" | bc)"
-                    if (( minimum_free_bytes_percent > minimum_free_bytes )); then
-                        minimum_free_bytes="$minimum_free_bytes_percent"
-                    fi
-                fi
+            bytes_free=$((free_blocks * block_size))
+            bytes_total=$((total_blocks * block_size))
+        }
 
-                bytes_to_free=$(( minimum_free_bytes - bytes_free ))
+        update_free_space
 
-                if (( bytes_to_free > 0 )); then
-                    nix-heuristic-gc --penalize-substitutable "$bytes_to_free"
-                fi
-            done
+        if [[ "$run_free_percent" = 0 ]]; then
+            :
+        else
+            run_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$run_free_percent" | bc)"
+            if (( run_free_bytes_percent > run_free_bytes )); then
+                run_free_bytes="$run_free_bytes_percent"
+            fi
+        fi
+
+        if (( bytes_free >= run_free_bytes )); then
+            exit 0
+        fi
+
+        if [[ "$minimum_free_percent" = 0 ]]; then
+            :
+        else
+            minimum_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$minimum_free_percent" | bc)"
+            if (( minimum_free_bytes_percent > minimum_free_bytes )); then
+                minimum_free_bytes="$minimum_free_bytes_percent"
+            fi
+        fi
+
+        bytes_to_free=$(( minimum_free_bytes - bytes_free ))
+
+        if (( bytes_to_free <= 0 )); then
+            echo 'nix-heuristic-gc triggered despite having sufficient disk space' >&2
+            exit 64  # EX_USAGE
+        fi
+
+        nix-heuristic-gc "$bytes_to_free"
+
+        # Check if sufficient space was freed.  Check against the "trigger"
+        # rather than the "target", as it's fairly likely some disk space was
+        # used while nhgc was running.
+        update_free_space
+        if (( bytes_free < run_free_bytes )); then
+            echo 'nix-heuristic-gc failed to free sufficient disk space' >&2
+            exit 1
+        fi
       '';
     };
     systemd.timers.nix-nhgc = {
