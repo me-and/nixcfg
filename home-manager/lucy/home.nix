@@ -49,8 +49,10 @@ in
   # therefore everything needs to be done manually.
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
-  # Add the wavtoopus utility.
-  home.packages = [ pkgs.mypkgs.wavtoopus ];
+  home.packages = [
+    pkgs.mypkgs.wavtoopus
+    pkgs.quodlibet-xine # operon
+  ];
 
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
