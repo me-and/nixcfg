@@ -200,7 +200,7 @@ in
             exit 64  # EX_USAGE
         fi
 
-        nix-heuristic-gc --penalize-substitutable "$bytes_to_free"
+        nix-heuristic-gc "$bytes_to_free"
 
         # Check if sufficient space was freed.  Check against the "trigger"
         # rather than the "target", as it's fairly likely some disk space was
