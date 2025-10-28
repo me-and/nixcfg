@@ -195,8 +195,20 @@ in
 
         bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
-        if (( bytes_to_free > 0 )); then
-            nix-heuristic-gc --penalize-substitutable "$bytes_to_free"
+        if (( bytes_to_free <= 0 )); then
+            echo 'nix-heuristic-gc triggered despite having sufficient disk space' >&2
+            exit 64  # EX_USAGE
+        fi
+
+        nix-heuristic-gc --penalize-substitutable "$bytes_to_free"
+
+        # Check if sufficient space was freed.  Check against the "trigger"
+        # rather than the "target", as it's fairly likely some disk space was
+        # used while nhgc was running.
+        update_free_space
+        if (( bytes_free < run_free_bytes )); then
+            echo 'nix-heuristic-gc failed to free sufficient disk space' >&2
+            exit 1
         fi
       '';
     };
