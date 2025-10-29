@@ -14,7 +14,6 @@ let
 in
 {
   imports = [
-    (lib.mkRemovedOptionModule [ "programs" "mypy" ] "")
     (lib.mkRemovedOptionModule [ "pd" ] "")
   ];
 
