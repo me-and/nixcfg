@@ -13,8 +13,11 @@ let
   # package, though, so don't worry about that!
   toilEval = builtins.tryEval pkgs.toil;
   pkgs' =
-    assert !toilEval.success;
-    builtins.removeAttrs pkgs [ "toil" ];
+    if pkgs ? toil then
+      assert !toilEval.success;
+      builtins.removeAttrs pkgs [ "toil" ]
+    else
+      builtins.warn "No need to handle toil package in default.nix" pkgs;
 
   packagesForCall = lib.attrsets.unionOfDisjoint pkgs' { inherit mylib; };
   scope = lib.packagesFromDirectoryRecursive {
