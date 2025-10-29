@@ -44,7 +44,7 @@
       user-systemd-config,
     }@inputs:
     let
-      inherit (builtins) attrValues mapAttrs;
+      inherit (builtins) attrValues concatMap mapAttrs;
       inherit (nixpkgs.lib) nixosSystem;
       inherit (nixpkgs.lib.attrsets)
         filterAttrs
@@ -72,7 +72,10 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = attrValues self.overlays ++ attrValues private.overlays;
+          overlays = concatMap attrValues [
+            self.overlays
+            private.overlays
+          ];
           config = import ./config.nix;
         };
     in
@@ -102,7 +105,10 @@
                 users.me = me;
                 networking.hostName = name;
                 nixpkgs.config = import ./config.nix;
-                nixpkgs.overlays = attrValues self.overlays ++ attrValues private.overlays;
+                nixpkgs.overlays = concatMap attrValues [
+                  self.overlays
+                  private.overlays
+                ];
               }
               home-manager.nixosModules.default
             ]
