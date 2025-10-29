@@ -60,7 +60,7 @@ in
       poppler_utils
       prusa-slicer
       qalculate-gtk
-      quodlibet-xine # operon
+      quodlibet-without-gst-plugins # operon
       scribus
       signal-desktop
       telegram-desktop

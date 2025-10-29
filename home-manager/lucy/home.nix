@@ -51,7 +51,7 @@ in
 
   home.packages = [
     pkgs.mypkgs.wavtoopus
-    pkgs.quodlibet-xine # operon
+    pkgs.quodlibet-without-gst-plugins # operon
   ];
 
   systemd.user.services = {
