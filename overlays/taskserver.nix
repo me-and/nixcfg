@@ -56,6 +56,15 @@ in
         ${patchutils}/bin/filterdiff -x '*/ChangeLog' ${patchFile} |
             ${patch}/bin/patch -R -p1
       ''
-      + oldAttrs.patchPhase;
+      + oldAttrs.patchPhase
+      # 6442144f0a4c (taskserver: fix build with cmake4, 2025-10-25), but with
+      # some modifications for the fact that I'm using a release part-way to
+      # v1.2.0.
+      + ''
+        substituteInPlace {.,doc,src,src/libshared,src/libshared/src,src/libshared/test,test}/CMakeLists.txt \
+            --replace-fail "cmake_minimum_required (VERSION 2.8)" "cmake_minimum_required(VERSION 3.10)"
+        substituteInPlace {.,src/libshared}/test/CMakeLists.txt \
+            --replace-fail "cmake_policy(SET CMP0037 OLD)" ""
+      '';
   });
 }
