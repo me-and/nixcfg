@@ -57,7 +57,7 @@ in
       libreoffice
       makemkv
       openscad
-      poppler_utils
+      poppler-utils
       prusa-slicer
       qalculate-gtk
       quodlibet-without-gst-plugins # operon
@@ -65,7 +65,7 @@ in
       signal-desktop
       telegram-desktop
       vlc
-      whatsapp-for-linux
+      wasistlos
       zoom-us
     ]
     ++ (with pkgs.mypkgs; [
