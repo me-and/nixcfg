@@ -23,7 +23,6 @@ in
         dig.dnsutils
         dos2unix
         fzf
-        gh
         git-filter-repo
         gnumake
         htop

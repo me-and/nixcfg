@@ -80,10 +80,6 @@ in
       };
 
       core.pager = "less -S";
-      credential = {
-        "https://gist.github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
-        "https://github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
-      };
       diff = {
         algorithm = "patience";
         interHunkContext = 6;
@@ -124,4 +120,6 @@ in
       };
     };
   };
+
+  programs.gh.enable = true;
 }
