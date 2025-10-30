@@ -19,5 +19,7 @@
       "zoom"
     ];
 
-  allowlistedLicenses = [ pkgs.mylib.licenses.licensedToMe ];
+  # Work around for https://github.com/NixOS/nixpkgs/issues/456994
+  # allowlistedLicenses = [ pkgs.mylib.licenses.licensedToMe ];
+  allowlistedLicenses = [ (import ./lib/licenses.nix { }).licensedToMe ];
 }
