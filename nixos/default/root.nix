@@ -1,27 +1,16 @@
 # Configuration for the root user.
-{ config, ... }:
+{ inputs, config, ... }:
 {
   users.users.root.hashedPasswordFile = "/etc/nixos/secrets/root";
 
   home-manager.users.root =
     {
       lib,
-      options,
       osConfig,
       ...
     }:
-    let
-      defaultPrio = (lib.mkOptionDefault null).priority;
-    in
     {
       home.stateVersion = osConfig.system.stateVersion;
-
-      warnings = lib.mkIf (options.programs.git.userEmail.highestPrio >= defaultPrio) [
-        ''
-          Root user Git email address hasn't been set.  Consider setting
-          home-manager.users.root.programs.git.userEmail.
-        ''
-      ];
 
       programs.git = {
         enable = true;
@@ -30,22 +19,8 @@
         # anywhere else I want to limit it to user accounts.
         package = osConfig.programs.git.package;
 
-        # TODO Merge this with my regular user Git configuration.
-        aliases = {
-          pwl = "push --force-with-lease";
-          lug = "log -u";
-          lol = "log --graph --decorate --pretty=oneline --abbrev-commit";
-          lola = "log --graph --decorate --pretty=oneline --abbrev-commit --all";
-          lols = "log --graph --decorate --pretty=oneline --abbrev-commit --stat";
-          lolas = "log --graph --decorate --pretty=oneline --abbrev-commit --stat --all";
-          stashed = "!f () { git stash save && \"$@\" && git stash pop; }; f";
-        };
-
-        userName = "Adam Dinwoodie";
-
-        extraConfig = {
-          pull.rebase = false;
-        };
+        settings =
+          inputs.self.homeConfigurations."${config.users.me}@${config.networking.hostName}".config.programs.git.settings;
       };
 
       # Want gh in path so root can call `gh auth login`.  This also
