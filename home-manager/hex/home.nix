@@ -50,7 +50,7 @@ in
       freecad
       gnucash
       gnome-calculator # Prefer this to the KDE options
-      jellyfin-media-player
+      # jellyfin-media-player # Insecure!?
       hunspell
       hunspellDicts.en-gb-ise
       inkscape

@@ -54,11 +54,7 @@
 
   programs.mosh.enable = true;
 
-  services.postfix = {
-    enable = true;
-    relayHost = "smtp.tastycake.net";
-    relayPort = 587;
-  };
+  services.postfix.sendViaTastycake = true;
 
   programs.kdeconnect.enable = true;
 

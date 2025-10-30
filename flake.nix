@@ -1,14 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     home-manager = {
-      # My fork, adding
-      #
-      # https://github.com/nix-community/home-manager/pull/7476
-      # https://github.com/nix-community/home-manager/pull/7618
-      url = "github:me-and/home-manager/release-25.05";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     winapps = {
