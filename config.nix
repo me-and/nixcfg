@@ -3,7 +3,7 @@
   allowUnfreePredicate =
     pkg:
     builtins.elem (pkgs.lib.getName pkg) [
-      "albertus-fonts"
+      "albertus"
       "azuredatastudio"
       "cnijfilter2"
       "cups-kyocera-3500-4500"
@@ -18,4 +18,6 @@
       "steam-run"
       "zoom"
     ];
+
+  allowlistedLicenses = [ pkgs.mylib.licenses.licensedToMe ];
 }
