@@ -103,6 +103,8 @@
 
   # Delete old Nix profiles for root automatically, since I'll not be logging
   # in regularly to check for them.
+  #
+  # TODO Is this necessary given my current nix-gc.service configuration?
   systemd.services.nix-remove-old-root-profiles = {
     description = "Delete old Nix profiles for root";
     serviceConfig.Type = "oneshot";
