@@ -12,15 +12,14 @@
     {
       home.stateVersion = osConfig.system.stateVersion;
 
+      imports = [ inputs.self.homeModules.git ];
+
       programs.git = {
         enable = true;
 
         # Use the same as the system package; if I'm doing anything clever
         # anywhere else I want to limit it to user accounts.
         package = osConfig.programs.git.package;
-
-        settings =
-          inputs.self.homeConfigurations."${config.users.me}@${config.networking.hostName}".config.programs.git.settings;
       };
 
       # Want gh in path so root can call `gh auth login`.  This also
