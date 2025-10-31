@@ -34,7 +34,7 @@ in
     maintenance.enable = true;
 
     settings = {
-      aliases = {
+      alias = {
         # Simple short forms
         h = "help";
 
