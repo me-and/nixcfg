@@ -65,7 +65,6 @@ in
       signal-desktop
       telegram-desktop
       vlc
-      whatsapp-for-linux
       zoom-us
     ]
     ++ (with pkgs.mypkgs; [
@@ -115,4 +114,5 @@ in
   };
 
   programs.taskwarrior.onedriveBackup = true;
+  programs.zapzap.enable = true;
 }
