@@ -1,0 +1,17 @@
+diff --git a/src/commands/CmdModify.cpp b/src/commands/CmdModify.cpp
+index cb407367d..7f2efd0d7 100644
+--- a/src/commands/CmdModify.cpp
++++ b/src/commands/CmdModify.cpp
+@@ -121,12 +121,6 @@ void CmdModify::checkConsistency (Task &before, Task &after)
+       ! before.has ("due"))
+     throw std::string ("You cannot specify a recurring task without a due date.");
+ 
+-  if (before.has ("recur") &&
+-      before.has ("due")   &&
+-      (! after.has ("due")  ||
+-        after.get ("due") == ""))
+-    throw std::string ("You cannot remove the due date from a recurring task.");
+-
+   if (before.has ("recur")  &&
+       (! after.has ("recur") ||
+         after.get ("recur") == ""))
