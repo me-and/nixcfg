@@ -1,8 +1,13 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  lib ? pkgs.lib,
+  mylib ? import ./lib.nix { inherit lib; },
+  ...
+}:
 {
   allowUnfreePredicate =
     pkg:
-    builtins.elem (pkgs.lib.getName pkg) [
+    builtins.elem (lib.getName pkg) [
       "albertus"
       "azuredatastudio"
       "cnijfilter2"
@@ -19,5 +24,5 @@
       "zoom"
     ];
 
-  allowlistedLicenses = [ pkgs.mylib.licenses.licensedToMe ];
+  allowlistedLicenses = [ mylib.licenses.licensedToMe ];
 }
