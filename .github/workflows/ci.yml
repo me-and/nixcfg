@@ -26,17 +26,9 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        arch:
-          - x86_64
-          - aarch64
-
-        include:
-          - arch: x86_64
-            runner: ubuntu-latest
-            cache-system: X64-Linux
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
-            cache-system: ARM64-Linux
+        runner:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
 
     steps:
       - name: Recover runner disk space
