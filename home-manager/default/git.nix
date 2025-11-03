@@ -1,6 +1,6 @@
-{ inputs, pkgs, ... }:
+{ pkgs, personalCfg, ... }:
 {
-  imports = [ inputs.self.homeModules.git ];
+  imports = [ personalCfg.homeModules.git ];
 
   programs.git = {
     # Need gitFull for SSH support(!)

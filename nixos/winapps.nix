@@ -14,14 +14,14 @@
 #   ~/.config/winapps.
 # - Running the winapps installer to set up links to the Windows applications.
 {
-  inputs,
   config,
   pkgs,
+  winapps,
   ...
 }:
 let
   system = config.nixpkgs.hostPlatform.system;
-  winappsPkgs = inputs.winapps.packages."${system}";
+  winappsPkgs = winapps.packages."${system}";
 in
 {
   virtualisation.podman.enable = true;

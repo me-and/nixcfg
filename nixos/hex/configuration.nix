@@ -1,15 +1,16 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
+  nixos-hardware,
+  personalCfg,
   ...
 }:
 {
   imports = [
-    inputs.nixos-hardware.nixosModules.framework-16-7040-amd
-    inputs.self.nixosModules.winapps
-    inputs.self.nixosModules.nix-builder
+    nixos-hardware.nixosModules.framework-16-7040-amd
+    personalCfg.nixosModules.winapps
+    personalCfg.nixosModules.nix-builder
   ];
 
   boot.loader.systemd-boot.enable = true;

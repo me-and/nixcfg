@@ -1,8 +1,8 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
+  personalCfg,
   ...
 }:
 let
@@ -34,7 +34,7 @@ let
 in
 {
   imports = [
-    inputs.self.homeModules.mypy
+    personalCfg.homeModules.mypy
   ];
   home.stateVersion = "24.11";
 

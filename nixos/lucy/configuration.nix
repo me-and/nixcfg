@@ -1,12 +1,12 @@
 {
-  inputs,
   config,
   pkgs,
+  nixos-hardware,
   ...
 }:
 {
   imports = [
-    inputs.nixos-hardware.nixosModules.raspberry-pi-4
+    nixos-hardware.nixosModules.raspberry-pi-4
   ];
 
   boot.initrd.systemd.enable = true;

@@ -1,5 +1,5 @@
 # Configuration for the root user.
-{ inputs, config, ... }:
+{ config, personalCfg, ... }:
 {
   users.users.root.hashedPasswordFile = "/etc/nixos/secrets/root";
 
@@ -12,7 +12,7 @@
     {
       home.stateVersion = osConfig.system.stateVersion;
 
-      imports = [ inputs.self.homeModules.git ];
+      imports = [ personalCfg.homeModules.git ];
 
       programs.git = {
         enable = true;

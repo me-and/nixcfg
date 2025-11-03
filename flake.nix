@@ -38,7 +38,7 @@
       wsl,
       private,
       user-systemd-config,
-    }@inputs:
+    }:
     let
       inherit (builtins) attrValues concatMap mapAttrs;
       inherit (nixpkgs.lib) nixosSystem;
@@ -86,7 +86,8 @@
         }:
         nixosSystem {
           specialArgs = {
-            inherit inputs;
+            inherit nixos-hardware winapps wsl;
+            personalCfg = self;
           };
           modules =
             let
@@ -124,7 +125,8 @@
         nameValuePair "${me}@${name}" (homeManagerConfiguration {
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
-            inherit inputs;
+            inherit user-systemd-config;
+            personalCfg = self;
           };
           modules =
             let

@@ -1,12 +1,12 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
+  wsl,
   ...
 }:
 {
-  imports = [ inputs.wsl.nixosModules.default ];
+  imports = [ wsl.nixosModules.default ];
 
   wsl.enable = true;
   wsl.defaultUser = lib.mkDefault config.users.me;

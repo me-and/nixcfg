@@ -1,15 +1,15 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
+  user-systemd-config,
   ...
 }:
 let
   # This used to be a Homeshick castle, and can still be used as one, but it's
   # used here as a starting point for bringing my systemd config into Home
   # Manager.
-  systemdHomeshick = inputs.user-systemd-config;
+  systemdHomeshick = user-systemd-config;
 in
 lib.mkMerge [
   {
