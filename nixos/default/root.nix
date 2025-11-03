@@ -99,35 +99,4 @@
         '';
       };
     };
-
-  # Delete old Nix profiles for root automatically, since I'll not be logging
-  # in regularly to check for them.
-  #
-  # TODO Is this necessary given my current nix-gc.service configuration?
-  systemd.services.nix-remove-old-root-profiles = {
-    description = "Delete old Nix profiles for root";
-    serviceConfig.Type = "oneshot";
-    script = ''
-      for p in /nix/var/nix/profiles/per-user/root/*; do
-          if [[ "$p" =~ (.*)-[0-9]+-link ]] &&
-              [[ -e "''${BASH_REMATCH[1]}" ]]
-          then
-              # This is a version of a profile, so ignore it
-              :
-          else
-              ${config.nix.package.out}/bin/nix-env --delete-generations 180d -p "$p"
-          fi
-      done
-    '';
-  };
-  systemd.timers.nix-remove-old-root-profiles = {
-    description = "Delete old Nix profiles for root weekly";
-    timerConfig = {
-      OnCalendar = "weekly";
-      AccuracySec = "24h";
-      Persistent = true;
-      RandomizedDelaySec = "1h";
-      RandomizedOffsetSec = "1w";
-    };
-  };
 }

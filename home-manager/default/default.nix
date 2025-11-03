@@ -90,44 +90,4 @@ in
     addKeysToAgent = "yes";
   };
   services.ssh-agent.enable = true;
-
-  # Don't expect this to ever clean much up, but it's a backstop against
-  # ancient versions hanging around unnecessarily.
-  #
-  # TODO Remove testing printf
-  systemd.user.services.nix-remove-old-profiles = {
-    Unit.Description = "Delete old Nix profiles";
-    Service = {
-      Type = "oneshot";
-      ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-        name = "rm-nix-profiles";
-        text =
-          let
-            nixPackage = if config.nix.package == null then pkgs.nix else config.nix.package;
-          in
-          ''
-            for p in ${lib.escapeShellArg config.xdg.stateHome}/nix/profiles/*; do
-                if [[ "$p" =~ (.*)-[0-9]+-link ]] &&
-                    [[ -e "''${BASH_REMATCH[1]}" ]]
-                then
-                    # This is a version of a profile, so ignore it
-                    :
-                else
-                    ${nixPackage}/bin/nix-env --delete-generations 180d -p "$p"
-                fi
-            done
-          '';
-      };
-    };
-  };
-  systemd.user.timers.nix-remove-old-profiles = {
-    Unit.Description = "Delete old Nix profiles weekly";
-    Timer = {
-      OnCalendar = "weekly";
-      AccuracySec = "24h";
-      Persistent = true;
-      RandomizedDelaySec = "1h";
-      RandomizedOffsetSec = "1w";
-    };
-  };
 }
