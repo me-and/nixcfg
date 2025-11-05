@@ -39,6 +39,10 @@ in
     usbutils
   ];
 
+  # KDE has its own terminal emulator that I prefer to xterm, so don't install
+  # xterm by default just because it's a default.
+  services.xserver.excludePackages = [ pkgs.xterm ];
+
   # Normally want SSHD.
   services.openssh.enable = lib.mkDefault true;
 
