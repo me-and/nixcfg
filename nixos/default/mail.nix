@@ -45,10 +45,10 @@ in
       services.postfix = {
         # Always want to at least be able to deliver mail locally.
         enable = true;
-        hostname = lib.mkIf hasFqdn (lib.mkDefault fqdn);
+        settings.main.myhostname = lib.mkIf hasFqdn (lib.mkDefault fqdn);
 
         # Accept email from the local system and nowhere else.
-        config.inet_interfaces = "loopback-only";
+        settings.main.inet_interfaces = "loopback-only";
       };
 
       # Always want to be able to use `mail` to send emails.
@@ -76,18 +76,15 @@ in
     # be configured using services.postfix.mapFiles, but that would put secrets
     # in the Nix store, which I don't want.
     (lib.mkIf cfg.sendViaTastycake {
-      services.postfix = {
-        config = {
-          smtp_sasl_auth_enable = true;
-          smtp_sasl_password_maps = "hash:/etc/postfix/sasl_passwd";
-          smtp_use_tls = true;
-          smtp_sasl_tls_security_options = "noanonymous";
-          smtp_tls_security_level = "secure";
-          smtp_tls_mandatory_ciphers = "high";
-          smtp_tls_mandatory_protocols = ">=TLSv1.3";
-        };
-
-        settings.main.relayhost = [ "smtp.tastycake.net:587" ];
+      services.postfix.settings.main = {
+        smtp_sasl_auth_enable = true;
+        smtp_sasl_password_maps = "hash:/etc/postfix/sasl_passwd";
+        smtp_use_tls = true;
+        smtp_sasl_tls_security_options = "noanonymous";
+        smtp_tls_security_level = "secure";
+        smtp_tls_mandatory_ciphers = "high";
+        smtp_tls_mandatory_protocols = ">=TLSv1.3";
+        relayhost = [ "smtp.tastycake.net:587" ];
       };
 
       systemd.services.postfix-configure-auth = {
