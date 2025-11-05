@@ -9,12 +9,16 @@
     # dynamically created folders during a Syncthing invocation, but it might
     # be useful in that circumstance, and it's definitely useful as a
     # reference.
+    #
+    # TODO Set up an activation script to check that these are actually
+    # configured?
     settings."defaults/ignores".lines = [
       "(?d).DS_Store"
       "(?d)desktop.ini"
       "(?d)Thumbs.db"
       "*.lnk"
       "~$*"
+      ".~lock.*#"
       ".*.swp"
       ".rsync-partial"
       ".rsync-tmp"
