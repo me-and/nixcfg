@@ -57,7 +57,7 @@ in
       libreoffice
       makemkv
       openscad
-      poppler_utils
+      poppler-utils
       prusa-slicer
       qalculate-gtk
       quodlibet-without-gst-plugins # operon

@@ -3,7 +3,7 @@
   python3Packages,
 }:
 let
-  inherit (python3Packages) buildPythonPackage dateutil setuptools;
+  inherit (python3Packages) buildPythonPackage python-dateutil setuptools;
 in
 buildPythonPackage {
   name = "asmodeus";
@@ -18,5 +18,5 @@ buildPythonPackage {
   pyproject = true;
   nativeBuildInputs = [ setuptools ];
 
-  dependencies = [ dateutil ];
+  dependencies = [ python-dateutil ];
 }
