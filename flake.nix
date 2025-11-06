@@ -178,11 +178,22 @@
           let
             checkableNixosImages = filterAttrs (n: v: v.pkgs.system == system) self.nixosConfigurations;
             checkableHomeImages = filterAttrs (n: v: v.pkgs.system == system) self.homeConfigurations;
+            extraChecks = import ./checks {
+              inherit pkgs;
+              inherit (pkgs) lib;
+              mylib = self.lib;
+              overlays = concatMap attrValues [
+                self.overlays
+                private.overlays
+              ];
+              mypkgs = self.legacyPackages;
+            };
           in
           unionOfDisjointAttrsList [
             self.packages."${system}"
             (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
             (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
+            (flattenTree extraChecks)
           ];
 
         formatter = pkgs.nixfmt-tree;
