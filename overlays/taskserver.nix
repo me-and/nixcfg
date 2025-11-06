@@ -50,17 +50,25 @@ in
           hash = "sha256-518qF8ui5GMmsdQRTm75zrBgMhlhB7ffi3B+plzlWKQ=";
         };
       in
-      # Don't patch the changelog, partly because we don't need to, and
-      # partly because the patch doesn't apply.
       ''
+        # Don't patch the changelog, partly because we don't need to, and
+        # partly because the patch doesn't apply.
         ${patchutils}/bin/filterdiff -x '*/ChangeLog' ${patchFile} |
             ${patch}/bin/patch -R -p1
-      ''
-      + oldAttrs.patchPhase
-      # 6442144f0a4c (taskserver: fix build with cmake4, 2025-10-25), but with
-      # some modifications for the fact that I'm using a release part-way to
-      # v1.2.0.
-      + ''
+
+        # Run the Nixpkgs taskserver patchPhase with the substituteInPlace
+        # parts disabled, as they assume the 1.1.0 code layout.
+        (
+            substituteInPlace () {
+                nixNoticeLog "Skipping substituteInPlace ''${*@Q}"
+            }
+
+            ${oldAttrs.patchPhase}
+        )
+
+        # 6442144f0a4c (taskserver: fix build with cmake4, 2025-10-25), but with
+        # some modifications for the fact that I'm using a release part-way to
+        # v1.2.0.
         substituteInPlace {.,doc,src,src/libshared,src/libshared/src,src/libshared/test,test}/CMakeLists.txt \
             --replace-fail "cmake_minimum_required (VERSION 2.8)" "cmake_minimum_required(VERSION 3.10)"
         substituteInPlace {.,src/libshared}/test/CMakeLists.txt \
