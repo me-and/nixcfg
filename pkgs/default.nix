@@ -1,10 +1,10 @@
 {
   lib ? import <nixpkgs/lib>,
-  mylib ? import ./lib { inherit lib; },
-  overlays ? builtins.mapAttrs (n: v: import v) (mylib.dirfiles { dir = ./overlays; }),
+  mylib ? import ../lib { inherit lib; },
+  overlays ? builtins.mapAttrs (n: v: import v) (mylib.dirfiles { dir = ../overlays; }),
   pkgs ? import <nixpkgs> {
     overlays = builtins.attrValues overlays;
-    config = import ./config.nix;
+    config = import ../config.nix;
   },
 }:
 let
@@ -23,7 +23,7 @@ let
   scope = lib.packagesFromDirectoryRecursive {
     callPackage = lib.callPackageWith packagesForCall;
     newScope = extra: lib.callPackageWith (lib.attrsets.unionOfDisjoint packagesForCall extra);
-    directory = ./pkgs;
+    directory = ./.;
   };
 in
-scope.packages scope
+builtins.removeAttrs (scope.packages scope) [ "default" ]

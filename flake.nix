@@ -167,7 +167,7 @@
         pkgs = makeNixpkgs system;
       in
       {
-        legacyPackages = import ./. {
+        legacyPackages = import ./pkgs {
           inherit pkgs;
           inherit (pkgs) lib;
           mylib = self.lib;
