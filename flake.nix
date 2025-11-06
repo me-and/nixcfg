@@ -159,7 +159,7 @@
         in
         mapAttrs (n: v: import v) overlayFiles;
 
-      lib = import ./lib.nix { inherit (nixpkgs) lib; };
+      lib = import ./lib { inherit (nixpkgs) lib; };
     }
     // eachSystem [ "x86_64-linux" "aarch64-linux" ] (
       system:

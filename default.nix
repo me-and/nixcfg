@@ -1,6 +1,6 @@
 {
   lib ? import <nixpkgs/lib>,
-  mylib ? import ./lib.nix { inherit lib; },
+  mylib ? import ./lib { inherit lib; },
   overlays ? builtins.mapAttrs (n: v: import v) (mylib.dirfiles { dir = ./overlays; }),
   pkgs ? import <nixpkgs> {
     overlays = builtins.attrValues overlays;
