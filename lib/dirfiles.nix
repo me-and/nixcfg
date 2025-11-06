@@ -4,6 +4,7 @@
   lib,
   subdirfiles,
 }:
+{ __functor = self:
 {
   dir,
   excludes ? [ ],
@@ -21,4 +22,8 @@ let
     n: v: lib.nameValuePair (lib.removeSuffix ".nix" n) (dir + "/${n}")
   ) filenames;
 in
-lib.attrsets.unionOfDisjoint importableDirs importableFiles
+  lib.attrsets.unionOfDisjoint importableDirs importableFiles;
+  tests = {
+    testdoot = { expr = lib.id 1; expected = 1; };
+  };
+}
