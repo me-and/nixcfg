@@ -8,6 +8,7 @@
     inherit overlays;
     config = import ../config.nix;
   },
+  inputs ? { },
 }:
 let
   # Using unionOfDisjoint to make sure I don't override anything
@@ -21,7 +22,7 @@ let
     else
       builtins.warn "No need to handle toil package in default.nix" pkgs;
 
-  packagesForCall = lib.attrsets.unionOfDisjoint pkgs' { inherit mylib; };
+  packagesForCall = lib.attrsets.unionOfDisjoint pkgs' { inherit mylib inputs; };
   scope = lib.packagesFromDirectoryRecursive {
     callPackage = lib.callPackageWith packagesForCall;
     newScope = extra: lib.callPackageWith (lib.attrsets.unionOfDisjoint packagesForCall extra);

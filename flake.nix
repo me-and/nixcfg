@@ -45,6 +45,7 @@
         concatMap
         functionArgs
         mapAttrs
+        removeAttrs
         ;
       inherit (nixpkgs.lib) nixosSystem;
       inherit (nixpkgs.lib.attrsets)
@@ -187,7 +188,7 @@
       in
       {
         legacyPackages = import ./pkgs {
-          inherit pkgs;
+          inherit pkgs inputs;
           inherit (pkgs) lib;
           mylib = self.lib;
         };
@@ -199,19 +200,12 @@
             checkableHomeImages = filterAttrs (n: v: v.pkgs.system == system) self.homeConfigurations;
           in
           unionOfDisjointAttrsList [
-            self.packages."${system}"
+            (removeAttrs self.packages."${system}" [ "everything" ])
             (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
             (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
           ];
 
         formatter = pkgs.nixfmt-tree;
-
-        # A derivation that depends on all the derivations across all
-        # architectures in self.checks.  Probably not very useful to build, but
-        # comparing the before and after derivations with something like
-        # nix-diff permits seeing what difference some change makes across all
-        # my systems and packages.
-        everything = pkgs.linkFarm "everything" (mapAttrs (n: v: pkgs.linkFarm n v) self.checks);
       }
     );
 }
