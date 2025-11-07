@@ -174,6 +174,10 @@
         };
         packages = flattenTree self.legacyPackages."${system}";
 
+        # TODO Use `nix-eval-jobs --flake --check-cache-status --workers 1
+        # .#checks.aarch64-linux` (github:nix-community/nix-eval-jobs) to work
+        # out (a) what actually needs building and (b) what's capable of being
+        # built on the system available to us.
         checks =
           let
             checkableNixosImages = filterAttrs (n: v: v.pkgs.system == system) self.nixosConfigurations;
