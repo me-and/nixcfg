@@ -188,11 +188,7 @@
         pkgs = makeNixpkgs system;
       in
       {
-        legacyPackages = import ./pkgs {
-          inherit pkgs inputs;
-          inherit (pkgs) lib;
-          mylib = self.lib;
-        };
+        legacyPackages = pkgs.mypkgs;
         packages = flattenTree self.legacyPackages."${system}";
 
         checks =
