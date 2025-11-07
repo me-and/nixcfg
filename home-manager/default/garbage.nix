@@ -5,7 +5,7 @@
   nix.gc = {
     options = "--max-freed 0 --delete-older-than 90d";
     automatic = true;
-    frequency = "weekly";
+    dates = "weekly";
     persistent = true;
     randomizedDelaySec = "1h";
   };
