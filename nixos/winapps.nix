@@ -13,22 +13,13 @@
 #   https://github.com/winapps-org/winapps/blob/main/README.md to
 #   ~/.config/winapps.
 # - Running the winapps installer to set up links to the Windows applications.
-{
-  config,
-  pkgs,
-  winapps,
-  ...
-}:
-let
-  system = config.nixpkgs.hostPlatform.system;
-  winappsPkgs = winapps.packages."${system}";
-in
+{ pkgs, ... }:
 {
   virtualisation.podman.enable = true;
   environment.systemPackages = [
     pkgs.podman-compose
-    winappsPkgs.winapps
-    winappsPkgs.winapps-launcher
+    pkgs.mypkgs.winapps.winapps
+    pkgs.mypkgs.winapps.winapps-launcher
   ];
 
   nix.settings = {

@@ -25,7 +25,7 @@ let
   packagesForCall = lib.attrsets.unionOfDisjoint pkgs' { inherit mylib inputs; };
   scope = lib.packagesFromDirectoryRecursive {
     callPackage = lib.callPackageWith packagesForCall;
-    newScope = extra: lib.callPackageWith (lib.attrsets.unionOfDisjoint packagesForCall extra);
+    newScope = extra: lib.callPackageWith (packagesForCall // extra);
     directory = ./.;
   };
 in

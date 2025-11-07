@@ -94,7 +94,7 @@
         }:
         nixosSystem {
           specialArgs = {
-            inherit nixos-hardware winapps wsl;
+            inherit nixos-hardware wsl;
             personalCfg = self;
           };
           modules =
