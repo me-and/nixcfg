@@ -1,4 +1,5 @@
+{ self }:
 final: prev: {
-  mylib = import ../lib { lib = final.lib; };
-  mypkgs = import ../pkgs { inherit (final) lib pkgs mylib; };
+  mylib = self.lib;
+  mypkgs = self.legacyPackages."${final.stdenv.hostPlatform.system}";
 }
