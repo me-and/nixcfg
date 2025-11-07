@@ -44,6 +44,7 @@
         attrValues
         concatMap
         functionArgs
+        intersectAttrs
         mapAttrs
         removeAttrs
         ;
@@ -55,7 +56,6 @@
         optionalAttrs
         unionOfDisjoint
         ;
-      inherit (nixpkgs.lib.customisation) callPackageWith;
       inherit (flake-utils.lib) flattenTree eachSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
       inherit (self.lib) dirfiles dirmodules unionOfDisjointAttrsList;
@@ -170,12 +170,13 @@
           # inspect the overlays to see if they take an attrset as their
           # intiial argument, and if so pass it the relevant parts of the flake
           # input.
+          inputArgs = unionOfDisjoint { inherit inputs; } inputs;
           closeOverlay =
             fn:
-            if functionArgs fn == { } then
-              fn
-            else
-              callPackageWith (unionOfDisjoint { inherit inputs; } inputs) fn { };
+            let
+              args = functionArgs fn;
+            in
+            if args == { } then fn else fn (intersectAttrs args inputArgs);
         in
         mapAttrs (n: v: closeOverlay (import v)) overlayFiles;
 
