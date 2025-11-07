@@ -193,8 +193,12 @@
 
         checks =
           let
-            checkableNixosImages = filterAttrs (n: v: v.pkgs.system == system) self.nixosConfigurations;
-            checkableHomeImages = filterAttrs (n: v: v.pkgs.system == system) self.homeConfigurations;
+            checkableNixosImages = filterAttrs (
+              n: v: v.pkgs.stdenv.hostPlatform.system == system
+            ) self.nixosConfigurations;
+            checkableHomeImages = filterAttrs (
+              n: v: v.pkgs.stdenv.hostPlatform.system == system
+            ) self.homeConfigurations;
           in
           unionOfDisjointAttrsList [
             (removeAttrs self.packages."${system}" [ "everything" ])
