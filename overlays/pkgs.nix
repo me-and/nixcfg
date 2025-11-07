@@ -1,5 +1,5 @@
-{ self }:
+{ inputs }:
 final: prev: {
-  mylib = self.lib;
-  mypkgs = self.legacyPackages."${final.stdenv.hostPlatform.system}";
+  mylib = import ../lib { inherit (final) lib; };
+  mypkgs = import ../pkgs { inherit inputs; inherit (final) lib pkgs mylib; };
 }
