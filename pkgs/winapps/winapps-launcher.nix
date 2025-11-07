@@ -1,2 +1,1 @@
-{ inputs, callPackage }:
-callPackage "${inputs.winapps}/packages/winapps-launcher" { }
+{ inputs, callPackage }: callPackage "${inputs.winapps}/packages/winapps-launcher" { }
