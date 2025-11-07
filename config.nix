@@ -1,7 +1,7 @@
 {
   pkgs,
   lib ? pkgs.lib,
-  mylib ? import ./lib.nix { inherit lib; },
+  mylib ? import ./lib { inherit lib; },
   ...
 }:
 {

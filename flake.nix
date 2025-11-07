@@ -38,16 +38,24 @@
       wsl,
       private,
       user-systemd-config,
-    }:
+    }@inputs:
     let
-      inherit (builtins) attrValues concatMap mapAttrs;
+      inherit (builtins)
+        attrValues
+        concatMap
+        functionArgs
+        mapAttrs
+        removeAttrs
+        ;
       inherit (nixpkgs.lib) nixosSystem;
       inherit (nixpkgs.lib.attrsets)
         filterAttrs
         mapAttrs'
         nameValuePair
         optionalAttrs
+        unionOfDisjoint
         ;
+      inherit (nixpkgs.lib.customisation) callPackageWith;
       inherit (flake-utils.lib) flattenTree eachSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
       inherit (self.lib) dirfiles dirmodules unionOfDisjointAttrsList;
@@ -156,10 +164,22 @@
       overlays =
         let
           overlayFiles = dirfiles { dir = ./overlays; };
-        in
-        mapAttrs (n: v: import v) overlayFiles;
 
-      lib = import ./lib.nix { inherit (nixpkgs) lib; };
+          # I want to be able to pass flake inputs to my overlays, but I also
+          # want to be able to use normal overlays as-is.  To permit that,
+          # inspect the overlays to see if they take an attrset as their
+          # intiial argument, and if so pass it the relevant parts of the flake
+          # input.
+          closeOverlay =
+            fn:
+            if functionArgs fn == { } then
+              fn
+            else
+              callPackageWith (unionOfDisjoint { inherit inputs; } inputs) fn { };
+        in
+        mapAttrs (n: v: closeOverlay (import v)) overlayFiles;
+
+      lib = import ./lib { inherit (nixpkgs) lib; };
     }
     // eachSystem [ "x86_64-linux" "aarch64-linux" ] (
       system:
@@ -167,8 +187,8 @@
         pkgs = makeNixpkgs system;
       in
       {
-        legacyPackages = import ./. {
-          inherit pkgs;
+        legacyPackages = import ./pkgs {
+          inherit pkgs inputs;
           inherit (pkgs) lib;
           mylib = self.lib;
         };
@@ -184,19 +204,12 @@
             ) self.homeConfigurations;
           in
           unionOfDisjointAttrsList [
-            self.packages."${system}"
+            (removeAttrs self.packages."${system}" [ "everything" ])
             (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
             (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
           ];
 
         formatter = pkgs.nixfmt-tree;
-
-        # A derivation that depends on all the derivations across all
-        # architectures in self.checks.  Probably not very useful to build, but
-        # comparing the before and after derivations with something like
-        # nix-diff permits seeing what difference some change makes across all
-        # my systems and packages.
-        everything = pkgs.linkFarm "everything" (mapAttrs (n: v: pkgs.linkFarm n v) self.checks);
       }
     );
 }

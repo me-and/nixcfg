@@ -36,10 +36,8 @@ Be warned: this config gets used as much as a playground and a learning opportun
 ### File and directory structure
 
 *   `flake.nix`: sets up everything in the "Flake outputs" section above.
-*   `lib.nix`: sets up my Nix library functions for the `lib` flake output.  *Should* usefully evaluate as a stand-alone file without using flakes, although that's not something I test regularly.
 *   `lib`: contains definitions for my library functions.  This is imported using Nixpkgs' `lib.packagesFromDirectoryRecursive`, prepopulated with Nixpkgs' `lib`.
 *   `overlays`: contains all my Nixpkgs overlays.  Files ending in `.nix`, and folders containing a `default.nix`, will both be picked up automatically by my packages and flakes.
-*   `default.nix`: sets up my packages to build based on the `pkgs` directory.
 *   `pkgs`: contains definitions for Nix derivations.  This is imported using Nixpkgs' `lib.packagesFromDirectoryRecursive`, prepopulated with Nixpkgs' `pkgs` with my overlays already applied, plus the other packages in the set.  *Should* usefully evaluate as a stand-alone file without using flakes, although that's not something I test regularly.
 *   `config.nix`: this is my common Nixpkgs config.
 *   `nixos`:

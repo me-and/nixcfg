@@ -47,9 +47,9 @@
   ];
 
   # TODO This isn't working; can I fix it?
-  systemd.watchdog = {
-    runtimeTime = "15s";
-    rebootTime = "5m";
+  systemd.settings.Manager = {
+    RuntimeWatchdogSec = "15s";
+    RebootWatchdogSec = "5m";
   };
 
   # Send emails by connecting directly to the remote SMTP servers, since we're
