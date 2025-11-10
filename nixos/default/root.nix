@@ -1,8 +1,6 @@
 # Configuration for the root user.
 { config, personalCfg, ... }:
 {
-  users.users.root.hashedPasswordFile = "/etc/nixos/secrets/root";
-
   home-manager.users.root =
     {
       lib,

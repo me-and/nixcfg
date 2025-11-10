@@ -145,11 +145,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1762380840,
-        "narHash": "sha256-Hsgr1wOPkTl0WZBqJYatYnxE1llP85Eecdk0HMZ9gRQ=",
+        "lastModified": 1762782750,
+        "narHash": "sha256-lYPaV+eb0R7zTtovQiZSb58MkAyX62X3otj0BBpiQvE=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "b1dd44175673052c4310803eb62dc06e334a6849",
+        "rev": "bf4d1133021fbad662bee3ed92ca4000db6d821e",
         "type": "github"
       },
       "original": {
@@ -165,9 +165,30 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "private": "private",
+        "sops-nix": "sops-nix",
         "user-systemd-config": "user-systemd-config",
         "winapps": "winapps",
         "wsl": "wsl"
+      }
+    },
+    "sops-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1762659808,
+        "narHash": "sha256-2Kv2mANf+FRisqhpfeZ8j9firBxb23ZvEXwdcunbpGI=",
+        "owner": "Mic92",
+        "repo": "sops-nix",
+        "rev": "524312bc62e3f34bd9231a2f66622663d3355133",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "sops-nix",
+        "type": "github"
       }
     },
     "systems": {
