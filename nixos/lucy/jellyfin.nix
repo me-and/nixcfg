@@ -989,7 +989,7 @@ in
             ProtectKernelTunables = true;
             ProtectSystem = "strict";
 
-            ExecStart = toString configScript;
+            ExecStart = configScript;
 
             # Need remainAfterExit so nixos-rebuild knows it needs to restart
             # this unit if it changes.
