@@ -7,6 +7,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     winapps = {
       url = "github:winapps-org/winapps";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -34,6 +38,7 @@
       flake-utils,
       nixos-hardware,
       home-manager,
+      sops-nix,
       winapps,
       wsl,
       private,
@@ -72,14 +77,18 @@
         };
       };
 
+      overlaysFromFlakes = concatMap (flake: attrValues flake.overlays);
+      nixpkgsOverlays = overlaysFromFlakes [
+        self
+        private
+        sops-nix
+      ];
+
       makeNixpkgs =
         system:
         import nixpkgs {
           inherit system;
-          overlays = concatMap attrValues [
-            self.overlays
-            private.overlays
-          ];
+          overlays = nixpkgsOverlays;
           config = import ./config.nix;
         };
     in
@@ -94,7 +103,7 @@
         }:
         nixosSystem {
           specialArgs = {
-            inherit nixos-hardware wsl;
+            inherit nixos-hardware sops-nix wsl;
             personalCfg = self;
           };
           modules =
@@ -110,10 +119,7 @@
                 users.me = me;
                 networking.hostName = name;
                 nixpkgs.config = import ./config.nix;
-                nixpkgs.overlays = concatMap attrValues [
-                  self.overlays
-                  private.overlays
-                ];
+                nixpkgs.overlays = nixpkgsOverlays;
               }
               home-manager.nixosModules.default
             ]
