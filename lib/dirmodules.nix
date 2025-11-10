@@ -1,30 +1,29 @@
 { lib, dirfiles }:
-{
-  dir,
-}:
+{ dir }:
 let
-  inherit (builtins) readDir;
-  inherit (lib.attrsets) mapAttrs' nameValuePair;
-  inherit (lib.strings) removeSuffix;
+  inherit (builtins) attrValues mapAttrs readDir;
+  inherit (lib.attrsets)
+    filterAttrs
+    mapAttrs'
+    nameValuePair
+    unionOfDisjoint
+    ;
+  inherit (lib.strings) hasSuffix removeSuffix;
 
   dirToImports = dir: {
-    imports = builtins.attrValues (dirfiles {
+    imports = attrValues (dirfiles {
       inherit dir;
     });
   };
   fileToImports = file: { imports = [ file ]; };
+
+  dirEntries = readDir dir;
+  directoryModulePaths = lib.filterAttrs (n: v: v == "directory") dirEntries;
+  fileModulePaths = lib.filterAttrs (n: v: v == "regular" && hasSuffix ".nix" n) dirEntries;
+
+  directoryModules = mapAttrs (n: v: dirToImports (dir + "/${n}")) directoryModulePaths;
+  fileModules = mapAttrs' (
+    n: v: nameValuePair (removeSuffix ".nix" n) (fileToImports (dir + "/${n}"))
+  ) fileModulePaths;
 in
-mapAttrs' (
-  n: v:
-  nameValuePair (removeSuffix ".nix" n) (
-    (
-      if v == "regular" then
-        fileToImports
-      else if v == "directory" then
-        dirToImports
-      else
-        throw "Unexpected directory entry type ${v}"
-    )
-      (dir + "/${n}")
-  )
-) (readDir dir)
+unionOfDisjoint directoryModules fileModules
