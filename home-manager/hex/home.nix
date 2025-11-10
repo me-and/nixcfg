@@ -35,6 +35,7 @@ in
 {
   imports = [
     personalCfg.homeModules.mypy
+    personalCfg.homeModules.plasma
   ];
   home.stateVersion = "24.11";
 
@@ -110,6 +111,7 @@ in
 
   services.syncthing = {
     enable = true;
+    # TODO Swap this to using the plasmoid version.
     tray.enable = true;
   };
 

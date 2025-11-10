@@ -19,6 +19,11 @@
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -41,6 +46,7 @@
       sops-nix,
       winapps,
       wsl,
+      plasma-manager,
       private,
       user-systemd-config,
     }@inputs:
@@ -139,7 +145,7 @@
         nameValuePair "${me}@${name}" (homeManagerConfiguration {
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
-            inherit user-systemd-config;
+            inherit plasma-manager user-systemd-config;
             personalCfg = self;
           };
           modules =
