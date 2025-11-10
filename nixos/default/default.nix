@@ -123,6 +123,8 @@ in
 
   services.nix-serve = {
     openFirewall = true;
+    # TODO This is a stupid place for this file and it should be somewhere
+    # better.  Like sops-nix.
     secretKeyFile = "/home/adam/store-secret";
   };
 }
