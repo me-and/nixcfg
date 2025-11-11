@@ -159,7 +159,7 @@ let
 
         waitingfor = {
           description = "Tasks where I'm waiting on others";
-          filter = "( +waitingfor status:pending -BLOCKED -inbox ) or ( description.is:'Review waitingfor report' -COMPLETED -DELETED )";
+          filter = "( +waitingfor status:pending -BLOCKED -inbox ) or ( description.is:'Review waitingfor report' +READY )";
           columns = [
             "id"
             "project"
