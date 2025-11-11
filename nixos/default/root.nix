@@ -1,6 +1,12 @@
 # Configuration for the root user.
 { config, personalCfg, ... }:
 {
+  sops.secrets."users/root" = {
+    name = "root";
+    neededForUsers = true;
+  };
+  users.users.root.hashedPasswordFile = config.sops.secrets."users/root".path;
+
   home-manager.users.root =
     {
       lib,

@@ -24,9 +24,15 @@ in
     users.mutableUsers = false;
 
     # Set up my user account.
+    sops.secrets."users/${cfg.me}" = {
+      name = cfg.me;
+      neededForUsers = true;
+    };
+
     users.users."${cfg.me}" = {
       isNormalUser = true;
       description = "Adam Dinwoodie";
+      hashedPasswordFile = config.sops.secrets."users/${cfg.me}".path;
       extraGroups = [
         "wheel"
         "cdrom"
