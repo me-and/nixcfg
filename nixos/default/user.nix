@@ -10,13 +10,6 @@ in
   options.users.me = lib.mkOption {
     type = lib.types.str;
     description = "My username";
-    apply =
-      username:
-      let
-        normalUsers = builtins.filter (user: user.isNormalUser) (builtins.attrValues config.users.users);
-        normalUserNames = map (user: user.name) normalUsers;
-      in
-      username;
   };
 
   config = {
