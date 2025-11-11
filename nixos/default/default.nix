@@ -79,11 +79,12 @@ in
   nix.daemonCPUSchedPolicy = "batch";
 
   # Set up basic ACME certificate configuration.
+  sops.secrets.mythic-beasts = { };
   security.acme = {
     acceptTerms = true;
     defaults = {
       dnsProvider = "mythicbeasts";
-      environmentFile = "/etc/nixos/secrets/mythic-beasts";
+      environmentFile = config.sops.secrets.mythic-beasts.path;
     };
   };
 
