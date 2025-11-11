@@ -153,6 +153,8 @@ let
   };
 
   commonConfig = {
+    sops.secrets."jellyfin/adam" = { };
+
     systemd.mounts = [
       {
         what = "/dev/disk/by-uuid/06ab96b5-b34b-47e7-862d-1410dd0a5425";
@@ -175,7 +177,7 @@ let
       };
       users.initialUser = {
         name = "adam";
-        passwordFile = "/etc/nixos/secrets/jellyfin/adam";
+        passwordFile = config.sops.secrets."jellyfin/adam".path;
       };
       apiDebugScript = true;
       forceReconfigure = false;
