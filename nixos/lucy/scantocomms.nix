@@ -17,11 +17,15 @@ in
 {
   # Set up the user account the scanner will use to log in with, and make
   # sure I have access to the uploaded files.
+  sops.secrets."users/ida" = {
+    name = "ida";
+    neededForUsers = true;
+  };
   users.users."${scannerUserGroup}" = {
     description = "Printer scanner upload account";
     isSystemUser = true;
     group = scannerUserGroup;
-    hashedPasswordFile = "/etc/nixos/secrets/ida";
+    hashedPasswordFile = config.sops.secrets."users/ida".path;
   };
   users.groups."${scannerUserGroup}".members = [ config.users.me ];
 
