@@ -11,10 +11,12 @@ let
   fqdn = config.networking.fqdn;
 in
 {
+  sops.secrets."${fqdn}-auth" = { };
+
   environment.etc."nginx/auth/${fqdn}" = {
     user = nginxCfg.user;
     group = nginxCfg.group;
-    source = "/etc/nixos/secrets/${fqdn}-auth";
+    source = config.sops.secrets."${fqdn}-auth".path;
     mode = "0640";
   };
 

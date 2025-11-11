@@ -30,12 +30,14 @@ let
   };
 
   mountConfig = lib.mkIf cfg.gonzo {
+    sops.secrets.gonzo-mount-creds = { };
+
     fileSystems."/usr/share/gonzo" =
       let
         mountOptions = lib.mkMerge [
           [
             "rw"
-            "credentials=/etc/nixos/secrets/gonzo-mount-creds"
+            "credentials=${config.sops.secrets.gonzo-mount-creds.path}"
             "uid=${config.users.me}"
             "gid=users"
             "forceuid"

@@ -61,8 +61,9 @@ in
 
   # Set up the Nix daemon to be able to access environment variables for
   # things like access to private GitHub repositories.
+  sops.secrets.nix-daemon-environment = { };
   systemd.services.nix-daemon.serviceConfig.EnvironmentFile =
-    "-/etc/nixos/secrets/nix-daemon-environment";
+    config.sops.secrets.nix-daemon-environment.path;
 
   nix.settings = {
     trusted-users = [ "@wheel" ];
@@ -78,11 +79,12 @@ in
   nix.daemonCPUSchedPolicy = "batch";
 
   # Set up basic ACME certificate configuration.
+  sops.secrets.mythic-beasts = { };
   security.acme = {
     acceptTerms = true;
     defaults = {
       dnsProvider = "mythicbeasts";
-      environmentFile = "/etc/nixos/secrets/mythic-beasts";
+      environmentFile = config.sops.secrets.mythic-beasts.path;
     };
   };
 
