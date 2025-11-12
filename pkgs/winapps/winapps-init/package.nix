@@ -38,7 +38,7 @@ writeCheckedShellApplication {
     config_dir="$HOME"/.config/winapps
     mkdir -p "$config_dir"
     cp ${inputs.winapps}/compose.yaml "$config_dir"/compose.yaml
-    cp ${toString ./winapps.conf} "$config_dir"/winapps.conf
+    cp ${./winapps.conf} "$config_dir"/winapps.conf
     chmod 600 "$config_dir"/compose.yaml "$config_dir"/winapps.conf
     sed -i 's/PASSWORD: "MyWindowsPassword"/PASSWORD: "'"$password"'"/' "$config_dir"/compose.yaml
     sed -i 's/RDP_PASS="MyWindowsPassword"/RDP_PASS="'"$password"'"/' "$config_dir"/winapps.conf
