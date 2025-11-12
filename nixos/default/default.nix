@@ -78,16 +78,6 @@ in
   nix.daemonIOSchedPriority = 7;
   nix.daemonCPUSchedPolicy = "batch";
 
-  # Set up basic ACME certificate configuration.
-  sops.secrets.mythic-beasts = { };
-  security.acme = {
-    acceptTerms = true;
-    defaults = {
-      dnsProvider = "mythicbeasts";
-      environmentFile = config.sops.secrets.mythic-beasts.path;
-    };
-  };
-
   # Make sure all the systemd units for time wrangling that I care about get
   # included.
   systemd.additionalUpstreamSystemUnits = [

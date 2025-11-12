@@ -13,5 +13,4 @@
   };
   systemd.services.nix-daemon.serviceConfig.EnvironmentFile =
     lib.mkForce "-/etc/nixos/secrets/nix-daemon-environment";
-  security.acme.defaults.EnvironmentFile = lib.mkForce "/etc/nixos/secrets/mythic-beasts";
 }
