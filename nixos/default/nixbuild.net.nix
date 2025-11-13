@@ -12,6 +12,8 @@ let
     "aarch64-linux"
     "armv7l-linux"
   ];
+
+  sshKey = config.sops.secrets.nixbuild-key.path;
 in
 {
   options.nix.nixBuildDotNet = {
@@ -28,25 +30,18 @@ in
     };
 
     substituter = {
-      enable = lib.mkEnableOption "using nixbuild.net as a substituter";
+      enable = lib.mkEnableOption "using nixbuild.net as a substituter" // {
+        default = true;
+      };
       priority = lib.mkOption {
         type = lib.types.nullOr lib.types.int;
-        default = null;
+        default = 50;
         description = ''
           Priority with which to use the nixbuild.net substituter.  Set to
           `null` to leave unspecified.  Lower numbers are higher priorities,
           and the Nix default substituter priority is 0.
         '';
       };
-    };
-
-    sshKeyPath = lib.mkOption {
-      type = lib.types.path;
-      description = ''
-        Path to the SSH private key to be used for connecting to the
-        nixbuild.net servers.
-      '';
-      apply = builtins.toString;
     };
   };
 
@@ -80,11 +75,17 @@ in
       Nix would use substituters.  That's what the priority argument is for,
       which can be set with nix.nixBuildDotNet.substituter.priority.
     '')
+    (lib.mkRemovedOptionModule [ "nix" "nixBuildDotNet" "sshKeyPath" ] ''
+      This option has now been removed and replaced with direct configuration.
+      I only ever had it set to a single value anyway!
+    '')
   ];
 
   config =
     let
       sharedConfig = lib.mkIf (cfg.builds.enable || cfg.substituter.enable) {
+        sops.secrets.nixbuild-key = { };
+
         programs.ssh.extraConfig = ''
           Host eu.nixbuild.net
               PubkeyAcceptedKeyTypes ssh-ed25519
@@ -117,7 +118,7 @@ in
                 "kvm"
                 "nixos-test"
               ];
-              sshKey = cfg.sshKeyPath;
+              inherit sshKey;
               maxJobs = 10000;
             }
           ];
@@ -128,9 +129,9 @@ in
         let
           storeUrl =
             if cfg.substituter.priority == null then
-              "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}"
+              "ssh://eu.nixbuild.net?ssh-key=${sshKey}"
             else
-              "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKeyPath}&priority=${toString cfg.substituter.priority}";
+              "ssh://eu.nixbuild.net?ssh-key=${sshKey}&priority=${toString cfg.substituter.priority}";
         in
         lib.mkIf cfg.substituter.enable {
           nix.settings = {

@@ -105,14 +105,6 @@ in
   # Using flakes so have no need for channels.
   nix.channel.enable = false;
 
-  nix.nixBuildDotNet = {
-    substituter = {
-      enable = lib.mkDefault true;
-      priority = 50;
-    };
-    sshKeyPath = "/etc/nixos/secrets/nixbuild-key";
-  };
-
   services.nix-serve = {
     openFirewall = true;
     # TODO This is a stupid place for this file and it should be somewhere
