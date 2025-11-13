@@ -10,6 +10,8 @@ let
   vpnConfigTemplate = builtins.readFile ./pd.ovpn;
 
   vpnConfig = lib.mkIf cfg.vpn {
+    sops.secrets."pd-key.crt" = { };
+
     services.openvpn.servers.pdnet = {
       autoStart = false;
       config =
@@ -22,7 +24,7 @@ let
           [
             "${./pd.crt}"
             "${./me.crt}"
-            "/etc/nixos/secrets/my-pd-key.crt"
+            config.sops.secrets."pd-key.crt".path
           ]
           vpnConfigTemplate;
       updateResolvConf = true;
