@@ -4,8 +4,6 @@
   pkgs,
   ...
 }:
-let
-in
 {
   home = {
     homeDirectory = lib.mkDefault "/home/${config.home.username}";
