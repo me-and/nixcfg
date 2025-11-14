@@ -1,5 +1,10 @@
 { config, ... }:
+let
+  cfg = config.accounts.email;
+in
 {
+  sops.secrets."email/${cfg.accounts.main.address}/offlineimap" = { };
+
   # Configure accounts.email.accounts.*.address in private config flake.
   accounts.email.accounts.main = {
     primary = true;
@@ -13,7 +18,7 @@
       drafts = "[Gmail].Drafts";
       sent = "[Gmail].Sent Mail";
     };
-    maildir.path = config.accounts.email.accounts.main.address;
+    maildir.path = cfg.accounts.main.address;
 
     neomutt = {
       enable = true;
@@ -42,7 +47,7 @@
         };
         remote = {
           maxconnections = 4;
-          remotepassfile = "${config.home.homeDirectory}/.${config.accounts.email.accounts.main.address}-offlineimap-password";
+          remotepassfile = config.sops.secrets."email/${cfg.accounts.main.address}/offlineimap".path;
           folderfilter = "lambda f: not f.startswith('To/') and not f.startswith('Git/') and not f.startswith('Cygwin/') and f not in ('To', 'Git', 'Cygwin', 'Retention', '[Gmail]/Important', 'Retention/Undefined', 'Retention/0')";
           nametrans = "lambda f: f.replace('&-', '&')";
         };
@@ -54,10 +59,10 @@
 
   programs.offlineimap = {
     extraConfig = {
-      general.metadata = config.accounts.email.maildirBasePath + "/offlineimap";
+      general.metadata = cfg.maildirBasePath + "/offlineimap";
       mbnames = {
         enabled = true;
-        filename = config.accounts.email.maildirBasePath + "/muttrc.mailboxes";
+        filename = cfg.maildirBasePath + "/muttrc.mailboxes";
         header = "'mailboxes '";
         peritem = "'+%(accountname)s/%(foldername)s'";
         sep = "' '";

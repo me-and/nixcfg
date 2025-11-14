@@ -145,7 +145,7 @@
         nameValuePair "${me}@${name}" (homeManagerConfiguration {
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
-            inherit plasma-manager user-systemd-config;
+            inherit plasma-manager sops-nix user-systemd-config;
             personalCfg = self;
           };
           modules =
