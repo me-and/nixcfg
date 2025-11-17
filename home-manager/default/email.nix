@@ -1,9 +1,11 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
   cfg = config.accounts.email;
 in
 {
-  sops.secrets."email/${cfg.accounts.main.address}/offlineimap" = { };
+  sops = lib.mkIf cfg.accounts.main.enable {
+    secrets."email/${cfg.accounts.main.address}/offlineimap" = { };
+  };
 
   # Configure accounts.email.accounts.*.address in private config flake.
   accounts.email.accounts.main = {
