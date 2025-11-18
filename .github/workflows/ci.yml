@@ -11,7 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v20
+        uses: DeterminateSystems/nix-installer-action@v21
         with:
           github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
       - name: Set up Nix caching
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v20
+        uses: DeterminateSystems/nix-installer-action@v21
         with:
           github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
       - name: Set up Nix caching
