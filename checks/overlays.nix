@@ -15,9 +15,8 @@ let
     ;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
-  inherit (lib.lists) remove;
   inherit (lib.trivial) warnIfNot;
-  inherit (mylib) unionOfDisjointAttrsList;
+  inherit (mylib) removeAll unionOfDisjointAttrsList;
 
   # Work out the set of attribute names that exist when applying all the
   # overlays to an empty set.  This is the list of attributes in nixpkgs that
@@ -41,7 +40,7 @@ let
     in
     warnIfNot (elem "sops-ssh-to-age" packageNames) ''
       No longer need special handling of sops-ssh-to-age.
-    '' remove "sops-ssh-to-age" packageNames;
+    '' removeAll [ "mypkgs" "sops-ssh-to-age" ] packageNames;
 in
 recurseIntoAttrs (
   unionOfDisjointAttrsList (
