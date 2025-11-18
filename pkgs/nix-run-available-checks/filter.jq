@@ -5,4 +5,5 @@ end
 | if $missing_features != []
   then "skipping .#checks.\($system).\(.attr) as missing features \($missing_features | join(", "))\n" | stderr | empty
   end
-| .drvPath
+| ("will build .#checks.\($system).\(.attr)\n" | stderr | empty),
+  .drvPath
