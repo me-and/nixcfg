@@ -12,6 +12,8 @@ let
     elem
     getAttr
     map
+    mapAttrs
+    typeOf
     ;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
@@ -42,19 +44,36 @@ let
     warnIfNot (elem "sops-ssh-to-age" packageNames) ''
       No longer need special handling of sops-ssh-to-age.
     '' remove "sops-ssh-to-age" packageNames;
+
+  # Vaguely based on flake-utils.lib.flattenTree, but aiming to extract
+  # explicitly derivations and any passthru.tests.<name> derivations.
+  #
+  # TODO This seems to drop the set of packages in mypkgs, where I'd hoped and
+  # expected it would extend the tests to include both building those packages
+  # and building any tests those packages define.
+  recurseForPackages =
+    v:
+    if typeOf v != "set" then
+      { }
+    else if v.type or "" == "derivation" then
+      {
+        package = v;
+        tests = recurseIntoAttrs (v.passthru.tests or { });
+      }
+    else if v.recurseForDerivations or false then
+      mapAttrs (n: s: recurseForPackages s) v
+    else
+      { };
 in
 recurseIntoAttrs (
   unionOfDisjointAttrsList (
     map (
       p:
       let
-        pkg = getAttr p pkgs;
+        v = getAttr p pkgs;
       in
       {
-        "${p}" = recurseIntoAttrs {
-          package = pkg;
-          tests = recurseIntoAttrs (pkg.passthru.tests or { });
-        };
+        "${p}" = recurseIntoAttrs (recurseForPackages v);
       }
     ) newOrChanged
   )
