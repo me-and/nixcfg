@@ -16,9 +16,9 @@
 { pkgs, ... }:
 {
   virtualisation.podman.enable = true;
-  environment.systemPackages = [
-    pkgs.podman-compose
-    pkgs.mypkgs.winapps.winapps
-    pkgs.mypkgs.winapps.winapps-launcher
+  environment.systemPackages = with pkgs.mypkgs.winapps; [
+    winapps
+    winapps-launcher
+    winapps-rdp
   ];
 }
