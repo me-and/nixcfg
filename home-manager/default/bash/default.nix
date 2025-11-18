@@ -41,13 +41,6 @@
       ls = "ls --color=auto -hv";
       grep = "grep --color=auto";
 
-      # When calling cscope, I generally want some useful default arguments: -k
-      # ignores the standard include directories (I'm rarely interested in those
-      # anyway), -R recurses into directories, -q builds a reverse-lookup indices for
-      # speed, and -b stops cscope launching its interactive mode (why would I want
-      # that when I can launch vim directly!?).
-      cscope = "cscope -kRqb";
-
       # https://twitter.com/chris__martin/status/420992421673988096
       such = "git";
       very = "git";
@@ -55,9 +48,11 @@
 
       fucking = "sudo";
 
-      snarf = "aria2c -x16 -s16";
-
       ag = "ag --hidden --ignore=.git";
+
+      # Avoid accidentally overwriting mv/cp targets.
+      mv = "mv -i";
+      cp = "cp -i";
     };
 
     # TODO Handle these paths in a more Nix-friendly fashion, and/or without
