@@ -55,7 +55,7 @@
 
   programs.mosh.enable = true;
 
-  services.postfix.sendViaTastycake = true;
+  services.postfix.sendDirect = true;
 
   programs.kdeconnect.enable = true;
 
