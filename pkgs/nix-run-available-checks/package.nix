@@ -26,6 +26,10 @@ writeCheckedShellApplication {
             --arg system "$system" |
         mapfile -d "" -t drvs_to_realise
 
-    nix-store --realise "''${drvs_to_realise[@]}"
+    if command -v nom >/dev/null; then
+        nix-store --realise --log-format internal-json -v "''${drvs_to_realise[@]}" |& nom --json
+    else
+        nix-store --realise "''${drvs_to_realise[@]}"
+    fi
   '';
 }
