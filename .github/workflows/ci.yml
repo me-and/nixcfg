@@ -42,4 +42,4 @@ jobs:
       - name: Set up Nix caching
         uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: Run checks
-        run: nix flake check --keep-going
+        run: nix run .#nix-run-available-checks

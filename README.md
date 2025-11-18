@@ -27,7 +27,7 @@ Be warned: this config gets used as much as a playground and a learning opportun
     *   `<username>@<hostname>`: the modules that define configuration specific to a username and host combination.
     *   `<taskname>`: modules for importing when I want a system to perform a particular task.
 *   `overlays`: [Nixpkgs overlays][].  Mostly these change derivations to add patches or fixes I want, but `overlays.pkgs` adds the contents of `legacyPackages` as `pkgs.mypkgs`, and the contents of `lib` as `pkgs.mylib`.  Note the flake output is an attribute set, with the overlay functions as values, but most inputs that look for overlays expect a list of overlay functions.
-*   `checks`: the union of `packages`, `nixosConfigurations` and `homeConfigurations`, filtered to the appropriate architecture.
+*   `checks`: the union of `packages`, `nixosConfigurations` and `homeConfigurations`, plus any tests defined in the `checks` directory, filtered to the appropriate architecture.
 *   `formatter`: [`pkgs.nixfmt-tree`][nixfmt-tree].
 
 [Nixpkgs overlays]: https://nixos.org/manual/nixpkgs/stable/#chap-overlays
@@ -48,6 +48,7 @@ Be warned: this config gets used as much as a playground and a learning opportun
     *   `default`: this contains a series of Home Manager modules that is common to all my Home Manager configs.
     *   `<username>`, `<hostname>` or `<username>@hostname`: this contains the configuration for each system's Home Manager configuration, set in `home.nix`.
     *   `<taskname>`: this contains configuration that can be imported for performing some specific task.
+*   `checks`: any tests that don't automatically happen as part of any of the other parts.
 
 ## Secrets and privacy
 

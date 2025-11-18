@@ -180,7 +180,7 @@
           # I want to be able to pass flake inputs to my overlays, but I also
           # want to be able to use normal overlays as-is.  To permit that,
           # inspect the overlays to see if they take an attrset as their
-          # intiial argument, and if so pass it the relevant parts of the flake
+          # initial argument, and if so pass it the relevant parts of the flake
           # input.
           inputArgs = unionOfDisjoint { inherit inputs; } inputs;
           closeOverlay =
@@ -211,11 +211,19 @@
             checkableHomeImages = filterAttrs (
               n: v: v.pkgs.stdenv.hostPlatform.system == system
             ) self.homeConfigurations;
+            extraChecks = import ./checks {
+              inherit pkgs;
+              inherit (nixpkgs) lib;
+              mylib = self.lib;
+              overlays = nixpkgsOverlays;
+              mypkgs = self.legacyPackages."${system}";
+            };
           in
           unionOfDisjointAttrsList [
             (removeAttrs self.packages."${system}" [ "everything" ])
             (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
             (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
+            (flattenTree extraChecks)
           ];
 
         formatter = pkgs.nixfmt-tree;
