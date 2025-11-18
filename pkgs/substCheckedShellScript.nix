@@ -10,6 +10,7 @@
   src,
   meta ? { },
   checkPhase ? null,
+  doShellCheck ? lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler,
   excludeShellChecks ? [ "SC2016" ],
   optionalShellChecks ? [
     "check-extra-masked-returns"
@@ -23,8 +24,6 @@
   destination ? "",
 }:
 let
-  shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
-
   name' =
     if name != null then
       name
@@ -58,7 +57,7 @@ runCommand name'
           runHook preCheck
           ${stdenv.shellDryRun} "$target"
         ''
-        + lib.optionalString shellcheckSupported ''
+        + lib.optionalString doShellCheck ''
           ${lib.getExe shellcheck-minimal} ${
             lib.escapeShellArgs (excludeFlags ++ optionalFlags ++ extraShellCheckFlags)
           } "$target"

@@ -21,6 +21,7 @@ in
   runtimeShell ? runtimeShell',
   meta ? { },
   checkPhase ? null,
+  doShellCheck ? lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler,
   excludeShellChecks ? [ "SC2016" ],
   optionalShellChecks ? [
     "check-extra-masked-returns"
@@ -39,9 +40,6 @@ in
   destination ? "",
   purePath ? false,
 }:
-let
-  shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
-in
 writeTextFile {
   inherit
     name
@@ -89,7 +87,7 @@ writeTextFile {
         runHook preCheck
         ${stdenv.shellDryRun} "$target"
       ''
-      + lib.optionalString shellcheckSupported ''
+      + lib.optionalString doShellCheck ''
         ${lib.getExe shellcheck-minimal} ${
           lib.escapeShellArgs (excludeFlags ++ optionalFlags ++ extraShellCheckFlags)
         } "$target"
