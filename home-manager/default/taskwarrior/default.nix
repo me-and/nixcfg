@@ -562,7 +562,13 @@ in
         ];
       };
 
-      home.packages = [ pkgs.mypkgs.task-project-report ];
+      home.packages = with pkgs.mypkgs; [
+        task-project-report
+        tmux-taskloop
+      ];
+      home.shellAliases = {
+        ttl = "tmux-taskloop";
+      };
 
       home.file =
         let

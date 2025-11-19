@@ -53,7 +53,6 @@
         nix-about
         nix-dangling-roots
         nix-locate-bin
-        tmux-taskloop
         toil
       ]);
 
