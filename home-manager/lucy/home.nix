@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  personalCfg,
   ...
 }:
 let
@@ -41,6 +42,7 @@ let
   );
 in
 {
+  imports = [ personalCfg.homeModules.latex ];
   home.stateVersion = "24.11";
 
   # Enable all the systemd units I want running.  These are mostly coming from
