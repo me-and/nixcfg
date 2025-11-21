@@ -34,6 +34,7 @@ let
 in
 {
   imports = [
+    personalCfg.homeModules.latex
     personalCfg.homeModules.mypy
     personalCfg.homeModules.plasma
   ];
@@ -106,8 +107,6 @@ in
     realName = "Adam Dinwoodie";
   };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-
-  programs.latex.enable = true;
 
   services.syncthing = {
     enable = true;
