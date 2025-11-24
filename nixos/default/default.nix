@@ -14,7 +14,7 @@ in
   boot.tmp.cleanOnBoot = true;
 
   # Always want to be in the UK.
-  time.timeZone = "Europe/London";
+  time.timeZone = lib.mkDefault "Europe/London";
   i18n.defaultLocale = "en_GB.UTF-8";
 
   # Always want to be using UK Dvorak.

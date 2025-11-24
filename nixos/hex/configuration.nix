@@ -34,6 +34,8 @@
   networking.networkmanager.enable = true;
   users.groups.networkmanager.members = [ config.users.me ];
 
+  services.tzupdate.enable = true;
+
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
 
