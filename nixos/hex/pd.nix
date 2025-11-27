@@ -7,5 +7,8 @@
       "www.profounddecisions.co.uk"
       "gonzo.pdnet.local"
     ];
+
+    services.mullvad-vpn.enable = lib.mkForce false;
+    services.tzupdate.enable = lib.mkForce false;
   };
 }
