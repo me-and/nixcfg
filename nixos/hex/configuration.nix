@@ -11,6 +11,7 @@
     nixos-hardware.nixosModules.framework-16-7040-amd
     personalCfg.nixosModules.winapps
     personalCfg.nixosModules.nix-builder
+    personalCfg.nixosModules.tzupdate
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -33,8 +34,6 @@
 
   networking.networkmanager.enable = true;
   users.groups.networkmanager.members = [ config.users.me ];
-
-  services.tzupdate.enable = true;
 
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
