@@ -1,3 +1,16 @@
+diff --git a/src/Task.cpp b/src/Task.cpp
+index 063ae1193..e4d631cc6 100644
+--- a/src/Task.cpp
++++ b/src/Task.cpp
+@@ -1880,7 +1880,7 @@ void Task::validate (bool applyDefault /* = true */)
+     throw std::string ("Cannot add a task that is blank.");
+ 
+   // Cannot have a recur frequency with no due date - when would it recur?
+-  if (has ("recur") && (! has ("due") || get ("due") == ""))
++  if (has ("recur") && (! has ("due") || get ("due") == "") && (! has ("imask") || get ("imask") == ""))
+     throw std::string ("A recurring task must also have a 'due' date.");
+ 
+   // Recur durations must be valid.
 diff --git a/src/commands/CmdModify.cpp b/src/commands/CmdModify.cpp
 index cb407367d..7f2efd0d7 100644
 --- a/src/commands/CmdModify.cpp
