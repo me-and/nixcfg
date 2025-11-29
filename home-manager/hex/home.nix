@@ -66,6 +66,7 @@ in
       scribus
       signal-desktop
       telegram-desktop
+      tidal-hifi
       vlc
       zoom-us
     ]

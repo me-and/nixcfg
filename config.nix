@@ -10,6 +10,7 @@
     builtins.elem (lib.getName pkg) [
       "albertus"
       "azuredatastudio"
+      "castlabs-electron" # For tidal-hifi
       "cnijfilter2"
       "cups-kyocera-3500-4500"
       "discord"
