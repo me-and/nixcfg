@@ -33,6 +33,9 @@ in
         hash = "sha256-SBL1DWvUKJufd46GW3++kB7F0miw8MW/7vRr4cZsJgw=";
       };
 
+    # Permit removing the due date from recurring tasks.
+    patches = [ ./permit-undue-recurring-tasks.diff ];
+
     # Revert the patch that requires a config file, because Nix's approach is
     # to set all the config on the command line.
     #
@@ -51,6 +54,11 @@ in
         };
       in
       ''
+        # Run the regular patch phase function.  Ideally this wouldn't be
+        # necessary, but the original code doesn't actually apply patches
+        # defined in the patches attribute.
+        patchPhase
+
         # Don't patch the changelog, partly because we don't need to, and
         # partly because the patch doesn't apply.
         ${patchutils}/bin/filterdiff -x '*/ChangeLog' ${patchFile} |

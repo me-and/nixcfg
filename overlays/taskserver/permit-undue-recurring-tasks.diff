@@ -1,0 +1,13 @@
+diff --git a/src/Task.cpp b/src/Task.cpp
+index c25c2fe..93ebe6d 100644
+--- a/src/Task.cpp
++++ b/src/Task.cpp
+@@ -1560,7 +1560,7 @@ void Task::validate (bool
+     throw std::string (STRING_TASK_VALID_BLANK);
+ 
+   // Cannot have a recur frequency with no due date - when would it recur?
+-  if (has ("recur") && (! has ("due") || get ("due") == ""))
++  if (has ("recur") && (! has ("due") || get ("due") == "") && (! has ("imask") || get ("imask") == ""))
+     throw std::string (STRING_TASK_VALID_REC_DUE);
+ 
+   // Recur durations must be valid.
