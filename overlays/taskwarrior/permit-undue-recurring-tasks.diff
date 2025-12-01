@@ -12,13 +12,18 @@ index 063ae1193..e4d631cc6 100644
  
    // Recur durations must be valid.
 diff --git a/src/commands/CmdModify.cpp b/src/commands/CmdModify.cpp
-index cb407367d..7f2efd0d7 100644
+index cb407367d..3495db56c 100644
 --- a/src/commands/CmdModify.cpp
 +++ b/src/commands/CmdModify.cpp
-@@ -121,12 +121,6 @@ void CmdModify::checkConsistency (Task &before, Task &after)
-       ! before.has ("due"))
-     throw std::string ("You cannot specify a recurring task without a due date.");
- 
+@@ -116,17 +116,6 @@ int CmdModify::execute (std::string&)
+ void CmdModify::checkConsistency (Task &before, Task &after)
+ {
+   // Perform some logical consistency checks.
+-  if (after.has ("recur")  &&
+-      ! after.has ("due")   &&
+-      ! before.has ("due"))
+-    throw std::string ("You cannot specify a recurring task without a due date.");
+-
 -  if (before.has ("recur") &&
 -      before.has ("due")   &&
 -      (! after.has ("due")  ||
