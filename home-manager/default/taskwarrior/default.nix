@@ -29,6 +29,7 @@ let
       scheduled = null;
       blocked = "on rgb100";
       blocking = "on rgb001";
+      uda.priority.T = null;
       uda.priority.H = null;
       uda.priority.M = null;
       uda.priority.L = null;
@@ -425,12 +426,14 @@ let
   # accordingly.
   priorityConfig = {
     uda.priority.values = [
+      "T"
       "H"
       "M"
       ""
       "L"
     ];
     urgency.uda.priority = {
+      T.coefficient = 15;
       H.coefficient = 6;
       M.coefficient = 1.8;
       L.coefficient = -1.8;
