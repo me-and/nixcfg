@@ -5,7 +5,7 @@ def lpad(n): lpad(n; " ");
 
 def csi: "\u001b[";
 def sgr(attrs): csi + ([attrs] | join(";")) + "m";
-def colour(c): sgr(c) + . + sgr(0);
+def colour(c): sgr(c) + . + sgr(39);
 def red: colour(31);
 def green: colour(32);
 def yellow: colour(33);
@@ -13,7 +13,9 @@ def blue: colour(34);
 def magenta: colour(35);
 def cyan: colour(36);
 def bwhite: colour(97);
+def underline: sgr(4) + . + sgr(24);
 def bold: sgr(1) + . + sgr(22);
+def bold_underline: sgr(1, 4) + . + sgr(24, 22);
 
 def task_ident:
         if (.id // 0) == 0
@@ -113,19 +115,17 @@ def format_ident:
         end;
 def format_description:
         if .priority == null
-        then .
+        then .description
         elif .priority == "L"
-        then .description |= blue
+        then .description | blue
         elif .priority == "M"
-        then .description |= yellow
+        then .description | yellow
         elif .priority == "H"
-        then .description |= red
+        then .description | red
+        elif .priority == "T"
+        then .description | bold_underline
         else error("Unexpected priority \(.priority)")
-        end
-        | if .tags // [] | contains(["next"])
-          then .description | bold
-          else .description
-          end;
+        end;
 
 
 (. / "\u0000")
