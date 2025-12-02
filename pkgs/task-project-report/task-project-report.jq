@@ -74,40 +74,27 @@ def format_annotations:
         then .annotations | "[\(length)]"
         else ""
         end;
-def format_dep(by_uuid):
-        by_uuid[.] // {ident: .[:8]}
-        | if has("description")
-          then .result = .ident + " " + .description
-          else .result = .ident
-          end
-        | if .status == "completed" or .status == "deleted"
-          then .result | green
-          elif .status == "pending"
-          then .result | yellow
-          else .result | red
-          end;
 def format_deps(by_uuid):
-        if has("depends")
-        then "["
-             + (.depends
-                | map(by_uuid[.] // {ident: .[:8]}
-                      | if has("description")
-                        then .result = .ident + " " + .description
-                        else .result = .ident
-                        end
-                      | if .status == "completed" or .status == "deleted"
-                        then .result |= green | .sortorder = 2
-                        elif .status == "pending"
-                        then .result |= yellow | .sortorder = 1
-                        else .result |= red | .sortorder = 0
-                        end
-                      )
-                | sort_by(.sortorder)
-                | map(.result)
-                | join("; "))
-             + "]"
-        else ""
-        end;
+        .depends // []
+        | map(by_uuid[.] // {ident: .[:8]}
+              | select(.status != "completed" and .status != "deleted")
+              | .result = (if has("description")
+                           then [.ident, .description]
+                           else [.ident]
+                           end
+                           | join(" ")
+                           )
+              | if .status == "pending"
+                then .result |= yellow | .sortorder = 1
+                else .result |= red | .sortorder = 0
+                end
+              )
+        | sort_by(.sortorder)
+        | map(.result)
+        | if length > 0
+          then "[" + join("; ") + "]"
+          else ""
+          end;
 def format_ident:
         if .tags // [] | contains(["project"])
         then .ident | lpad(10) | bwhite
