@@ -35,5 +35,11 @@ in
 
     # Mail for root should come to me.
     services.postfix.rootAlias = cfg.me;
+
+    users.groups = {
+      docker = lib.mkIf config.virtualisation.docker.enable {
+        members = [ cfg.me ];
+      };
+    };
   };
 }
