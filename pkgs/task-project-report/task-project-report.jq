@@ -78,19 +78,10 @@ def format_deps(by_uuid):
         .depends // []
         | map(by_uuid[.] // {ident: .[:8]}
               | select(.status != "completed" and .status != "deleted")
-              | .result = (if has("description")
-                           then [.ident, .description]
-                           else [.ident]
-                           end
-                           | join(" ")
-                           )
-              | if .status == "pending"
-                then .result |= yellow | .sortorder = 1
-                else .result |= red | .sortorder = 0
-                end
+              | [.ident, .description]
+              | join(" ")
+              | yellow
               )
-        | sort_by(.sortorder)
-        | map(.result)
         | if length > 0
           then "[" + join("; ") + "]"
           else ""
@@ -121,8 +112,10 @@ def format_description:
    | map(.ident = task_ident)
    | ((group_by(.ident)
        | map(select(length > 1) | .[0].ident)
-       | if length > 1
-         then error("\(length) duplicate task idents")
+       | if length == 1
+         then error("duplicate task ident: \(.[0])")
+         elif length > 1
+         then error("\(length) duplicate task idents: \(join(", "))")
          else empty
          end
        ),
