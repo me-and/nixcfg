@@ -34,4 +34,9 @@ in
   security.acme.certs."${cfg.fqdn}" = {
     group = cfg.group;
   };
+
+  systemd.services.taskserver = {
+    wants = [ "acme-${cfg.fqdn}.service" ];
+    after = [ "acme-${cfg.fqdn}.service" ];
+  };
 }
