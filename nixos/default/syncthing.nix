@@ -2,12 +2,11 @@
 {
   config,
   lib,
-  personalCfg,
+  self,
   ...
 }:
 let
-  homeConfig =
-    personalCfg.homeConfigurations."${config.users.me}@${config.networking.hostName}".config;
+  homeConfig = self.homeConfigurations."${config.users.me}@${config.networking.hostName}".config;
 in
 {
   networking.firewall = lib.mkIf homeConfig.services.syncthing.enable {

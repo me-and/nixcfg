@@ -109,7 +109,12 @@
         }:
         nixosSystem {
           specialArgs = {
-            inherit nixos-hardware sops-nix wsl;
+            inherit
+              nixos-hardware
+              sops-nix
+              wsl
+              self
+              ;
             personalCfg = self;
           };
           modules =
