@@ -19,7 +19,7 @@ in
     # I already have a CA certificate for clients to connect.
     pki.manual =
       let
-        dir = "/var/lib/acme/${cfg.fqdn}";
+        dir = config.security.acme.certs."${cfg.fqdn}".directory;
       in
       {
         ca.cert = ./ca.cert.pem;
@@ -30,13 +30,6 @@ in
     organisations.adam.users = [ "adam" ];
     organisations.adam.groups = [ "users" ];
   };
-
-  # https://github.com/NixOS/nixpkgs/pull/369509
-  systemd.services.taskserver-init.preStart = lib.mkForce "";
-  systemd.tmpfiles.rules = [
-    "d ${cfg.dataDir} 0770 ${cfg.user} ${cfg.group}"
-    "z ${cfg.dataDir} 0770 ${cfg.user} ${cfg.group}"
-  ];
 
   security.acme.certs."${cfg.fqdn}" = {
     group = cfg.group;
