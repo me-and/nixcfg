@@ -1,6 +1,9 @@
 final: prev:
 let
-  inherit (final) patch patchutils writeShellApplication;
+  inherit (builtins) toFile;
+  inherit (final) patch patchutils;
+  inherit (final.lib.generators) toGitINI;
+  inherit (final.mypkgs) fetchGitHubPatch;
 in
 {
   taskserver = prev.taskserver.overrideAttrs (oldAttrs: {
@@ -10,15 +13,11 @@ in
     # includes rewriting the URL for the submodule.
     src =
       let
-        git = writeShellApplication {
-          name = "git";
-          text = ''
-            exec ${final.git}/bin/git \
-                -c 'url.https://github.com/GothenburgBitFactory/.insteadOf=https://git.tasktools.org/scm/tm/' \
-                "$@"
-          '';
+        gitConfig = {
+          url."https://github.com/GothenburgBitFactory/".insteadOf = "https://git.tasktools.org/scm/tm/";
         };
-        fetchgit = final.fetchgit.override { inherit git; };
+        gitConfigFile = toFile "gitconfig" (toGitINI gitConfig);
+        fetchgit = args: final.fetchgit ({ inherit gitConfigFile; } // args);
         fetchFromGitHub = final.fetchFromGitHub.override { inherit fetchgit; };
       in
       fetchFromGitHub {
@@ -46,7 +45,7 @@ in
     # post-patch hook.
     patchPhase =
       let
-        patchFile = final.mypkgs.fetchGitHubPatch {
+        patchFile = fetchGitHubPatch {
           owner = "GothenburgBitFactory";
           repo = "taskserver";
           commit = "bbd42468d284a3a954bdb233211a17b598036e98";
