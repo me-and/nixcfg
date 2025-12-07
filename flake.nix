@@ -81,6 +81,11 @@
           system = "aarch64-linux";
           me = "adam";
         };
+
+        multivac = {
+          system = "x86_64-linux";
+          me = "adam";
+        };
       };
 
       overlaysFromFlakes = concatMap (flake: attrValues flake.overlays);
@@ -131,6 +136,7 @@
                 networking.hostName = name;
                 nixpkgs.config = import ./config.nix;
                 nixpkgs.overlays = nixpkgsOverlays;
+                nixpkgs.hostPlatform = system;
               }
               home-manager.nixosModules.default
             ]
