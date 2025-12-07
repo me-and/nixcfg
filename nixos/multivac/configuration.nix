@@ -7,9 +7,12 @@
   networking.domain = "dinwoodie.org";
   networking.pd.gonzo = true;
 
+  # TODO Fix my WSL disk to have a sensible maximum size, rather than a maximum
+  # that's bigger than the containing disk, so that I can sensibly use the
+  # freePercent options rather than the freeBytes options.
   nix.nhgc = {
-    target.freePercent = 25;
-    trigger.freePercent = 15;
+    target.freeBytes = (1000 - 250) * 1024 * 1024 * 1024;
+    trigger.freeBytes = (1000 - 350) * 1024 * 1024 * 1024;
   };
 
   # TODO Set this up, as I don't have any reason not to use it other than not
