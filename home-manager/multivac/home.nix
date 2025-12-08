@@ -27,7 +27,7 @@ in
 {
   imports = [ personalCfg.homeModules.latex ];
 
-  home.stateVersion = "24.05";
+  home.stateVersion = "25.11";
 
   home.packages = with pkgs; [
     poppler-utils

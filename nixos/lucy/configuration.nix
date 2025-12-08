@@ -30,7 +30,7 @@
     "dm-cache-smq"
   ];
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
   networking.domain = "dinwoodie.org";
 
   programs.mosh = {

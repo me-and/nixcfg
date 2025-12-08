@@ -2,7 +2,7 @@
 {
   imports = [ personalCfg.nixosModules.wsl ];
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "25.11";
 
   networking.domain = "dinwoodie.org";
   networking.pd.gonzo = true;
