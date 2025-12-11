@@ -6,10 +6,10 @@
   ...
 }:
 let
-  homeConfig = self.homeConfigurations."${config.users.me}@${config.networking.hostName}".config;
+  homeConfig = self.homeConfigurations."${config.users.me}@${config.networking.hostName}".config or (lib.warn "No available home configuration" { });
 in
 {
-  networking.firewall = lib.mkIf homeConfig.services.syncthing.enable {
+  networking.firewall = lib.mkIf (homeConfig.services.syncthing.enable or false) {
     allowedTCPPorts = [ 22000 ];
     allowedUDPPorts = [
       21027

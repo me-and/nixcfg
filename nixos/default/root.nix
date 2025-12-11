@@ -1,11 +1,19 @@
 # Configuration for the root user.
-{ config, personalCfg, ... }:
+{ config, lib, mylib, options, personalCfg, ... }:
+let
+  hasHashedPassword = config.users.users.root.hashedPassword != null;
+in
 {
-  sops.secrets."users/root" = {
+  sops.secrets = lib.mkIf (!hasHashedPassword) {"users/root" = {
     name = "root";
     neededForUsers = true;
-  };
-  users.users.root.hashedPasswordFile = config.sops.secrets."users/root".path;
+  };};
+
+  warnings = lib.optional hasHashedPassword ''
+    Hashed password set for root, so no password will be used from SOPS.
+  '';
+
+  users.users.root.hashedPasswordFile = lib.mkIf (!hasHashedPassword) config.sops.secrets."users/root".path;
 
   home-manager.users.root =
     {

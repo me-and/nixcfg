@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  mylib,
   pkgs,
   ...
 }:
@@ -43,7 +44,7 @@ in
       calConfig =
         cal:
         let
-          escapedCal = pkgs.mylib.escapeSystemdString cal;
+          escapedCal = mylib.escapeSystemdString cal;
         in
         {
           timers."report-calendar@${escapedCal}" = {
