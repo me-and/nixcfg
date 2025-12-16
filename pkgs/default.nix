@@ -13,7 +13,7 @@
 let
   # Using unionOfDisjoint to make sure I don't override anything
   # accidentally.
-  packagesForCall = lib.attrsets.unionOfDisjoint pkgs { inherit mylib inputs; };
+  packagesForCall = lib.attrsets.unionOfDisjoint pkgs { inherit inputs; };
   scope = lib.packagesFromDirectoryRecursive {
     callPackage = lib.callPackageWith packagesForCall;
     newScope = extra: lib.callPackageWith (packagesForCall // extra);
