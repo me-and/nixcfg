@@ -58,14 +58,16 @@ fi
 # shellcheck disable=SC2034 # Referenced indirectly
 organization="$1"
 
-template () {
+template_file="$(mktemp taskd-generate-ca-cert."$$".XXXXX)"
+trap 'rm -rf "$template_file"' EXIT
+{
     for arg in organization cn country expiration_days; do
         if [[ "${!arg}" ]]; then
             echo "$arg = ${!arg}"
         fi
     done
     echo "ca"
-}
+} >"$template_file"
 
 umask 077
 certtool --generate-privkey --bits "$bits" >ca.key.pem
@@ -74,7 +76,7 @@ umask 022
 certtool \
     --generate-self-signed \
     --load-privkey ca.key.pem \
-    --template <(template || :) \
+    --template "$template_file" \
     >ca.cert.pem
 
 cat <<EOF

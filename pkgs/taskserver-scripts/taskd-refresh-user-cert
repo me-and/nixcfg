@@ -55,8 +55,10 @@ certinfo="$(openssl x509 -in "$usercert" -noout -subject)"
 country="${BASH_REMATCH[1]}"
 cn="${BASH_REMATCH[2]}"
 
-template () {
-    cat <<EOF
+template_file="$(mktemp taskd-refresh-user-cert."$$".XXXXX)"
+trap 'rm -rf "$template_file"' EXIT
+{
+cat >"$template_file" <<EOF
 cn = $cn
 country = $country
 expiration_days = $expiration_days
@@ -74,7 +76,7 @@ certtool \
     --load-ca-certificate "$ca_cert_path" \
     --load-ca-privkey "$ca_key_path" \
     --load-privkey "$userkey" \
-    --template <(template || :) \
+    --template "$template_file" \
     >new-"$usercert"
 
 cat <<EOF

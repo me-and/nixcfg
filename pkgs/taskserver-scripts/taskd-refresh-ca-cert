@@ -41,15 +41,15 @@ country="${BASH_REMATCH[1]}"
 organization="${BASH_REMATCH[2]}"
 cn="${BASH_REMATCH[3]}"
 
-template () {
-    cat <<EOF
+template_file="$(mktemp taskd-refresh-ca-cert."$$".XXXXX)"
+trap 'rm -rf "$template_file"' EXIT
+cat >"$template_file" <<EOF
 organization = $organization
 cn = $cn
 country = $country
 expiration_days = $expiration_days
 ca
 EOF
-}
 
 umask 022
 certtool \
@@ -57,7 +57,7 @@ certtool \
     --infile "$cert_path" \
     --generate-self-signed \
     --load-privkey "$key_path" \
-    --template <(template || :) \
+    --template "$template_file" \
     >new-ca.cert.pem
 
 cat <<EOF

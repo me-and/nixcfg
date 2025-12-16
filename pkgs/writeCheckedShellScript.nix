@@ -53,7 +53,7 @@ writeTextFile {
     #!${runtimeShell}
   ''
   + lib.optionalString (bashOptions != [ ]) ''
-    shopt -so ${lib.escapeShellArgs bashOptions}
+    set ${lib.escapeShellArgs (lib.concatMap (opt: [ "-o" opt ]) bashOptions)}
   ''
   + lib.concatStrings (
     lib.mapAttrsToList (name: value: ''

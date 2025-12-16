@@ -598,6 +598,7 @@ in
 
               access_token=
 
+              # Used as a truthy function, so cannot assume `set -e`.
               string_in_array () {
                   local string="$1"
                   local -n array_name="$2"
@@ -646,6 +647,7 @@ in
                   current_port=8096
               fi
 
+              # Used as a truthy function, so cannot assume `set -e`.
               curljfapi () {
                   local auth_header
 
@@ -675,6 +677,7 @@ in
               while :; do
                   (( ++config_attempts ))
 
+                  # shellcheck disable=SC2310 # Truthy test, expect set -e suppressed.
                   if curljfapi System/Info/Public \
                       -o "$RUNTIME_DIRECTORY/publicinfo.json"
                   then
@@ -771,6 +774,7 @@ in
             + optionalString (!cfg.overrideLibraries) (
               concatLines (
                 map (library: ''
+                  # shellcheck disable=SC2310 # Truthy test, expect set -e suppressed.
                   if ! string_in_array \
                       ${escapeShellArg library.name} \
                       current_library_names

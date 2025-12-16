@@ -59,7 +59,9 @@ name="$1"
 
 [[ "$cn" ]] || cn="$name"
 
-template () {
+template_file="$(mktemp taskd-generate-user-cert."$$".XXXXX)"
+trap 'rm -rf "$template_file"' EXIT
+{
     for arg in cn country expiration_days; do
         if [[ "${!arg}" ]]; then
             echo "$arg = ${!arg}"
@@ -68,7 +70,7 @@ template () {
     echo 'tls_www_client'
     echo 'encryption_key'
     echo 'signing_key'
-}
+} >"$template_file"
 
 umask 077
 certtool --generate-privkey --bits "$bits" >"$name".key.pem
@@ -79,7 +81,7 @@ certtool \
     --load-privkey "$name".key.pem \
     --load-ca-certificate "$cert_path" \
     --load-ca-privkey "$key_path" \
-    --template <(template || :) \
+    --template "$template_file" \
     >"$name".cert.pem
 
 cat <<EOF
