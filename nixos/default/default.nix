@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  options,
   pkgs,
   ...
 }:
@@ -58,12 +57,6 @@ in
 
   # Make sure `apropos` and similar work.
   documentation.man.generateCaches = true;
-
-  # Set up the Nix daemon to be able to access environment variables for
-  # things like access to private GitHub repositories.
-  sops.secrets.nix-daemon-environment = { };
-  systemd.services.nix-daemon.serviceConfig.EnvironmentFile =
-    config.sops.secrets.nix-daemon-environment.path;
 
   nix.settings = {
     trusted-users = [ "@wheel" ];
