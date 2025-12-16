@@ -82,6 +82,11 @@
           me = "adam";
         };
 
+        marvin = {
+          system = "x86_64-linux";
+          me = "adam";
+        };
+
         multivac = {
           system = "x86_64-linux";
           me = "adam";
