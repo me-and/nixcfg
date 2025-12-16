@@ -34,7 +34,6 @@
         nix-output-monitor
         nixfmt-tree
         nixos-generators
-        nixpkgs-review
         psmisc
         pv
         shellcheck
