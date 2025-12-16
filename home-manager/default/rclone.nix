@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  mylib,
   pkgs,
   ...
 }:
@@ -10,7 +11,7 @@ let
   mountToService =
     mountpoint: target:
     let
-      escapedMountpoint = pkgs.mylib.escapeSystemdPath mountpoint;
+      escapedMountpoint = mylib.escapeSystemdPath mountpoint;
     in
     {
       "rclone-mount@${escapedMountpoint}" = {
