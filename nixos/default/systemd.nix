@@ -97,19 +97,9 @@ let
   # Gate this on whether wireless networking is enabled at all, as otherwise
   # this config would create a wpa_supplicant.service systemd unit that
   # wouldn't otherwise exist.
-  shellcheckWpaSupplicantConfig =
-    lib.mkIf ((options.systemd ? enableStrictShellChecks) && config.networking.wireless.enable)
-      {
-        warnings = lib.mkIf (lib.oldestSupportedReleaseIsAtLeast 2411) [
-          ''
-            Version handling in ${builtins.toString ./.}/systemd.nix of
-            systemd.enableStrictShellChecks, introduced in NixOS 24.11, can be
-            safely removed.
-          ''
-        ];
-
-        systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
-      };
+  shellcheckWpaSupplicantConfig = lib.mkIf config.networking.wireless.enable {
+    systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
+  };
 in
 lib.mkMerge [
   loopDeviceConfig
