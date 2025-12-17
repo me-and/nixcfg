@@ -513,8 +513,6 @@ let
   taskdConfig = {
     taskd = {
       server = "taskwarrior.dinwoodie.org:50340";
-      certificate = "${config.xdg.configHome}/task/adam.cert.pem";
-      key = "${config.xdg.configHome}/task/adam.key.pem";
       trust = "strict";
     };
   };
@@ -653,6 +651,7 @@ in
                 After = [
                   "resolve-host-a@${domain}.service"
                   "taskwarrior-wait-for-stability.service"
+                  "sops-nix.service"
                 ];
                 Before = [
                   "taskwarrior-gc.service"
