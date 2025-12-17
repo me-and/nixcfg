@@ -14,13 +14,12 @@
   networking.pd.vpn = false;
   networking.pd.gonzo = false;
 
-  # TODO Stop disabling the environment.
-  nix.daemonEnvironmentFromSops = false;
-
   programs.mosh.enable = true;
 
   # TODO set up keys to enable this.
   nix.nixBuildDotNet.substituter.enable = false;
+
+  services.postfix.sendDirect = true;
 
   nix.nhgc = {
     trigger.freePercent = 15;
