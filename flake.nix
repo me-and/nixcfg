@@ -82,6 +82,11 @@
           me = "adam";
         };
 
+        marvin = {
+          system = "x86_64-linux";
+          me = "adam";
+        };
+
         multivac = {
           system = "x86_64-linux";
           me = "adam";
@@ -120,6 +125,7 @@
               wsl
               self
               ;
+            mylib = self.lib;
             personalCfg = self;
           };
           modules =
@@ -157,6 +163,7 @@
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
             inherit plasma-manager sops-nix user-systemd-config;
+            mylib = self.lib;
             personalCfg = self;
           };
           modules =
