@@ -4,6 +4,11 @@
 
   system.stateVersion = "25.11";
 
+  # Ignore the lid closing and opening: this is a laptop being used as a home
+  # server, so I want to be able to close the lid and have the system keep
+  # running.
+  services.logind.settings.Login.HandleLidSwitch = "ignore";
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
