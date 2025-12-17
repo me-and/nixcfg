@@ -40,6 +40,12 @@ in
   destination ? "",
   purePath ? false,
 }:
+let
+  setArgs = lib.concatMap (opt: [
+    "-o"
+    opt
+  ]) bashOptions;
+in
 writeTextFile {
   inherit
     name
@@ -53,7 +59,7 @@ writeTextFile {
     #!${runtimeShell}
   ''
   + lib.optionalString (bashOptions != [ ]) ''
-    set ${lib.escapeShellArgs (lib.concatMap (opt: [ "-o" opt ]) bashOptions)}
+    set ${lib.escapeShellArgs setArgs}
   ''
   + lib.concatStrings (
     lib.mapAttrsToList (name: value: ''
