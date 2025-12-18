@@ -16,4 +16,6 @@
     pkgs.mypkgs.wavtoopus
     pkgs.quodlibet-without-gst-plugins # operon
   ];
+
+  services.syncthing.enable = true;
 }
