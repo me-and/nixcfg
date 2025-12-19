@@ -49,4 +49,5 @@
 
   # OS should be looking after the clock.
   services.timesyncd.enable = false;
+  services.chrony.enable = lib.mkForce false;
 }
