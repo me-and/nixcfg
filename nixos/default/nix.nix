@@ -10,7 +10,7 @@
     sops = {
       secrets.github-token = { };
       templates.nix-daemon-environment.content = ''
-        NIX_GITHUB_PRIVATE_USERNAME=
+        NIX_GITHUB_PRIVATE_USERNAME=.
         NIX_GITHUB_PRIVATE_PASSWORD=${config.sops.placeholder.github-token}
       '';
       templates.auth-tokens.content = ''
