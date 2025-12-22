@@ -1,9 +1,0 @@
-lucy-neomutt () {
-	mosh adam@lucy.dinwoodie.org -- '~/.local/bin/mailsync -il && neomutt && ~/.local/bin/mailsync -i'
-}
-
-lucy-mailsync () {
-	ssh adam@lucy.dinwoodie.org /home/adam/.local/bin/mailsync $(printf '%q ' "$@")
-}
-
-# vim: ft=bash noet ts=8
