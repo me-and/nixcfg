@@ -17,5 +17,8 @@
     pkgs.quodlibet-without-gst-plugins # operon
   ];
 
+  accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
+  programs.offlineimap.enable = true;
+
   services.syncthing.enable = true;
 }
