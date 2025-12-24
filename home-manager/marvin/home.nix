@@ -21,7 +21,7 @@
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   programs.offlineimap.enable = true;
 
-  services.goimapnotify.enable = lib.warn "Need to set up goimapnotify" false;
+  services.goimapnotify.enable = true;
   accounts.email.accounts.main.passwordCommand = "${pkgs.coreutils}/bin/cat ${
     config.sops.secrets."email/${config.accounts.email.accounts.main.address}/offlineimap".path
   }";
