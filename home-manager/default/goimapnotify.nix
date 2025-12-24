@@ -7,17 +7,7 @@
   ...
 }:
 let
-  notifyActionOption =
-    scenario:
-    lib.mkOption {
-      # TODO Better typing?
-      type = with lib.types; nullOr (either str package);
-      description = "Command to run ${scenario}.";
-      default = null;
-    };
-
   cfg = config.services.goimapnotify;
-
   accountCfgs = lib.filterAttrs (n: v: v.goimapnotify.enable) config.accounts.email.accounts;
 in
 {
@@ -52,7 +42,16 @@ in
               boxes = lib.mkOption {
                 type = lib.types.attrsOf (
                   lib.types.submodule (
-                    { name, config, ... }:
+                    { name, config, lib, ... }:
+                    let
+                      notifyActionOption =
+                        scenario:
+                        lib.mkOption {
+                          type = with lib.types; nullOr (either str package);
+                          description = "Command to run ${scenario}.";
+                          default = null;
+                        };
+                    in
                     {
                       options = {
                         mailbox = lib.mkOption {
@@ -133,7 +132,10 @@ in
       Install.WantedBy = [ "default.target" ];
       Service = {
         Type = "simple";
-        ExecStart = "${pkgs.goimapnotify}/bin/goimapnotify -conf ${cfg.configFile}";
+        ExecStart = pkgs.mypkgs.writeCheckedShellScript {
+          name = "goimapnotify.sh";
+          text = "exec ${lib.getExe cfg.package} -conf ${lib.escapeShellArg cfg.configFile}";
+        };
         Restart = "always";
         RestartSec = 30;
       };
