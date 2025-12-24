@@ -124,7 +124,7 @@ in
   config = lib.mkIf cfg.enable {
     # Based on the goimapnotify service unit file in the upstream repository.
     systemd.user.services.goimapnotify = {
-      Service = {
+      Unit = {
         Description = "Execute scripts on IMAP mailbox changes (new/deleted/update messages) using IDLE, golang version.";
         StartLimitIntervalSec = "1d";
         StartLimitBurst = 5;
