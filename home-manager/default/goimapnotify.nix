@@ -123,6 +123,10 @@ in
 
   config = lib.mkIf cfg.enable {
     # Based on the goimapnotify service unit file in the upstream repository.
+    #
+    # TODO: add config to remove the FailureAction from this unit and replace
+    # it with a StartLimitAction, since I don't care about occasional failures
+    # provided the thing restarts sensibly.
     systemd.user.services.goimapnotify = {
       Unit = {
         Description = "Execute scripts on IMAP mailbox changes (new/deleted/update messages) using IDLE, golang version.";
