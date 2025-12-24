@@ -1,4 +1,4 @@
-{ personalCfg, ... }:
+{ lib, personalCfg, ... }:
 {
   imports = [ personalCfg.nixosModules.wsl ];
 
@@ -18,4 +18,7 @@
   # TODO Set this up, as I don't have any reason not to use it other than not
   # getting around to setting up the SSH keys.
   nix.nixBuildDotNet.substituter.enable = false;
+
+  # TODO Fix up my SOPS secrets so I don't need to keep disabling this.
+  nix.githubTokenFromSops = lib.warn "Need to set up github-token in SOPS" false;
 }
