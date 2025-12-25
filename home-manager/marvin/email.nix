@@ -13,8 +13,8 @@ in
     goimapnotify = {
       enable = true;
       boxes = {
-        INBOX.onNewMail = "${config.home.homeDirectory}/.local/bin/mailsync -i";
-        TaskWarrior.onNewMail = "${config.home.homeDirectory}/.local/bin/mailsync TaskWarrior";
+        INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -i";
+        TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
       };
     };
   };
