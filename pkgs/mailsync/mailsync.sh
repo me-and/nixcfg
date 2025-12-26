@@ -10,7 +10,10 @@ help () {
 	printf '       immediately\n'
 	printf "  -w:  Don't return until the sync is done\\n"
 	printf '  -l:  Show log output (implies -w)\n'
-	printf '  -h:  Print this help and exit\n\n'
+	printf '  -h:  Print this help and exit\n'
+	printf '  -e <account>:\n'
+	printf '       Email account to sync\n'
+	printf '\n'
 	printf 'Folder options:\n'
 	printf '  -a:  Sync all folders\n'
 	printf '  -i:  Sync INBOX\n'
@@ -19,7 +22,8 @@ help () {
 	printf '  -d:  Sync [Gmail]/Drafts\n'
 	printf '  -f:  Sync [Gmail]/Starred (aka "flagged")\n'
 	printf '  -s:  Sync [Gmail]/Sent Mail\n'
-	printf '  -S:  Sync [Gmail]/Spam\n\n'
+	printf '  -S:  Sync [Gmail]/Spam\n'
+	printf '\n'
 	{
 		echo 'You can specify folders to sync by using switches as'
 		echo 'above, by specifying folders by name as arguments after'
@@ -27,19 +31,19 @@ help () {
 	} | fmt
 }
 
-INSTANCE="$(systemd-escape main)"
-
 sync_all=
 block_args=(--no-block)
 show_logs=
 folders=()
 force=
-while getopts ':aAbdfFhilsSw' opt; do
+account=main
+while getopts ':aAbde:fFhilsSw' opt; do
 	case "$opt" in
 		a)	sync_all=Yes;;
 		A)	folders+=('[Gmail]/All Mail');;
 		b)	folders+=('[Gmail]/Bin');;
 		d)	folders+=('[Gmail]/Drafts');;
+		e)	account="$OPTARG";;
 		f)	folders+=('[Gmail]/Starred');;
 		F)	force=YesPlease;;
 		h)	help
@@ -59,6 +63,8 @@ while getopts ':aAbdfFhilsSw' opt; do
 	esac
 done
 shift "$(( OPTIND - 1 ))"
+
+INSTANCE="$(systemd-escape "$account")"
 
 if [[ -z "$sync_all" ]] && (( $# == 0 )) && (( ${#folders[@]} == 0 )); then
 	echo 'Nothing to synchronise!' >&2
