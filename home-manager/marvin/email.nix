@@ -3,6 +3,10 @@ let
   accountsCfg = config.accounts.email.accounts;
 in
 {
+  programs.offlineimap.enable = true;
+
+  home.packages = [ pkgs.mypkgs.mailsync ];
+
   services.goimapnotify.enable = true;
   accounts.email.accounts.main = {
     passwordCommand =
