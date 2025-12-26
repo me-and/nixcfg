@@ -23,15 +23,13 @@ let
   systemdWantsPath = name: systemdWants "${name}.path" "paths.target";
 
   systemdServiceSymlinks = map systemdWantsService [ ];
-  systemdTimerSymlinks =
-    (map systemdWantsTimer [
-      "disk-usage-report"
-      "report-onedrive-conflicts"
-      "taskwarrior-inbox"
-      "taskwarrior-monthly"
-      "taskwarrior-project-check"
-    ])
-    ++ [ (systemdWantsInstance "offlineimap-full@.timer" "main" "timers.target") ];
+  systemdTimerSymlinks = map systemdWantsTimer [
+    "disk-usage-report"
+    "report-onedrive-conflicts"
+    "taskwarrior-inbox"
+    "taskwarrior-monthly"
+    "taskwarrior-project-check"
+  ];
   systemdPathSymlinks = map systemdWantsPath [
     "taskwarrior-dinwoodie.org-emails"
     "sign-petitions"
@@ -98,6 +96,13 @@ in
       Timer.AccuracySec = "6h";
       Timer.RandomizedDelaySec = "1h";
       Timer.Persistent = true;
+    };
+    "offlineimap-full@main" = {
+      Unit.Description = "Daily sync of all labels for account main";
+      Install.WantedBy = [ "timers.target" ];
+      Timer.OnCalendar = "06:00";
+      Timer.RandomizedDelaySec = "1h";
+      Timer.AccuracySec = "1h";
     };
   };
 
