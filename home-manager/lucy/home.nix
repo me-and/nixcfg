@@ -55,12 +55,22 @@ in
 
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
-      Unit.Description = "Create recurring Taskwarrior tasks";
+      Unit = {
+        Description = "Create recurring Taskwarrior tasks";
+        Wants = [ "taskwarrior-sync.service" ];
+        After = [ "taskwarrior-sync.service" ];
+        OnSuccess = [ "taskwarrior-sync.service" ];
+      };
       Service.Type = "oneshot";
       Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.recurrence=true ids";
     };
     taskwarrior-check-active-tasks = {
-      Unit.Description = "Check for Taskwarrior tasks that have been active too long";
+      Unit = {
+        Description = "Check for Taskwarrior tasks that have been active too long";
+        Wants = [ "taskwarrior-sync.service" ];
+        After = [ "taskwarrior-sync.service" ];
+        OnSuccess = [ "taskwarrior-sync.service" ];
+      };
       Service.Type = "oneshot";
       Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "flag-stale-active-tasks.sh";
@@ -83,19 +93,24 @@ in
   };
   systemd.user.timers = {
     taskwarrior-create-recurring-tasks = {
-      Unit.Description = "Create recurring Taskwarrior tasks daily";
+      Unit.Description = "Regularly create recurring Taskwarrior tasks";
       Install.WantedBy = [ "timers.target" ];
-      Timer.OnCalendar = "01:00";
-      Timer.AccuracySec = "6h";
-      Timer.Persistent = true;
+      Timer = {
+        OnActiveSec = "0s";
+        OnUnitInactiveSec = "12h";
+        RandomizedDelaySec = "12h";
+        AccuracySec = "12h";
+      };
     };
     taskwarrior-check-active-tasks = {
-      Unit.Description = "Daily check for tasks that have been active too long";
+      Unit.Description = "Regularly check for tasks that have been active too long";
       Install.WantedBy = [ "timers.target" ];
-      Timer.OnCalendar = "01:00";
-      Timer.AccuracySec = "6h";
-      Timer.RandomizedDelaySec = "1h";
-      Timer.Persistent = true;
+      Timer = {
+        OnActiveSec = "0s";
+        OnUnitInactiveSec = "24h";
+        RandomizedDelaySec = "24h";
+        AccuracySec = "24h";
+      };
     };
     "offlineimap-full@main" = {
       Unit.Description = "Daily sync of all labels for account main";
