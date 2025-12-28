@@ -18,11 +18,17 @@ let
       };
 
       config = lib.mkIf (config.passwordFile != null) {
+        # Configuration using the passwordFile option.
         passwordCommand = lib.mkDefault [
           "${pkgs.coreutils}/bin/cat"
           config.passwordFile
         ];
         offlineimap.extraConfig.remote.remotepassfile = lib.mkDefault config.passwordFile;
+
+        # Configuration that's just defaults I'd like for my accounts.
+        realName = lib.mkDefault "Adam Dinwoodie";
+        maildir.path = lib.mkDefault config.address;
+        offlineimap.enable = lib.mkDefault true;
       };
     };
 in
@@ -63,7 +69,6 @@ in
         };
 
         offlineimap = {
-          enable = true;
           extraConfig = {
             account = {
               synclabels = true;
@@ -82,12 +87,7 @@ in
         };
       };
 
-      pd = {
-        realName = "Adam Dinwoodie";
-        maildir.path = cfg.accounts.pd.address;
-        passwordFile = config.sops.secrets."email/${cfg.accounts.pd.address}".path;
-        offlineimap.enable = true;
-      };
+      pd = { };
     };
 
     programs.neomutt.settings.use_envelope_from = "yes";

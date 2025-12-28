@@ -16,10 +16,13 @@ let
     { config, lib, ... }:
     {
       options.goimapnotify = {
-        enable = lib.mkEnableOption "goimapnotify";
+        enable = lib.mkEnableOption "goimapnotify" // {
+          default = config.goimapnotify.boxes != { };
+        };
         boxes = lib.mkOption {
           type = lib.types.attrsOf (lib.types.submodule boxSubmodule);
           description = "Configuration for individual mailboxes.";
+          default = { };
         };
 
         accountConfig = lib.mkOption {

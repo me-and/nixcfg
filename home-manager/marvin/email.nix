@@ -14,18 +14,12 @@ in
 
   services.goimapnotify.enable = true;
   accounts.email.accounts = {
-    main.goimapnotify = {
-      enable = true;
-      boxes = {
-        INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -i";
-        TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
-      };
+    main.goimapnotify.boxes = {
+      INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -i";
+      TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
     };
 
-    pd.goimapnotify = {
-      enable = true;
-      boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e pd -i";
-    };
+    pd.goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e pd -i";
   };
 
   systemd.user = {
