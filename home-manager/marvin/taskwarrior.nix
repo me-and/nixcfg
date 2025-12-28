@@ -45,9 +45,9 @@
       Install.WantedBy = [ "timers.target" ];
       Timer = {
         OnActiveSec = "0s";
-        OnUnitInactiveSec = "12h";
-        RandomizedDelaySec = "12h";
-        AccuracySec = "12h";
+        OnUnitInactiveSec = "8h";
+        RandomizedDelaySec = "8h";
+        AccuracySec = "8h";
       };
     };
     taskwarrior-check-active-tasks = {
