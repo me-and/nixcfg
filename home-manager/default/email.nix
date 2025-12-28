@@ -1,75 +1,116 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.accounts.email;
-in
-{
-  sops = lib.mkIf cfg.accounts.main.enable {
-    secrets."email/${cfg.accounts.main.address}/offlineimap" = { };
-  };
 
-  # Configure accounts.email.accounts.*.address in private config flake.
-  accounts.email.accounts.main = {
-    primary = true;
-    realName = "Adam Dinwoodie";
+  accountSubmodule =
+    { config, lib, ... }:
+    {
+      options.passwordFile = lib.mkOption {
+        description = "Path to a file that contains the password for this account.";
+        type = with lib.types; nullOr str;
+        example = lib.literal "config.sops.secrets.emailPasswd.path";
+        default = null;
+      };
 
-    flavor = "gmail.com";
-
-    # Folders use the offlineimap format, since that's how I'm syncing them.
-    folders = {
-      inbox = "INBOX";
-      drafts = "[Gmail].Drafts";
-      sent = "[Gmail].Sent Mail";
-    };
-    maildir.path = cfg.accounts.main.address;
-
-    neomutt = {
-      enable = true;
-      extraConfig = ''
-        set reverse_name = yes
-        unset reverse_realname
-        alternates '[@\.]dinwoodie\.org$' '^adam@profounddecisions\.co\.uk$' '^(adamdinwoodie|gamma3000|knightley\.nightly|sorrowfulsnail)@(gmail|googlemail)\.com$' '^adam@tastycake\.net$' '^adam\.dinwoodie@worc\.oxon\.org$'
-
-        # Don't move deleted messages to the trash; Gmail will interpret that to
-        # mean they should be deleted permanently after 30 days, where I want
-        # them to stay in my All Mail directory.
-        unset trash
-      '';
-    };
-
-    offlineimap = {
-      enable = true;
-      extraConfig = {
-        account = {
-          synclabels = true;
-          labelsheader = "X-Labels";
-        };
-        local = {
-          nametrans = "lambda f: f.replace('&', '&-')";
-          utime_from_header = true;
-        };
-        remote = {
-          maxconnections = 4;
-          remotepassfile = config.sops.secrets."email/${cfg.accounts.main.address}/offlineimap".path;
-          folderfilter = "lambda f: not f.startswith('To/') and not f.startswith('Git/') and not f.startswith('Cygwin/') and f not in ('To', 'Git', 'Cygwin', 'Retention', '[Gmail]/Important', 'Retention/Undefined', 'Retention/0')";
-          nametrans = "lambda f: f.replace('&-', '&')";
-        };
+      config = lib.mkIf (config.passwordFile != null) {
+        passwordCommand = lib.mkDefault [
+          "${pkgs.coreutils}/bin/cat"
+          config.passwordFile
+        ];
+        offlineimap.extraConfig.remote.remotepassfile = lib.mkDefault config.passwordFile;
       };
     };
+in
+{
+  options.accounts.email.accounts = lib.mkOption {
+    type = with lib.types; attrsOf (submodule accountSubmodule);
   };
 
-  programs.neomutt.settings.use_envelope_from = "yes";
+  config = {
+    sops.secrets = {
+      "email/${cfg.accounts.main.address}/offlineimap" = lib.mkIf cfg.accounts.main.enable { };
+      "email/${cfg.accounts.pd.address}" = lib.mkIf cfg.accounts.pd.enable { };
+    };
 
-  programs.offlineimap = {
-    extraConfig = {
-      general.metadata = cfg.maildirBasePath + "/offlineimap";
-      mbnames = {
-        enabled = true;
-        filename = cfg.maildirBasePath + "/muttrc.mailboxes";
-        header = "'mailboxes '";
-        peritem = "'+%(accountname)s/%(foldername)s'";
-        sep = "' '";
-        footer = "'\\n'";
-        incremental = false;
+    # Configure accounts.email.accounts.*.address in private config flake.
+    accounts.email.accounts = {
+      main = {
+        primary = true;
+        realName = "Adam Dinwoodie";
+
+        flavor = "gmail.com";
+
+        # Folders use the offlineimap format, since that's how I'm syncing them.
+        folders = {
+          inbox = "INBOX";
+          drafts = "[Gmail].Drafts";
+          sent = "[Gmail].Sent Mail";
+        };
+        maildir.path = cfg.accounts.main.address;
+
+        passwordFile = config.sops.secrets."email/${cfg.accounts.main.address}/offlineimap".path;
+
+        neomutt = {
+          enable = true;
+          extraConfig = ''
+            set reverse_name = yes
+            unset reverse_realname
+            alternates '[@\.]dinwoodie\.org$' '^adam@profounddecisions\.co\.uk$' '^(adamdinwoodie|gamma3000|knightley\.nightly|sorrowfulsnail)@(gmail|googlemail)\.com$' '^adam@tastycake\.net$' '^adam\.dinwoodie@worc\.oxon\.org$'
+
+            # Don't move deleted messages to the trash; Gmail will interpret that to
+            # mean they should be deleted permanently after 30 days, where I want
+            # them to stay in my All Mail directory.
+            unset trash
+          '';
+        };
+
+        offlineimap = {
+          enable = true;
+          extraConfig = {
+            account = {
+              synclabels = true;
+              labelsheader = "X-Labels";
+            };
+            local = {
+              nametrans = "lambda f: f.replace('&', '&-')";
+              utime_from_header = true;
+            };
+            remote = {
+              maxconnections = 4;
+              folderfilter = "lambda f: not f.startswith('To/') and not f.startswith('Git/') and not f.startswith('Cygwin/') and f not in ('To', 'Git', 'Cygwin', 'Retention', '[Gmail]/Important', 'Retention/Undefined', 'Retention/0')";
+              nametrans = "lambda f: f.replace('&-', '&')";
+            };
+          };
+        };
+      };
+
+      pd = {
+        realName = "Adam Dinwoodie";
+        maildir.path = cfg.accounts.pd.address;
+        passwordFile = config.sops.secrets."email/${cfg.accounts.pd.address}".path;
+        offlineimap.enable = true;
+      };
+    };
+
+    programs.neomutt.settings.use_envelope_from = "yes";
+
+    programs.offlineimap = {
+      extraConfig = {
+        general.metadata = cfg.maildirBasePath + "/offlineimap";
+        mbnames = {
+          enabled = true;
+          filename = cfg.maildirBasePath + "/muttrc.mailboxes";
+          header = "'mailboxes '";
+          peritem = "'+%(accountname)s/%(foldername)s'";
+          sep = "' '";
+          footer = "'\\n'";
+          incremental = false;
+        };
       };
     };
   };

@@ -168,11 +168,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1766137948,
-        "narHash": "sha256-gMzbqeSA2g05UQ8DdNm/YMn4RRD+8RmZhVthk77TXs8=",
+        "lastModified": 1766792166,
+        "narHash": "sha256-TRy4Ib9lsELz6llwhmVfivWBqr+SuHYRg70qx1ZtZxw=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "6b629fa48f984c0704b2190770f86da0c0961cdd",
+        "rev": "9b8b2db5e31a63239dcf14ef50cae8da93b0f4ee",
         "type": "github"
       },
       "original": {
@@ -248,11 +248,11 @@
     "user-systemd-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1766006174,
-        "narHash": "sha256-GntCtxGNernVOmTR+4OlwMsiKB1BSejJ2Olh3Td5HkI=",
+        "lastModified": 1766772268,
+        "narHash": "sha256-ES+jNcpq+KOqYOyl4/FbS0BTbLxeW5P2BWe5QQf2vtw=",
         "owner": "me-and",
         "repo": "user-systemd-config",
-        "rev": "424e1176e66afacf083e9bd6ec957f119a042362",
+        "rev": "3e110e812e7ea1a0ea3082fc8df4d4bb53b5f6c2",
         "type": "github"
       },
       "original": {
