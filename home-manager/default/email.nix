@@ -88,6 +88,8 @@ in
       };
 
       pd = { };
+
+      taskwarrior = { };
     };
 
     programs.neomutt.settings.use_envelope_from = "yes";

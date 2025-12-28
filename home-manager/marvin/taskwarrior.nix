@@ -1,5 +1,10 @@
 { config, pkgs, ... }:
 {
+  accounts.email.accounts.taskwarrior = {
+    enable = true;
+    goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
+  };
+
   systemd.user.services = {
     taskwarrior-create-recurring-tasks = {
       Unit = {
