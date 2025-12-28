@@ -32,11 +32,6 @@ in
   };
 
   config = {
-    sops.secrets = {
-      "email/${cfg.accounts.main.address}/offlineimap" = lib.mkIf cfg.accounts.main.enable { };
-      "email/${cfg.accounts.pd.address}" = lib.mkIf cfg.accounts.pd.enable { };
-    };
-
     # Configure accounts.email.accounts.*.address in private config flake.
     accounts.email.accounts = {
       main = {
@@ -52,8 +47,6 @@ in
           sent = "[Gmail].Sent Mail";
         };
         maildir.path = cfg.accounts.main.address;
-
-        passwordFile = config.sops.secrets."email/${cfg.accounts.main.address}/offlineimap".path;
 
         neomutt = {
           enable = true;
