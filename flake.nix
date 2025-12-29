@@ -165,6 +165,7 @@
             inherit plasma-manager sops-nix user-systemd-config;
             mylib = self.lib;
             personalCfg = self;
+            osConfig = self.nixosConfigurations."${name}".config;
           };
           modules =
             let

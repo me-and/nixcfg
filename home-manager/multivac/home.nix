@@ -35,6 +35,9 @@ in
     mypkgs.unison-nox
   ];
 
+  # TODO Set up sops so this works
+  nix.githubTokenFromSops = false;
+
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
