@@ -89,24 +89,6 @@ in
     "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
   };
 
-  # Configure accounts.email.accounts.*.address in private config flake.
-  accounts.email.accounts.main = {
-    flavor = "gmail.com";
-    folders = {
-      inbox = "INBOX";
-      drafts = "[Gmail]/Drafts";
-      sent = "[Gmail]/Sent Mail";
-      trash = "[Gmail]/Bin";
-    };
-    # TODO configure this?
-    #maildir.path = config.accounts.email.accounts.main.address;
-    # TODO configure this, with all the attentant options
-    #neomutt.enable = true;
-    # TODO configure this, with all the attendant options
-    #offlineimap.enable = true;
-    primary = true;
-    realName = "Adam Dinwoodie";
-  };
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
 
   services.syncthing = {
