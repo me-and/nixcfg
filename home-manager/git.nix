@@ -3,9 +3,7 @@
 # the NixOS configurations.
 { config, lib, ... }:
 let
-  mainEmailAccount = lib.lists.findFirst (a: a.enable && a.primary) null (
-    builtins.attrValues config.accounts.email.accounts
-  );
+  mainEmailAccount = config.accounts.email.primaryAccount or null;
 in
 {
   programs.git = {

@@ -33,11 +33,22 @@ let
     };
 in
 {
-  options.accounts.email.accounts = lib.mkOption {
-    type = with lib.types; attrsOf (submodule accountSubmodule);
+  options.accounts.email = {
+    primaryAccount = lib.mkOption {
+      description = "The primary email account";
+      readOnly = true;
+    };
+
+    accounts = lib.mkOption {
+      type = with lib.types; attrsOf (submodule accountSubmodule);
+    };
   };
 
   config = {
+    accounts.email.primaryAccount = lib.lists.findFirst (a: a.enable && a.primary) null (
+      builtins.attrValues cfg.accounts
+    );
+
     # Configure accounts.email.accounts.*.address in private config flake.
     accounts.email.accounts = {
       main = {
