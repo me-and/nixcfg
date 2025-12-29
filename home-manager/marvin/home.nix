@@ -5,7 +5,10 @@
   ...
 }:
 {
-  imports = [ personalCfg.homeModules.latex ];
+  imports = [
+    personalCfg.homeModules.latex
+    personalCfg.homeModules.mypy
+  ];
 
   home.stateVersion = "25.11";
 
