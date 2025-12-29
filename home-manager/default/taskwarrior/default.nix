@@ -575,18 +575,10 @@ in
         let
           makeHook =
             name:
-            pkgs.runCommandLocal name
-              {
-                buildInputs = [
-                  (pkgs.python3.withPackages (python3Packages: [
-                    (pkgs.mypkgs.asmodeus.override { inherit python3Packages; })
-                  ]))
-                ];
-              }
-              ''
-                cp ${./hooks + "/${name}"} "$out"
-                patchShebangs "$out"
-              '';
+            pkgs.runCommandLocal name { buildInputs = [ pkgs.mypkgs.pythonWithAsmodeus ]; } ''
+              cp ${./hooks + "/${name}"} "$out"
+              patchShebangs "$out"
+            '';
         in
         lib.mapAttrs' (
           k: v: lib.attrsets.nameValuePair "${cfg.config.hooks.location}/${k}" { source = makeHook k; }
