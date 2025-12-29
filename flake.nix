@@ -127,6 +127,7 @@
               ;
             mylib = self.lib;
             personalCfg = self;
+            homeConfig = self.homeConfigurations."${me}@${name}".config;
           };
           modules =
             let

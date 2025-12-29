@@ -2,12 +2,9 @@
 {
   config,
   lib,
-  self,
+  homeConfig,
   ...
 }:
-let
-  homeConfig = self.homeConfigurations."${config.users.me}@${config.networking.hostName}".config;
-in
 {
   networking.firewall = lib.mkIf homeConfig.services.syncthing.enable {
     allowedTCPPorts = [ 22000 ];
