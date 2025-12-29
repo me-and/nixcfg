@@ -89,7 +89,9 @@ in
 
       pd = { };
 
-      taskwarrior = { };
+      taskwarrior = {
+        enable = lib.mkDefault false;
+      };
     };
 
     programs.neomutt.settings.use_envelope_from = "yes";
