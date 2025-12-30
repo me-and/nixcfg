@@ -98,9 +98,15 @@ in
         };
       };
 
-      pd = { };
+      pd = {
+        enable = lib.mkDefault false;
+      };
 
       taskwarrior = {
+        enable = lib.mkDefault false;
+      };
+
+      tastycake = {
         enable = lib.mkDefault false;
       };
     };
