@@ -17,7 +17,7 @@
               exit 0
           fi
 
-          find nixpkgs-review -depth -mindepth 1 -maxdepth 1 -mtime +90d -print -execdir rm -r {} +
+          find nixpkgs-review -depth -mindepth 1 -maxdepth 1 -mtime +90 -print -execdir rm -r {} +
         '';
       };
     };
