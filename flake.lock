@@ -248,11 +248,11 @@
     "user-systemd-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1767006747,
-        "narHash": "sha256-Lu9UFGTY6btTYheLFDKjgQpZiE4O+EDPdLLm3Vo3N5c=",
+        "lastModified": 1767184737,
+        "narHash": "sha256-5Ph+x8ETNVoPRChYZA2DNPb9jmzPbdQtFIfvzjkE8p4=",
         "owner": "me-and",
         "repo": "user-systemd-config",
-        "rev": "b99233dcf46c2a856c235282ad7602f88036aa5f",
+        "rev": "af10d6960a500a73732da22211d8ad17ea03752f",
         "type": "github"
       },
       "original": {
