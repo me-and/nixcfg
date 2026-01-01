@@ -10,4 +10,7 @@
 
     configFile.kwalletrc.Wallet.Enabled = false;
   };
+
+  # https://github.com/nix-community/home-manager/issues/1586#issuecomment-3446198028
+  programs.firefox.nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
 }
