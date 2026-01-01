@@ -307,6 +307,10 @@ let
       # slightly so I get to it when it's available.
       user.tag.daylight.coefficient = 1;
 
+      # Bump the priority of things that make my living space more pleasant,
+      # because that's currently A Problem.
+      user.tag.ufyh.coefficient = 1.8;
+
       # I do care about age, I want older tasks to bubble up to the top of
       # my queue.
       age.coefficient = 3;
