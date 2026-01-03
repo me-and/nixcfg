@@ -143,7 +143,7 @@ in
         Type = "simple";
         ExecStart = pkgs.mypkgs.writeCheckedShellScript {
           name = "goimapnotify.sh";
-          text = "${lib.getExe cfg.package} -conf ${lib.escapeShellArg cfg.configFile}";
+          text = "exec ${lib.getExe cfg.package} -conf ${lib.escapeShellArg cfg.configFile}";
         };
         Restart = "always";
         RestartSec = 30;
