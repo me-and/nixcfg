@@ -15,6 +15,7 @@
         ShowTrayIcon = true;
         TrayIconAppearance = "colorful";
       };
+      Security.IconDownloadFallback = true;
     };
   };
 }
