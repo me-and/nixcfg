@@ -61,6 +61,7 @@ in
     ];
 
     programs.offlineimap.enable = true;
+    programs.neomutt.enable = true;
 
     home.packages = [ pkgs.mypkgs.mailsync ];
 
