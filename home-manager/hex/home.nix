@@ -77,6 +77,7 @@ in
     ]);
 
   programs.firefox.enable = true;
+  programs.keepassxc.enable = true;
 
   # Enable all the systemd units I want running.  These are mostly coming from
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
