@@ -151,6 +151,10 @@ in
               fi
           fi
 
+          printf "total bytes:  %'20d\n" "$bytes_total" >&2
+          printf "bytes free:   %'20d\n" "$bytes_free" >&2
+          printf "run if below: %'20d\n" "$run_free_bytes" >&2
+
           if (( bytes_free >= run_free_bytes )); then
               exit 0
           fi
@@ -164,7 +168,11 @@ in
               fi
           fi
 
+          printf "target free:  %'20d\n" "$minimum_free_bytes"
+
           bytes_to_free=$(( minimum_free_bytes - bytes_free ))
+
+          printf "to free:      %'20d\n" "$bytes_to_free"
 
           if (( bytes_to_free <= 0 )); then
               echo 'Nix garbage collection triggered despite having sufficient disk space' >&2
@@ -177,6 +185,7 @@ in
           # rather than the "target", as it's fairly likely some disk space was
           # used while the garbage collection was running.
           update_free_space
+          printf "bytes free:   %'20d\n" "$bytes_free" >&2
           if (( bytes_free < run_free_bytes )); then
               echo 'nix-collect-garbage failed to free sufficient disk space' >&2
               exit 75  # EX_TEMPFAIL
