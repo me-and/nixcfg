@@ -10,7 +10,7 @@
   # TODO Fix my WSL disk to have a sensible maximum size, rather than a maximum
   # that's bigger than the containing disk, so that I can sensibly use the
   # freePercent options rather than the freeBytes options.
-  nix.nhgc = {
+  nix.gc = {
     target.freeBytes = (1000 - 250) * 1024 * 1024 * 1024;
     trigger.freeBytes = (1000 - 350) * 1024 * 1024 * 1024;
   };

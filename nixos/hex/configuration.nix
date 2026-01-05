@@ -67,7 +67,7 @@
     cores = 8;
   };
 
-  nix.nhgc = {
+  nix.gc = {
     target.freePercent = 25;
     trigger.freePercent = 15;
   };

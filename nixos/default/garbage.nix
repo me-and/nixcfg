@@ -5,10 +5,12 @@
   ...
 }:
 let
-  cfg = config.nix.nhgc;
+  cfg = config.nix.gc;
 in
 {
-  options.nix.nhgc = {
+  disabledModules = [ "services/misc/nix-gc.nix" ];
+
+  options.nix.gc = {
     target = {
       freeBytes = lib.mkOption {
         description = ''
@@ -38,7 +40,7 @@ in
           The amount of disk space, in bytes, that needs to be available to
           prevent the garbage collector running.
 
-          Set this to an amount lower than `nix.nhgc.target.freeBytes` to
+          Set this to an amount lower than `nix.gc.target.freeBytes` to
           ensure the garbage collector leaves plenty of free space and is less
           likely to need to perform garbage collection next time it is
           scheduled to check.
@@ -53,7 +55,7 @@ in
           The amount of disk space, as a percentage of the total disk space,
           that needs to be available to prevent the garbage collector running.
 
-          Set this to an amount lower than `nix.nhgc.target.freePercent` to
+          Set this to an amount lower than `nix.gc.target.freePercent` to
           ensure the garbage collector leaves plenty of free space and is less
           likely to need to perform garbage collection next time it is
           scheduled to check.
@@ -65,90 +67,40 @@ in
     };
   };
 
-  imports =
-    let
-      mkNhgcRename =
-        from: to:
-        lib.mkRenamedOptionModule
-          (
-            [
-              "nix"
-              "nhgc"
-            ]
-            ++ from
-          )
-          (
-            [
-              "nix"
-              "nhgc"
-            ]
-            ++ to
-          );
-    in
-    [
-      (mkNhgcRename [ "minimumFreeSpace" ] [ "target" "freeBytes" ])
-      (mkNhgcRename [ "minimumFreeSpaceBytes" ] [ "target" "freeBytes" ])
-      (mkNhgcRename [ "minimumFreeSpacePercent" ] [ "target" "freePercent" ])
-      (mkNhgcRename [ "runFreeSpaceBytes" ] [ "trigger" "freeBytes" ])
-      (mkNhgcRename [ "runFreeSpacePercent" ] [ "trigger" "freePercent" ])
-    ];
+  imports = [ (lib.mkRenamedOptionModule [ "nix" "nhgc" ] [ "nix" "gc" ]) ];
 
   config = {
     assertions = [
       {
         assertion = (cfg.target.freeBytes > 0) || (cfg.target.freePercent > 0);
         message = ''
-          You need to set either `nix.nhgc.target.freeBytes` or
-          `nix.nhgc.target.freePercent`.
+          You need to set either `nix.gc.target.freeBytes` or
+          `nix.gc.target.freePercent`.
         '';
       }
     ];
 
-    # Run the standard garbage collector regularly, not to do actual Nix store
-    # garbage collection, but to clean up old profiles and stale links.
-    nix.gc = {
-      options = "--max-freed 0 --delete-older-than 90d";
-      automatic = true;
-      dates = "weekly";
-      persistent = true;
-      randomizedDelaySec = "1h";
-    };
-    systemd.timers.nix-gc.timerConfig = {
-      AccuracySec = "24h";
-      RandomizedOffsetSec = "1w";
-    };
-
     warnings =
-      (lib.optional
-        ((config.nix.settings.keep-outputs or false) && (config.nix.settings.keep-derivations or true))
-        ''
-          You have nix.settings.keep-outputs and nix.settings.keep-derivations.
-          Nix Heuristic GC doesn't cope well with this setup, because of the
-          likelihood of circular dependencies, so you may need to run regular Nix
-          garbage collection tools as well.
-        ''
-      )
-      ++ (lib.optional (cfg.trigger.freePercent > cfg.target.freePercent) ''
-        nix.nhgc.trigger.freePercent is higher than
-        nix.nhgc.target.freePercent.  This means Nix Heuristic GC will
-        never free enough disk space that it doesn't need to run again next
-        time.  You should normally configure trigger.freePercent to be the
-        same or lower than target.freePercent.
+      (lib.optional (cfg.trigger.freePercent > cfg.target.freePercent) ''
+        nix.gc.trigger.freePercent is higher than nix.hgc.target.freePercent.
+        This means Nix garbage collection will never free enough disk space
+        that it doesn't need to run again next time.  You should normally
+        configure trigger.freePercent to be the same or lower than
+        target.freePercent.
       '')
       ++ (lib.optional (cfg.trigger.freeBytes > cfg.target.freeBytes) ''
-        nix.nhgc.trigger.freeBytes is higher than nix.nhgc.target.freeBytes.
-        This means Nix Heuristic GC will never free enough disk space that it
+        nix.gc.trigger.freeBytes is higher than nix.gc.target.freeBytes.  This
+        means Nix garbage collection will never free enough disk space that it
         doesn't need to run again next time.  You should normally configure
         trigger.freeBytes to be the same or lower than target.freeBytes.
       '');
 
-    # Use Nix Heuristic Garbage Collection to actually collect garbage.
-    systemd.services.nix-nhgc = {
-      description = "Nix Heuristic Garbage Collection";
+    systemd.services.nix-gc = {
+      description = "Nix Garbage Collection";
       before = [ "nix-optimise.service" ];
       serviceConfig.Type = "oneshot";
       path = [
-        pkgs.nix-heuristic-gc
+        config.nix.package.out
         pkgs.bc
       ];
       script = ''
@@ -196,23 +148,23 @@ in
         bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
         if (( bytes_to_free <= 0 )); then
-            echo 'nix-heuristic-gc triggered despite having sufficient disk space' >&2
+            echo 'Nix garbage collection triggered despite having sufficient disk space' >&2
             exit 64  # EX_USAGE
         fi
 
-        nix-heuristic-gc "$bytes_to_free"
+        nix-collect-garbage --max-freed "$bytes_to_free" --delete-older-than 90d
 
         # Check if sufficient space was freed.  Check against the "trigger"
         # rather than the "target", as it's fairly likely some disk space was
-        # used while nhgc was running.
+        # used while the garbage collection was running.
         update_free_space
         if (( bytes_free < run_free_bytes )); then
-            echo 'nix-heuristic-gc failed to free sufficient disk space' >&2
-            exit 1
+            echo 'nix-collect-garbage failed to free sufficient disk space' >&2
+            exit 75  # EX_TEMPFAIL
         fi
       '';
     };
-    systemd.timers.nix-nhgc = {
+    systemd.timers.nix-gc = {
       timerConfig = {
         Persistent = true;
         OnCalendar = "weekly";

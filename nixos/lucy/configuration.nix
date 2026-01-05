@@ -91,7 +91,7 @@
     enable = false;
   };
 
-  nix.nhgc = {
+  nix.gc = {
     trigger.freePercent = 15;
     target.freePercent = 25;
   };
