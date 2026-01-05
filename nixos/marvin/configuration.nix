@@ -1,6 +1,9 @@
-{ nixos-hardware, ... }:
+{ nixos-hardware, personalCfg, ... }:
 {
-  imports = [ nixos-hardware.nixosModules.dell-latitude-7430 ];
+  imports = [
+    nixos-hardware.nixosModules.dell-latitude-7430
+    personalCfg.nixosModules.nix-builder
+  ];
 
   system.stateVersion = "25.11";
 
