@@ -65,6 +65,18 @@ in
         default = cfg.target.freePercent;
       };
     };
+
+    deleteOlderThan = lib.mkOption {
+      description = ''
+        The argument to pass to `nix-collect-garbage`'s `--delete-older-than`
+        option to clean up old profiles.
+
+        If set to `null`, old profiles will not be deleted.
+      '';
+      type = with lib.types; nullOr str;
+      default = null;
+      example = "90d";
+    };
   };
 
   imports = [ (lib.mkRenamedOptionModule [ "nix" "nhgc" ] [ "nix" "gc" ]) ];
@@ -103,66 +115,73 @@ in
         config.nix.package.out
         pkgs.bc
       ];
-      script = ''
-        minimum_free_bytes=${lib.escapeShellArg cfg.target.freeBytes}
-        minimum_free_percent=${lib.escapeShellArg cfg.target.freePercent}
+      script =
+        let
+          deleteOlderArguments = lib.optionals (cfg.deleteOlderThan != null) [
+            "--delete-older-than"
+            cfg.deleteOlderThan
+          ];
+        in
+        ''
+          minimum_free_bytes=${lib.escapeShellArg cfg.target.freeBytes}
+          minimum_free_percent=${lib.escapeShellArg cfg.target.freePercent}
 
-        run_free_bytes=${lib.escapeShellArg cfg.trigger.freeBytes}
-        run_free_percent=${lib.escapeShellArg cfg.trigger.freePercent}
+          run_free_bytes=${lib.escapeShellArg cfg.trigger.freeBytes}
+          run_free_percent=${lib.escapeShellArg cfg.trigger.freePercent}
 
-        update_free_space () {
-            local -i free_blocks total_blocks block_size
+          update_free_space () {
+              local -i free_blocks total_blocks block_size
 
-            free_blocks="$(stat --file-system --format=%f /nix/store)"
-            total_blocks="$(stat --file-system --format=%b /nix/store)"
-            block_size="$(stat --file-system --format=%S /nix/store)"
+              free_blocks="$(stat --file-system --format=%f /nix/store)"
+              total_blocks="$(stat --file-system --format=%b /nix/store)"
+              block_size="$(stat --file-system --format=%S /nix/store)"
 
-            bytes_free=$((free_blocks * block_size))
-            bytes_total=$((total_blocks * block_size))
-        }
+              bytes_free=$((free_blocks * block_size))
+              bytes_total=$((total_blocks * block_size))
+          }
 
-        update_free_space
+          update_free_space
 
-        if [[ "$run_free_percent" = 0 ]]; then
-            :
-        else
-            run_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$run_free_percent" | bc)"
-            if (( run_free_bytes_percent > run_free_bytes )); then
-                run_free_bytes="$run_free_bytes_percent"
-            fi
-        fi
+          if [[ "$run_free_percent" = 0 ]]; then
+              :
+          else
+              run_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$run_free_percent" | bc)"
+              if (( run_free_bytes_percent > run_free_bytes )); then
+                  run_free_bytes="$run_free_bytes_percent"
+              fi
+          fi
 
-        if (( bytes_free >= run_free_bytes )); then
-            exit 0
-        fi
+          if (( bytes_free >= run_free_bytes )); then
+              exit 0
+          fi
 
-        if [[ "$minimum_free_percent" = 0 ]]; then
-            :
-        else
-            minimum_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$minimum_free_percent" | bc)"
-            if (( minimum_free_bytes_percent > minimum_free_bytes )); then
-                minimum_free_bytes="$minimum_free_bytes_percent"
-            fi
-        fi
+          if [[ "$minimum_free_percent" = 0 ]]; then
+              :
+          else
+              minimum_free_bytes_percent="$(printf '%s * %s / 100\n' "$bytes_total" "$minimum_free_percent" | bc)"
+              if (( minimum_free_bytes_percent > minimum_free_bytes )); then
+                  minimum_free_bytes="$minimum_free_bytes_percent"
+              fi
+          fi
 
-        bytes_to_free=$(( minimum_free_bytes - bytes_free ))
+          bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
-        if (( bytes_to_free <= 0 )); then
-            echo 'Nix garbage collection triggered despite having sufficient disk space' >&2
-            exit 64  # EX_USAGE
-        fi
+          if (( bytes_to_free <= 0 )); then
+              echo 'Nix garbage collection triggered despite having sufficient disk space' >&2
+              exit 64  # EX_USAGE
+          fi
 
-        nix-collect-garbage --max-freed "$bytes_to_free" --delete-older-than 90d
+          nix-collect-garbage --max-freed "$bytes_to_free" ${lib.escapeShellArgs deleteOlderArguments}
 
-        # Check if sufficient space was freed.  Check against the "trigger"
-        # rather than the "target", as it's fairly likely some disk space was
-        # used while the garbage collection was running.
-        update_free_space
-        if (( bytes_free < run_free_bytes )); then
-            echo 'nix-collect-garbage failed to free sufficient disk space' >&2
-            exit 75  # EX_TEMPFAIL
-        fi
-      '';
+          # Check if sufficient space was freed.  Check against the "trigger"
+          # rather than the "target", as it's fairly likely some disk space was
+          # used while the garbage collection was running.
+          update_free_space
+          if (( bytes_free < run_free_bytes )); then
+              echo 'nix-collect-garbage failed to free sufficient disk space' >&2
+              exit 75  # EX_TEMPFAIL
+          fi
+        '';
     };
     systemd.timers.nix-gc = {
       timerConfig = {
