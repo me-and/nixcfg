@@ -48,6 +48,7 @@ in
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
 
   home.packages = [
+    pkgs.mypkgs.mailsync
     pkgs.mypkgs.wavtoopus
     pkgs.quodlibet-without-gst-plugins # operon
   ];
