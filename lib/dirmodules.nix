@@ -1,13 +1,30 @@
 { lib, dirfiles }:
-{ dir }:
+{
+  dir ? null,
+  dirs ? [ ],
+}:
 let
-  inherit (builtins) attrValues mapAttrs readDir;
-  inherit (lib.attrsets)
-    filterAttrs
-    mapAttrs'
-    nameValuePair
-    unionOfDisjoint
+  dirs' =
+    if dir == null then
+      assert dirs != [ ];
+      dirs
+    else
+      assert dirs == [ ];
+      [ dir ];
+in
+let
+  dir = throw "unexpected reference of dir";
+  dirs = dirs';
+
+  inherit (builtins)
+    attrValues
+    intersectAttrs
+    mapAttrs
+    readDir
     ;
+  inherit (lib.attrsets) filterAttrs mapAttrs' nameValuePair;
+  inherit (lib.lists) foldl';
+  inherit (lib.modules) mkMerge;
   inherit (lib.strings) hasSuffix removeSuffix;
 
   dirToImports = dir: {
@@ -17,13 +34,31 @@ let
   };
   fileToImports = file: { imports = [ file ]; };
 
-  dirEntries = readDir dir;
-  directoryModulePaths = lib.filterAttrs (n: v: v == "directory") dirEntries;
-  fileModulePaths = lib.filterAttrs (n: v: v == "regular" && hasSuffix ".nix" n) dirEntries;
+  dirEntries = dir: readDir dir;
+  directoryModulePaths = dir: filterAttrs (n: v: v == "directory") (dirEntries dir);
+  fileModulePaths = dir: filterAttrs (n: v: v == "regular" && hasSuffix ".nix" n) (dirEntries dir);
 
-  directoryModules = mapAttrs (n: v: dirToImports (dir + "/${n}")) directoryModulePaths;
-  fileModules = mapAttrs' (
-    n: v: nameValuePair (removeSuffix ".nix" n) (fileToImports (dir + "/${n}"))
-  ) fileModulePaths;
+  directoryModules = dir: mapAttrs (n: v: dirToImports (dir + "/${n}")) (directoryModulePaths dir);
+  fileModules =
+    dir:
+    mapAttrs' (n: v: nameValuePair (removeSuffix ".nix" n) (fileToImports (dir + "/${n}"))) (
+      fileModulePaths dir
+    );
+
+  mergeAttrsOfModules =
+    x: y:
+    let
+      intersection = intersectAttrs x y;
+      mask = mapAttrs (
+        n: v:
+        mkMerge [
+          x."${n}"
+          y."${n}"
+        ]
+      ) intersection;
+    in
+    (x // y) // mask;
 in
-unionOfDisjoint directoryModules fileModules
+foldl' mergeAttrsOfModules { } (
+  map (dir: mergeAttrsOfModules (directoryModules dir) (fileModules dir)) dirs
+)
