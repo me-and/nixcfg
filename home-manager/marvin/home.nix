@@ -23,4 +23,9 @@
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
 
   services.syncthing.enable = true;
+
+  services.rclone = {
+    enable = true;
+    mountPoints."${config.home.homeDirectory}/OneDrive" = "onedrive:";
+  };
 }
