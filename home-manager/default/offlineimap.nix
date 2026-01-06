@@ -122,7 +122,7 @@ lib.mkIf config.programs.offlineimap.enable {
                   account="$(systemd-escape -u "''${1%%::*}")"
                   folder="$(systemd-escape -u "''${1#*::}")"
                   folder="''${folder//&/&-}"
-                  socket_unit="$(systemd-escape --template offlineimap-folder@.socet "$account")"
+                  socket_unit="$(systemd-escape --template offlineimap-folder@.socket "$account")"
                   systemctl --user start "$socket_unit"
                   socket_property="$(systemctl --user show -PListen "$socket_unit")"
                   socket_path="''${socket_property% *}"
