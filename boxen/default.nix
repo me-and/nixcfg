@@ -49,6 +49,18 @@
               type = with lib.types; listOf singleLineStr;
               default = [ ];
             };
+
+            homeManager = lib.mkOption {
+              description = "Whether Home Manager is in use on this system.";
+              type = lib.types.bool;
+              default = true;
+            };
+
+            nixos = lib.mkOption {
+              description = "Whether NixOS is in use on this system.";
+              type = lib.types.bool;
+              default = true;
+            };
           };
         };
     in
