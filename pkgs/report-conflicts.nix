@@ -2,10 +2,14 @@
 {
   writeCheckedShellApplication,
   findutils,
+  moreutils,
 }:
 writeCheckedShellApplication {
   name = "report-conflicts";
-  runtimeInputs = [ findutils ];
+  runtimeInputs = [
+    findutils
+    moreutils
+  ];
   text = ''
     paths=()
     action_args=(-print)
@@ -33,7 +37,19 @@ writeCheckedShellApplication {
         exit 64 # EX_USAGE
     fi
 
+    if [[ -v RUNTIME_DIRECTORY ]]; then
+        export TMPDIR="$RUNTIME_DIRECTORY"
+    fi
+    tmpfile="$(mktemp report-conflicts.''$$.XXXXX)"
+
     # shellcheck disable=SC2185 # passing paths using -files0-from
-    printf '%s\0' "''${paths[@]}" | find -files0-from - -regextype egrep \( -type d \( -name .stversions -o -name .stfolder \) -prune \) -o \( \( -name '*.sync-conflict-*' -o -iregex '.*\.conflict[0-9]+' -o -iregex '.*-(multivac|hex|kryten|a-4d6hh84|(win|desktop|pc)-[a-z0-9]{7,14})(\.[^\./]*)?' \) "''${action_args[@]}" \)
+    printf '%s\0' "''${paths[@]}" | find -files0-from - -regextype egrep \( -type d \( -name .stversions -o -name .stfolder \) -prune \) -o \( \( -name '*.sync-conflict-*' -o -iregex '.*\.conflict[0-9]+' -o -iregex '.*-(multivac|hex|kryten|a-4d6hh84|(win|desktop|pc)-[a-z0-9]{7,14})(\.[^\./]*)?' \) "''${action_args[@]}" \) | ifne -n rm "$tmpfile"
+
+    # If tmpfile still exists, we found some files, so remove the file before
+    # exiting with a non-zero exit status.
+    if [[ -e "$tmpfile" ]]; then
+        rm -f -- "$tmpfile"
+        exit 1
+    fi
   '';
 }
