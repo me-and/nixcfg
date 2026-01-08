@@ -77,6 +77,11 @@
           me = "adam";
         };
 
+        jarvis = {
+          system = "aarch64-linux";
+          me = "adam";
+        };
+
         lucy = {
           system = "aarch64-linux";
           me = "adam";
