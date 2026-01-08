@@ -10,18 +10,18 @@ let
   dirs = lib.map (f: f.path) (lib.filter (f: f.enable) (lib.attrValues cfg.settings.folders));
 in
 {
-  options.services.syncthing.conflictAlerts.enable =
-    lib.mkEnableOption "reporting conflicts in Syncthing directories"
+  options.services.syncthing.syncAlerts.enable =
+    lib.mkEnableOption "reporting problems in Syncthing directories"
     // {
       default = cfg.enable;
     };
 
-  config = lib.mkIf cfg.conflictAlerts.enable {
+  config = lib.mkIf cfg.syncAlerts.enable {
     assertions = [
       {
         assertion = dirs != [ ];
         message = ''
-          services.syncthing.conflictAlerts is configured, but there are no
+          services.syncthing.syncAlerts is configured, but there are no
           directories configured under services.syncthing.settings.folders to
           check.
         '';
@@ -29,19 +29,19 @@ in
     ];
 
     systemd.user = {
-      services.syncthing-conflicts = {
-        Unit.Description = "Check for file conflicts in Syncthing directories";
+      services.syncthing-sync-alerts = {
+        Unit.Description = "Check for synchronisation problems in Syncthing directories";
         Service = {
           Type = "oneshot";
           ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-            name = "report-conflicts.sh";
-            text = "exec ${lib.getExe pkgs.mypkgs.report-conflicts} -- ${lib.escapeShellArgs dirs}";
+            name = "report-sync-problems.sh";
+            text = "exec ${lib.getExe pkgs.mypkgs.report-sync-problems} -- ${lib.escapeShellArgs dirs}";
           };
         };
       };
 
-      timers.syncthing-conflicts = {
-        Unit.Description = "Regular check for file conflicts in Syncthing directories";
+      timers.syncthing-sync-alerts = {
+        Unit.Description = "Regular check for synchronisation problems in Syncthing directories";
         Install.WantedBy = [ "timers.target" ];
         Timer = {
           OnCalendar = "daily";
