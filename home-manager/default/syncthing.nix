@@ -20,6 +20,7 @@ lib.mkIf config.services.syncthing.enable {
       "(?d).DS_Store"
       "(?d)desktop.ini"
       "(?d)Thumbs.db"
+      "(?d).thumbnails"
 
       # Links that Windows keeps creating and are system-specific.
       "*.lnk"
@@ -38,6 +39,17 @@ lib.mkIf config.services.syncthing.enable {
 
       # Deleted files.
       ".Trash-*"
+      ".trashed-*"
+
+      # Syncthing metadata.  Normally Syncthing ignores these itself, but when
+      # I'm syncing, say /home/adam and /home/adam/Documents, Syncthing will
+      # ignore the files in the roots of each sync'd directory, but try to sinc
+      # /home/adam/Documents/.st* files in /home/adam/Documents in the
+      # /home/adam share.
+      ".stversions"
+      ".stfolder"
+      ".stignore"
+      ".syncthing.*.tmp"
     ];
   };
 
