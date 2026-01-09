@@ -16,18 +16,27 @@ lib.mkIf config.services.syncthing.enable {
     # TODO Set up an activation script to check that these are actually
     # configured?
     settings."defaults/ignores".lines = [
+      # Directory metadata
       "(?d).DS_Store"
       "(?d)desktop.ini"
       "(?d)Thumbs.db"
+
+      # Links that Windows keeps creating and are system-specific.
       "*.lnk"
+
+      # Temporary editor files.
       "~$*"
       ".~lock.*#"
       ".*.swp"
+
+      # Non-Syncthing file transfers.
       ".rsync-partial"
       ".rsync-tmp"
       ".unison.*"
       "*.download"
       "*.crdownload"
+
+      # Deleted files.
       ".Trash-*"
     ];
   };
