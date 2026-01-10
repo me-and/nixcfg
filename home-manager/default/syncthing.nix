@@ -36,6 +36,7 @@ lib.mkIf config.services.syncthing.enable {
       ".unison.*"
       "*.download"
       "*.crdownload"
+      ".partial-*"
 
       # Deleted files.
       ".Trash-*"
