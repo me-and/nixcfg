@@ -13,6 +13,9 @@ let
   };
   scannerUserGroup = "ida";
   scannerDestDir = "/var/tmp/${scannerUserGroup}";
+
+  me = config.users.me;
+  myGroup = config.users.users."${me}".group;
 in
 {
   # Set up the user account the scanner will use to log in with, and make
@@ -27,7 +30,7 @@ in
     group = scannerUserGroup;
     hashedPasswordFile = config.sops.secrets."users/ida".path;
   };
-  users.groups."${scannerUserGroup}".members = [ config.users.me ];
+  users.groups."${scannerUserGroup}".members = [ me ];
 
   # Set up the FTP server that the scanner will log into.
   services.vsftpd = {
@@ -65,18 +68,18 @@ in
   ];
 
   # Make sure my user account can access the scanner directory.
-  users.users."${config.users.me}".extraGroups = [ scannerUserGroup ];
+  users.users."${me}".extraGroups = [ scannerUserGroup ];
 
   # Set up the systemd service that will copy files from the FTP directory to
   # my documents folder
   systemd.services.scan-to-docs = {
-    description = "moving scanned documents to ${config.users.me}'s home directory";
+    description = "moving scanned documents to ${me}'s home directory";
     unitConfig.RequiresMountsFor = scannerDestDir;
     serviceConfig = {
       Type = "oneshot";
       WorkingDirectory = scannerDestDir;
-      User = config.users.me;
-      Group = config.users.users."${config.users.me}".group;
+      User = me;
+      Group = myGroup;
       SupplementaryGroups = scannerUserGroup;
       ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "scan-to-docs.sh";
@@ -189,6 +192,7 @@ in
                   # Move the file.
                   mkdir -p -- "$fulldestdir"
                   mv -n -- "$file" "$fulldest"
+                  chown ${lib.escapeShellArg me}:${lib.escapeShellArg myGroup} -- "$fulldest"
                   if [[ -e "$file" ]]; then
                       echo 'File unexpectedly exists after move' >&2
                       echo 'Possibly failed to move to avoid clobbering?' >&2
