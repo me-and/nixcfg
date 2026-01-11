@@ -89,9 +89,11 @@
         ];
       };
 
-      # TODO
+      # TODO expand based on
       # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.firefox.profiles._name_.settings
-      # settings = ...
+      settings = {
+        "intl.locale.requested" = "en-GB,en";
+      };
     };
 
     # TODO
