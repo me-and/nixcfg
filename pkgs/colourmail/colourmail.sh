@@ -9,12 +9,12 @@ set -eu
 check_empty=
 test_mode=
 header_args=()
-ansi2html_args=(-w)
+ansi2html_args=(--light-background)
 while getopts ':a:b:Bc:dEfIiNnr:s:tu:v' opt; do
 	case "$opt" in
 		a)	header_args+=(--header "$OPTARG");;
 		b)	header_args+=(--bcc "$OPTARG");;
-		B)	ansi2html_args=(--style 'pre {background-color:black}');;
+		B)	ansi2html_args=();;
 		c)	header_args+=(--cc "$OPTARG");;
 		E)	check_empty=YesPlease;;
 		r)	header_args+=(--header "From: $OPTARG");;

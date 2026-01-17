@@ -1,6 +1,6 @@
 {
   lib,
-  colorized-logs,
+  ansi2,
   mailutils,
   coreutils,
   system-sendmail,
@@ -11,7 +11,7 @@
 let
   runtimeDeps = [
     perlPackages.mimeConstruct
-    colorized-logs
+    ansi2
     mailutils
     coreutils
     system-sendmail
