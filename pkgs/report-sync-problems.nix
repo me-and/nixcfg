@@ -39,7 +39,7 @@ writeCheckedShellApplication {
     tmpfile="$(mktemp report-sync-problems.''$$.XXXXX)"
 
     # shellcheck disable=SC2185 # passing paths using -files0-from
-    printf '%s\0' "''${paths[@]}" | find -files0-from - -regextype egrep \( -type d \( -name .stversions -o -name .stfolder \) -prune \) -o \( \( -name '*.sync-conflict-*' -o -iregex '.*\.conflict[0-9]+' -o -iregex '.*-(multivac|hex|kryten|a-4d6hh84|(win|desktop|pc)-[a-z0-9]{7,14})(\.[^\./]*)?' -o -name '.syncthing.*.tmp' \) -print0 \) | ifne -n rm "$tmpfile" | sort -zu | tr '\0' '\n'
+    printf '%s\0' "''${paths[@]}" | find -files0-from - -regextype egrep \( -type d \( -name .stversions -o -name .stfolder \) -prune \) -o \( \( -name '*.sync-conflict-*' -o -iregex '.*\.conflict[0-9]+' -o -iregex '.*-(multivac|hex|kryten|a-4d6hh84|(win|desktop|pc)-[a-z0-9]{7,14})(\.[^\./]*)?' -o \( -name '.syncthing.*.tmp' -mtime +0 \) \) -print0 \) | ifne -n rm "$tmpfile" | sort -zu | tr '\0' '\n'
 
     # If tmpfile still exists, we found some files, so remove the file before
     # exiting with a non-zero exit status.
