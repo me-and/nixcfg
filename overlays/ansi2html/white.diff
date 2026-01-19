@@ -1,0 +1,61 @@
+--- a/src/ansi2html/style.py
++++ b/src/ansi2html/style.py
+@@ -251,10 +251,10 @@ def get_styles(
+             word_wrap="break-word",
+             display="inline",
+         ),
+-        Rule(".body_foreground", color=("#000000", "#AAAAAA")[dark_bg]),
+-        Rule(".body_background", background_color=("#AAAAAA", "#000000")[dark_bg]),
+-        Rule(".inv_foreground", color=("#000000", "#AAAAAA")[not dark_bg]),
+-        Rule(".inv_background", background_color=("#AAAAAA", "#000000")[not dark_bg]),
++        Rule(".body_foreground", color=("#000000", "#FFFFFF")[dark_bg]),
++        Rule(".body_background", background_color=("#FFFFFF", "#000000")[dark_bg]),
++        Rule(".inv_foreground", color=("#000000", "#FFFFFF")[not dark_bg]),
++        Rule(".inv_background", background_color=("#FFFFFF", "#000000")[not dark_bg]),
+         # These effects are "SGR (Select Graphic Rendition) parameters"
+         # https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+         Rule(".ansi1", font_weight="bold"),
+--- a/tests/ansicolor.html
++++ b/tests/ansicolor.html
+@@ -5,10 +5,10 @@
+ <title></title>
+ <style type="text/css">
+ .ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+-.body_foreground { color: #AAAAAA; }
++.body_foreground { color: #FFFFFF; }
+ .body_background { background-color: #000000; }
+ .inv_foreground { color: #000000; }
+-.inv_background { background-color: #AAAAAA; }
++.inv_background { background-color: #FFFFFF; }
+ .ansi1 { font-weight: bold; }
+ .ansi30 { color: #000316; }
+ .ansi31 { color: #aa0000; }
+--- a/tests/ansicolor_eix.html
++++ b/tests/ansicolor_eix.html
+@@ -5,10 +5,10 @@
+ <title></title>
+ <style type="text/css">
+ .ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+-.body_foreground { color: #AAAAAA; }
++.body_foreground { color: #FFFFFF; }
+ .body_background { background-color: #000000; }
+ .inv_foreground { color: #000000; }
+-.inv_background { background-color: #AAAAAA; }
++.inv_background { background-color: #FFFFFF; }
+ .ansi1 { font-weight: bold; }
+ .ansi40 { background-color: #000316; }
+ .inv40 { color: #000316; }
+--- a/tests/produce_headers.txt
++++ b/tests/produce_headers.txt
+@@ -1,9 +1,9 @@
+ <style type="text/css">
+ .ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+-.body_foreground { color: #AAAAAA; }
++.body_foreground { color: #FFFFFF; }
+ .body_background { background-color: #000000; }
+ .inv_foreground { color: #000000; }
+-.inv_background { background-color: #AAAAAA; }
++.inv_background { background-color: #FFFFFF; }
+ .ansi1 { font-weight: bold; }
+ .ansi2 { font-weight: lighter; }
+ .ansi3 { font-style: italic; }
