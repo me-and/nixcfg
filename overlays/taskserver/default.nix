@@ -16,11 +16,8 @@ in
         gitConfig = {
           url."https://github.com/GothenburgBitFactory/".insteadOf = "https://git.tasktools.org/scm/tm/";
         };
-        gitConfigFile = toFile "gitconfig" (toGitINI gitConfig);
-        fetchgit = args: final.fetchgit ({ inherit gitConfigFile; } // args);
-        fetchFromGitHub = final.fetchFromGitHub.override { inherit fetchgit; };
       in
-      fetchFromGitHub {
+      final.fetchFromGitHub {
         owner = "GothenburgBitFactory";
         repo = "taskserver";
         # Use this revision because it contains the fix I care about for
@@ -30,6 +27,7 @@ in
         rev = "333bee7b04adf00d0b68480342eec3a46ef0949f";
         fetchSubmodules = true;
         hash = "sha256-SBL1DWvUKJufd46GW3++kB7F0miw8MW/7vRr4cZsJgw=";
+        gitConfigFile = toFile "gitconfig" (toGitINI gitConfig);
       };
 
     # Permit removing the due date from recurring tasks.
