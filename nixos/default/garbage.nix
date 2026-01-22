@@ -11,6 +11,10 @@ in
   disabledModules = [ "services/misc/nix-gc.nix" ];
 
   options.nix.gc = {
+    enable = (lib.mkEnableOption "automatic garbage collection") // {
+      default = true;
+    };
+
     target = {
       freeBytes = lib.mkOption {
         description = ''
@@ -81,7 +85,7 @@ in
 
   imports = [ (lib.mkRenamedOptionModule [ "nix" "nhgc" ] [ "nix" "gc" ]) ];
 
-  config = {
+  config = lib.mkIf cfg.enable {
     assertions = [
       {
         assertion = (cfg.target.freeBytes > 0) || (cfg.target.freePercent > 0);
