@@ -3,6 +3,10 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
+    disko = {
+      url = "github:nix-community/disko?ref=v1.11.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -42,6 +46,7 @@
       nixpkgs,
       flake-utils,
       nixos-hardware,
+      disko,
       home-manager,
       sops-nix,
       winapps,
@@ -126,6 +131,7 @@
           specialArgs = {
             inherit
               nixos-hardware
+              disko
               sops-nix
               wsl
               self
