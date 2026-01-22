@@ -15,8 +15,9 @@ let
     ;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
+  inherit (lib.lists) remove;
   inherit (lib.trivial) warnIfNot;
-  inherit (mylib) removeAll unionOfDisjointAttrsList;
+  inherit (mylib) unionOfDisjointAttrsList;
 
   # Work out the set of attribute names that exist when applying all the
   # overlays to an empty set.  This is the list of attributes in nixpkgs that
@@ -32,15 +33,11 @@ let
   start = final: { };
   extensions = composeManyExtensions overlays;
   fixedpoint = fix (extends extensions start);
-  # Need to remove sops-ssh-to-age per
-  # https://github.com/Mic92/sops-nix/pull/861
   newOrChanged =
     let
       packageNames = attrNames fixedpoint;
     in
-    warnIfNot (elem "sops-ssh-to-age" packageNames) ''
-      No longer need special handling of sops-ssh-to-age.
-    '' removeAll [ "mypkgs" "sops-ssh-to-age" ] packageNames;
+    remove "mypkgs" packageNames;
 in
 recurseIntoAttrs (
   unionOfDisjointAttrsList (
