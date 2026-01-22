@@ -93,17 +93,9 @@ let
     systemd.services.linger-users.enableStrictShellChecks = false; # https://github.com/NixOS/nixpkgs/pull/363209
     systemd.services.cups.enableStrictShellChecks = false; # TODO fix
   };
-
-  # Gate this on whether wireless networking is enabled at all, as otherwise
-  # this config would create a wpa_supplicant.service systemd unit that
-  # wouldn't otherwise exist.
-  shellcheckWpaSupplicantConfig = lib.mkIf config.networking.wireless.enable {
-    systemd.services.wpa_supplicant.enableStrictShellChecks = false; # TODO fix
-  };
 in
 lib.mkMerge [
   loopDeviceConfig
   mailStateConfig
   shellcheckConfig
-  shellcheckWpaSupplicantConfig
 ]
