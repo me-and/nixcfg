@@ -36,23 +36,8 @@
         "networkmanager"
         "wheel"
       ];
-      hashedPassword = "";
     };
-    users.root.hashedPassword = "";
   };
-
-  # Enable passwordless sudo.
-  security.sudo.extraRules = [
-    {
-      users = [ "adam" ];
-      commands = [
-        {
-          command = "ALL";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
 
   environment.systemPackages = with pkgs; [
     curl
@@ -99,7 +84,10 @@
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.11"; # Did you read the comment?
 
-  nix.gc.enable = lib.warn "want to enable garbage collection" false;
-  nix.githubTokenFromSops = lib.warn "Need to set up github-token in SOPS" false;
+  nix.gc = {
+    target.freePercent = 25;
+    trigger.freePercent = 15;
+  };
+
   nix.nixBuildDotNet.substituter.enable = false;
 }
