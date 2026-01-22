@@ -23,7 +23,7 @@
   systemd.targets.multi-user.enable = true;
 
   networking.hostName = "jarvis";
-  networking.networkmanager.enable = true;
+  networking.domain = "dinwoodie.org";
 
   time.timeZone = "Europe/London";
   i18n.defaultLocale = "en_GB.UTF-8";
@@ -84,10 +84,19 @@
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.11"; # Did you read the comment?
 
+  nix.settings = {
+    max-jobs = 2;
+    cores = 4;
+  };
+
   nix.gc = {
     target.freePercent = 25;
     trigger.freePercent = 15;
   };
 
   nix.nixBuildDotNet.substituter.enable = false;
+
+  programs.mosh.enable = true;
+
+  services.postfix.sendDirect = true;
 }
