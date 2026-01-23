@@ -33,10 +33,18 @@ in
 
   security.acme.certs."${cfg.fqdn}" = {
     group = cfg.group;
+    postRun = "${lib.getExe' config.systemd.package "systemctl"} restart taskserver.service";
   };
 
-  systemd.services.taskserver = {
-    wants = [ "acme-${cfg.fqdn}.service" ];
-    after = [ "acme-${cfg.fqdn}.service" ];
-  };
+  systemd.services.taskserver =
+    let
+      deps = [
+        "acme-${cfg.fqdn}.service"
+        "acme-order-renew-${cfg.fqdn}.service"
+      ];
+    in
+    {
+      wants = deps;
+      after = deps;
+    };
 }
