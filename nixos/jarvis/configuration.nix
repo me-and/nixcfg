@@ -94,6 +94,4 @@
   nix.nixBuildDotNet.substituter.enable = false;
 
   programs.mosh.enable = true;
-
-  services.postfix.sendDirect = true;
 }
