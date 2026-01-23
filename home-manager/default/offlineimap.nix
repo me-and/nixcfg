@@ -53,6 +53,7 @@ lib.mkIf config.programs.offlineimap.enable {
                     config.programs.offlineimap.package
                   ];
                   text = ''
+                    mkdir -p -- ${lib.escapeShellArg maildir}
                     exec flock -Fx ${lib.escapeShellArg maildir} offlineimap -u basic -o -a ${lib.escapeShellArg name}
                   '';
                 };
@@ -85,6 +86,7 @@ lib.mkIf config.programs.offlineimap.enable {
                     config.programs.offlineimap.package
                   ];
                   text = ''
+                    mkdir -p -- ${lib.escapeShellArg maildir}
                     while :; do
                         labels=()
                         while read -rt1 label; do
