@@ -98,6 +98,6 @@ in
     tray.enable = true;
   };
 
-  programs.taskwarrior.onedriveBackup = true;
   programs.zapzap.enable = true;
+  programs.taskwarrior.backup.enable = true;
 }

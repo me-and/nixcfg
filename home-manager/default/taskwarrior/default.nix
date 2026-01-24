@@ -444,73 +444,6 @@ let
     };
   };
 
-  backupConfig = lib.mkIf cfg.onedriveBackup {
-    # TODO
-    warnings = [
-      ''
-        Need to sort out programs.taskwarrior.onedriveBackup to work with
-        programs.rclone rather than just using the base rclone package.
-      ''
-    ];
-    # assertions = [
-    #   {
-    #     assertion = config.programs.rclone.enable;
-    #     message = ''
-    #       cfg.programs.taskwarrior.onedriveBackup requires
-    #       cfg.programs.rclone.enable.
-    #     '';
-    #   }
-    # ];
-
-    systemd.user = {
-      services.taskwarrior-onedrive-backup = {
-        Unit.Description = "Backup Taskwarrior data to OneDrive";
-        Service = {
-          Type = "oneshot";
-          ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-            name = "taskwarrior-to-onedrive";
-            runtimeInputs = [
-              cfg.package
-              config.programs.rclone.package
-              pkgs.jq.bin
-              pkgs.zstd.bin
-            ];
-            runtimeEnv.TZ = "UTC";
-            text = ''
-              printf -v filename '%(%F %H.%M.%S)T Z.json.zst'
-
-              tmpdir="$(mktemp -d taskwarrior-to-onedrive.''$''$.XXXXX)"
-              cleanup () {
-                  rm -rf "$tmpdir"
-              }
-              trap cleanup EXIT
-
-              output_file="$tmpdir"/"$filename"
-
-              task export |
-                  jq 'map(del(.urgency))' |
-                  zstd -o "$output_file"
-
-              rclone moveto "$output_file" onedrive:Taskwarrior/"$HOSTNAME"/"$filename"
-            '';
-          };
-        };
-      };
-
-      timers.taskwarrior-onedrive-backup = {
-        Unit.Description = "Daily backup Taskwarrior data to OneDrive";
-        Timer = {
-          OnCalendar = "01:00";
-          AccuracySec = "1h";
-          RandomizedOffsetSec = "6h";
-          RandomizedDelaySec = "10min";
-          Persistent = true;
-        };
-        Install.WantedBy = [ "timers.target" ];
-      };
-    };
-  };
-
   # Configure programs.taskwarrior.config.taskd.credentials in the private
   # config flake.  Not sure this is necessary, but I'd rather have it private
   # than not.
@@ -532,176 +465,177 @@ in
       "taskwarrior"
       "sync"
     ] "Instead, set programs.taskwarrior.config.taskd as required.")
+    (lib.mkRemovedOptionModule [
+      "programs"
+      "taskwarrior"
+      "onedriveBackup"
+    ] "Instead, set programs.taskwarrior.backup as required.")
+    ./backup.nix
   ];
 
   options.programs.taskwarrior = {
     autoSync = (lib.mkEnableOption "automatic periodic running of `task sync`") // {
       default = syncConfigured;
     };
-
-    onedriveBackup = lib.mkEnableOption "backup of Taskwarrior data to OneDrive";
   };
 
-  config = lib.mkMerge [
-    {
-      assertions = [
-        {
-          assertion = cfg.autoSync -> syncConfigured;
-          message = ''
-            programs.taskwarrior.autoSync requires
-            programs.taskwarrior.config.taskd to be configured
+  config = {
+    assertions = [
+      {
+        assertion = cfg.autoSync -> syncConfigured;
+        message = ''
+          programs.taskwarrior.autoSync requires
+          programs.taskwarrior.config.taskd to be configured
+        '';
+      }
+    ];
+
+    programs.taskwarrior = {
+      enable = true;
+      # Not using taskwarrior3 until its performance is more tolerable for my use
+      # case.
+      package = pkgs.taskwarrior2;
+      config = lib.mkMerge [
+        mainConfig
+        aliasConfig
+        priorityConfig
+        taskdConfig
+      ];
+    };
+
+    home.packages = with pkgs.mypkgs; [
+      task-project-report
+      tmux-taskloop
+    ];
+    home.shellAliases = {
+      ttl = "tmux-taskloop";
+    };
+
+    home.file =
+      let
+        makeHook =
+          name:
+          pkgs.runCommandLocal name { buildInputs = [ pkgs.mypkgs.pythonWithAsmodeus ]; } ''
+            cp ${./hooks + "/${name}"} "$out"
+            patchShebangs "$out"
           '';
-        }
-      ];
+      in
+      lib.mapAttrs' (
+        k: v: lib.attrsets.nameValuePair "${cfg.config.hooks.location}/${k}" { source = makeHook k; }
+      ) (builtins.readDir ./hooks);
 
-      programs.taskwarrior = {
-        enable = true;
-        # Not using taskwarrior3 until its performance is more tolerable for my use
-        # case.
-        package = pkgs.taskwarrior2;
-        config = lib.mkMerge [
-          mainConfig
-          aliasConfig
-          priorityConfig
-          taskdConfig
-        ];
-      };
+    systemd.user = {
+      services = {
+        "resolve-host-a@" = {
+          Unit = {
+            Description = "Check %I resolves";
+            Wants = [
+              "network.target"
+              "network-online.target"
+            ];
+            After = [
+              "network.target"
+              "network-online.target"
+            ];
+          };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.mypkgs.wait-for-host}/bin/wait-for-host %I";
+          };
+        };
 
-      home.packages = with pkgs.mypkgs; [
-        task-project-report
-        tmux-taskloop
-      ];
-      home.shellAliases = {
-        ttl = "tmux-taskloop";
-      };
+        taskwarrior-wait-for-stability = {
+          Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.mypkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
+          };
+        };
 
-      home.file =
-        let
-          makeHook =
-            name:
-            pkgs.runCommandLocal name { buildInputs = [ pkgs.mypkgs.pythonWithAsmodeus ]; } ''
-              cp ${./hooks + "/${name}"} "$out"
-              patchShebangs "$out"
-            '';
-        in
-        lib.mapAttrs' (
-          k: v: lib.attrsets.nameValuePair "${cfg.config.hooks.location}/${k}" { source = makeHook k; }
-        ) (builtins.readDir ./hooks);
+        taskwarrior-gc = {
+          Unit.Description = "Perform Taskwarrior garbage collection";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${cfg.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+          };
+        };
 
-      systemd.user = {
-        services = {
-          "resolve-host-a@" = {
-            Unit = {
-              Description = "Check %I resolves";
+        taskwarrior-gc-stable = {
+          Unit = {
+            Description = "Perform Taskwarrior garbage collection once the undo file is stable";
+            Wants = [ "taskwarrior-wait-for-stability.service" ];
+            After = [ "taskwarrior-wait-for-stability.service" ];
+          };
+          Service = config.systemd.user.services.taskwarrior-gc.Service;
+        };
+
+        taskwarrior-sync = lib.mkIf syncConfigured {
+          Unit =
+            let
+              domain = lib.head (lib.splitString ":" cfg.config.taskd.server);
+            in
+            {
+              Description = "Sync Taskwarrior data";
               Wants = [
-                "network.target"
-                "network-online.target"
+                "resolve-host-a@${domain}.service"
+                "taskwarrior-wait-for-stability.service"
               ];
               After = [
-                "network.target"
-                "network-online.target"
+                "resolve-host-a@${domain}.service"
+                "taskwarrior-wait-for-stability.service"
+                "sops-nix.service"
+              ];
+              Before = [
+                "taskwarrior-gc.service"
+                "taskwarrior-gc-stable.service"
               ];
             };
-            Service = {
-              Type = "oneshot";
-              ExecStart = "${pkgs.mypkgs.wait-for-host}/bin/wait-for-host %I";
-            };
-          };
-
-          taskwarrior-wait-for-stability = {
-            Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
-            Service = {
-              Type = "oneshot";
-              ExecStart = "${pkgs.mypkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
-            };
-          };
-
-          taskwarrior-gc = {
-            Unit.Description = "Perform Taskwarrior garbage collection";
-            Service = {
-              Type = "oneshot";
-              ExecStart = "${cfg.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
-            };
-          };
-
-          taskwarrior-gc-stable = {
-            Unit = {
-              Description = "Perform Taskwarrior garbage collection once the undo file is stable";
-              Wants = [ "taskwarrior-wait-for-stability.service" ];
-              After = [ "taskwarrior-wait-for-stability.service" ];
-            };
-            Service = config.systemd.user.services.taskwarrior-gc.Service;
-          };
-
-          taskwarrior-sync = lib.mkIf syncConfigured {
-            Unit =
-              let
-                domain = lib.head (lib.splitString ":" cfg.config.taskd.server);
-              in
-              {
-                Description = "Sync Taskwarrior data";
-                Wants = [
-                  "resolve-host-a@${domain}.service"
-                  "taskwarrior-wait-for-stability.service"
-                ];
-                After = [
-                  "resolve-host-a@${domain}.service"
-                  "taskwarrior-wait-for-stability.service"
-                  "sops-nix.service"
-                ];
-                Before = [
-                  "taskwarrior-gc.service"
-                  "taskwarrior-gc-stable.service"
-                ];
-              };
-            Service = {
-              Type = "oneshot";
-              ExecStart = "${cfg.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
-            };
-          };
-        };
-
-        timers = {
-          # Use a timer to start taskwarrior-gc rather than just having it wanted
-          # by default.target so that sd-switch doesn't restart it when
-          # home-manager reloads.
-          taskwarrior-gc = {
-            Unit.Description = "Perform Taskwarrior garbage collection at start of day";
-            Timer.OnStartupSec = "0s";
-            Install.WantedBy = [ "timers.target" ];
-          };
-
-          taskwarrior-gc-stable = {
-            Unit.Description = "Perform Taskwarrior garbage collection overnight";
-            Timer = {
-              OnCalendar = "02:00";
-              AccuracySec = "4h";
-            };
-            Install.WantedBy = [ "timers.target" ];
-          };
-
-          # Use a timer to start taskwarrior-sync at start of day rather than
-          # just having it wanted by default.target so that sd-switch doesn't
-          # restart it when home-manager reloads.
-          taskwarrior-sync-start-of-day = lib.mkIf syncConfigured {
-            Unit.Description = "Sync Taskwarrior data at start of day";
-            Timer.OnStartupSec = "0s";
-            Timer.Unit = "taskwarrior-sync.service";
-            Install.WantedBy = lib.mkIf cfg.autoSync [ "timers.target" ];
-          };
-
-          taskwarrior-sync = lib.mkIf syncConfigured {
-            Unit.Description = "Sync Taskwarrior data periodically";
-            Timer = {
-              OnUnitInactiveSec = "15m";
-              RandomizedDelaySec = "15m";
-              AccuracySec = "15m";
-            };
-            Install.WantedBy = lib.mkIf cfg.autoSync [ "timers.target" ];
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${cfg.package}/bin/task rc.verbose=footnote rc.gc=0 rc.detection=0 rc.color=0 rc.hooks=0 rc.recurrence=0 sync";
           };
         };
       };
-    }
-    backupConfig
-  ];
+
+      timers = {
+        # Use a timer to start taskwarrior-gc rather than just having it wanted
+        # by default.target so that sd-switch doesn't restart it when
+        # home-manager reloads.
+        taskwarrior-gc = {
+          Unit.Description = "Perform Taskwarrior garbage collection at start of day";
+          Timer.OnStartupSec = "0s";
+          Install.WantedBy = [ "timers.target" ];
+        };
+
+        taskwarrior-gc-stable = {
+          Unit.Description = "Perform Taskwarrior garbage collection overnight";
+          Timer = {
+            OnCalendar = "02:00";
+            AccuracySec = "4h";
+          };
+          Install.WantedBy = [ "timers.target" ];
+        };
+
+        # Use a timer to start taskwarrior-sync at start of day rather than
+        # just having it wanted by default.target so that sd-switch doesn't
+        # restart it when home-manager reloads.
+        taskwarrior-sync-start-of-day = lib.mkIf syncConfigured {
+          Unit.Description = "Sync Taskwarrior data at start of day";
+          Timer.OnStartupSec = "0s";
+          Timer.Unit = "taskwarrior-sync.service";
+          Install.WantedBy = lib.mkIf cfg.autoSync [ "timers.target" ];
+        };
+
+        taskwarrior-sync = lib.mkIf syncConfigured {
+          Unit.Description = "Sync Taskwarrior data periodically";
+          Timer = {
+            OnUnitInactiveSec = "15m";
+            RandomizedDelaySec = "15m";
+            AccuracySec = "15m";
+          };
+          Install.WantedBy = lib.mkIf cfg.autoSync [ "timers.target" ];
+        };
+      };
+    };
+  };
 }

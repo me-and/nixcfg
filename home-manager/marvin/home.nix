@@ -28,4 +28,6 @@
     enable = true;
     mountPoints."${config.home.homeDirectory}/OneDrive" = "onedrive:";
   };
+
+  programs.taskwarrior.backup.enable = true;
 }

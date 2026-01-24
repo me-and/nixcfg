@@ -42,4 +42,6 @@ in
   # the user-systemd-config GitHub repo, which isn't integrated into Nix and
   # therefore everything needs to be done manually.
   home.file = lib.mkIf config.systemd.user.enable systemdSymlinks;
+
+  programs.taskwarrior.backup.enable = true;
 }

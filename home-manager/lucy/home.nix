@@ -71,8 +71,7 @@ in
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
   programs.offlineimap.enable = true;
   programs.neomutt.enable = true;
+  programs.taskwarrior.backup.enable = true;
 
   services.syncthing.enable = true;
-
-  programs.taskwarrior.onedriveBackup = true;
 }
