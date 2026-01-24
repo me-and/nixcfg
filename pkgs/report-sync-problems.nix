@@ -38,16 +38,25 @@ writeCheckedShellApplication {
     fi
     tmpfile="$(mktemp report-sync-problems.''$$.XXXXX)"
 
+    # Always ignore .stversions and .stfolder directories; I don't care about
+    # anything in those, because it's entirely metadata that's Syncthing's
+    # problem.  Always ignore .syncthing.*.tmp files similarly, unless they're
+    # over 8 days old, by which time Syncthing should have cleared them up
+    # already so I want to know about them.  Report anything left over that
+    # looks like (a) a conflict reported by Syncthing, (b) a conflict reported
+    # by Rclone, or (c) a conflict reported by OneDrive.
+    #
     # shellcheck disable=SC2185 # passing paths using -files0-from
     printf '%s\0' "''${paths[@]}" |
         find -files0-from - -regextype egrep \
             \( -type d \( -name .stversions -o -name .stfolder \) -prune \) -o \
+            \( -name '.syncthing.*.tmp' -mtime -9 -prune \) -o \
             \( \
                 \( \
                     -name '*.sync-conflict-*' -o \
                     -iregex '.*\.conflict[0-9]+' -o \
                     -iregex '.*-(multivac|hex|kryten|a-4d6hh84|(win|desktop|pc)-[a-z0-9]{7,14})(\.[^\./]*)?' -o \
-                    \( -name '.syncthing.*.tmp' -mtime +8 \) \
+                    -name '.syncthing.*.tmp' \
                 \) \
             -print0 \) |
         ifne -n rm "$tmpfile" |
