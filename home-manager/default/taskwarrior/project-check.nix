@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.programs.taskwarrior;
+  syncConfigured = (cfg.config.taskd.server or "") != "";
 in
 {
   options.programs.taskwarrior.checkProjects.enable =
@@ -16,9 +17,9 @@ in
       services.taskwarrior-project-check = {
         Unit = {
           Description = "Check Taskwarrior project state";
-          Wants = [ "taskwarrior-sync.service" ];
-          After = [ "taskwarrior-sync.service" ];
-          OnSuccess = [ "taskwarrior-sync.service" ];
+          Wants = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
+          After = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
+          OnSuccess = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
         };
         Service.Type = "oneshot";
         Service.ExecStart =
