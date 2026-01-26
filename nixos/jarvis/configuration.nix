@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   disko,
   ...
@@ -92,6 +93,11 @@
   };
 
   nix.nixBuildDotNet.substituter.enable = false;
+
+  # This system doesn't support KVM, but NixOS defaults to assuming it does.
+  nix.settings.system-features = lib.mkForce (
+    lib.remove "kvm" options.nix.settings.valueMeta.configuration.options.system-features.default
+  );
 
   programs.mosh.enable = true;
 }
