@@ -27,7 +27,6 @@ let
     "disk-usage-report"
     "report-onedrive-conflicts"
     "taskwarrior-monthly"
-    "taskwarrior-project-check"
   ];
   systemdPathSymlinks = map systemdWantsPath [
     "taskwarrior-dinwoodie.org-emails"

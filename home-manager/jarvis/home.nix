@@ -7,7 +7,10 @@
 
   services.syncthing.enable = true;
 
-  programs.taskwarrior.backup.enable = true;
+  programs.taskwarrior = {
+    backup.enable = true;
+    checkProjects.enable = true;
+  };
 
   home.stateVersion = "25.11";
 }

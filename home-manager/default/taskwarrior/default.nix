@@ -471,6 +471,7 @@ in
       "onedriveBackup"
     ] "Instead, set programs.taskwarrior.backup as required.")
     ./backup.nix
+    ./project-check.nix
   ];
 
   options.programs.taskwarrior = {
