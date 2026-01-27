@@ -156,11 +156,16 @@ in
                   # as directory seperators.
                   destdir="''${destdir//=/\/}"
 
-                  # If the destination starts with Desktop, put it there,
-                  # otherwise put it in the Communications directory.
                   if [[ "$destdir" = Desktop || "$destdir" = Desktop/* ]]; then
+                      # If the destination starts with "Desktop", put it there.
                       fulldestdir="$HOME"/"$destdir"
+                  elif [[ "$destdir" = doc ]]; then
+                      # If the destination is "doc", that's actually just the
+                      # default file name, so I'm presumably going to put the
+                      # file somewhere else.  Copy it to the Desktop too.
+                      fulldestdir="$HOME"/Desktop
                   else
+                      # Otherwise put it in the Communications directory.
                       fulldestdir="$HOME"/Documents/Communications/"$destdir"
                   fi
 
