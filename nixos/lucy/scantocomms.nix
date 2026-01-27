@@ -78,9 +78,6 @@ in
     serviceConfig = {
       Type = "oneshot";
       WorkingDirectory = scannerDestDir;
-      User = me;
-      Group = myGroup;
-      SupplementaryGroups = scannerUserGroup;
       ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "scan-to-docs.sh";
         runtimeEnv = {
