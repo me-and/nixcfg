@@ -35,7 +35,13 @@ in
           Type = "oneshot";
           ExecStart = pkgs.mypkgs.writeCheckedShellScript {
             name = "report-sync-problems.sh";
-            text = "exec ${lib.getExe pkgs.mypkgs.report-sync-problems} -- ${lib.escapeShellArgs dirs}";
+            text = ''
+              # Handle journald buffering problems
+              # https://github.com/systemd/systemd/issues/2913#issuecomment-3289916490
+              exec 1> >(cat || :)
+              exec 2> >(cat >&2 || :)
+              exec ${lib.getExe pkgs.mypkgs.report-sync-problems} -- ${lib.escapeShellArgs dirs}
+            '';
           };
         };
       };

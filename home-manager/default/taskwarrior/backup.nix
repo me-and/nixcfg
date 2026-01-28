@@ -36,7 +36,8 @@ in
             ];
             text = ''
               ${lib.toShellVars { inherit (cfg.backup) destination; }}
-              mkdir -p "$(dirname "$destination")"
+              mkdir -p -- "$(dirname -- "$destination")"
+              rm -f -- "$destination".tmp
               task export |
                   jq 'map(del(.urgency))' |
                   zstd -o "$destination".tmp
