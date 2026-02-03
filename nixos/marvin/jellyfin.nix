@@ -4,8 +4,7 @@
     virtualHost = {
       enable = true;
       fqdn = "jelly.dinwoodie.org";
-      forceSecureConnections = true;
-      enableACME = true;
     };
+    niceness = -5;
   };
 }

@@ -63,11 +63,6 @@ let
 
     services.jellyfin = {
       requiredSystemdUnits = [ "rclone-mount@usr-local-share-av-${d.local}.service" ];
-      libraries."${d.libraryName}" = {
-        type = d.libraryType;
-        paths = [ "/usr/local/share/av/${d.local}" ];
-        includePhotos = d.includePhotos;
-      };
     };
 
     # Config for checking the local files match the ones on OneDrive.
@@ -153,8 +148,6 @@ let
   };
 
   commonConfig = {
-    sops.secrets."jellyfin/adam" = { };
-
     systemd.mounts = [
       {
         what = "/dev/disk/by-uuid/06ab96b5-b34b-47e7-862d-1410dd0a5425";
@@ -167,20 +160,10 @@ let
 
     services.jellyfin = {
       enable = true;
-      # This server can be very slow to start up...
-      configTimeout = 120;
       virtualHost = {
         enable = true;
         fqdn = "jelly.dinwoodie.org";
-        forceSecureConnections = true;
-        enableACME = true;
       };
-      users.initialUser = {
-        name = "adam";
-        passwordFile = config.sops.secrets."jellyfin/adam".path;
-      };
-      apiDebugScript = true;
-      forceReconfigure = false;
     };
 
     services.snapper.configs.av = {
