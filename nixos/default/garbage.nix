@@ -152,7 +152,11 @@ in
         systemd.services.nix-gc = {
           description = "Nix Garbage Collection";
           before = [ "nix-optimise.service" ];
-          serviceConfig.Type = "oneshot";
+          serviceConfig = {
+            Type = "oneshot";
+            Nice = 19;
+            IOSchedulingClass = "idle";
+          };
           path = [
             config.nix.package.out
             pkgs.bc
@@ -254,6 +258,8 @@ in
           ];
           serviceConfig = {
             Type = "oneshot";
+            Nice = 19;
+            IOSchedulingClass = "idle";
             User = "%I";
             ExecStart = "${lib.getBin config.nix.package}/bin/nix-collect-garbage --max-freed 0 --delete-older-than ${utils.escapeSystemdExecArg cfg.profiles.deleteOlderThan}";
           };
