@@ -3,6 +3,7 @@
   imports = [
     nixos-hardware.nixosModules.dell-latitude-7430
     personalCfg.nixosModules.nix-builder
+    personalCfg.nixosModules.servegnucash
   ];
 
   system.stateVersion = "25.11";

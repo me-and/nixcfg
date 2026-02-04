@@ -2,11 +2,13 @@
   config,
   pkgs,
   nixos-hardware,
+  personalCfg,
   ...
 }:
 {
   imports = [
     nixos-hardware.nixosModules.raspberry-pi-4
+    personalCfg.nixosModules.servegnucash
   ];
 
   boot.initrd.systemd.enable = true;
