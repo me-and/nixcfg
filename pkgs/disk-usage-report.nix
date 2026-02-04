@@ -9,8 +9,6 @@ writeCheckedShellApplication {
     tmpdir="$(mktemp -d --tmpdir disk-usage-report.XXXXX)"
     trap 'rm -rf "$tmpdir"' EXIT
 
-    # exec >"$tmpdir"/output
-
     rc=0
 
     df -h -xtmpfs -xdevtmpfs -xfuse.portal |
