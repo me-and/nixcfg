@@ -82,6 +82,7 @@ in
         name = "scan-to-docs.sh";
         runtimeEnv = {
           MAIL_USER = config.users.me;
+          HOME = config.users.users."${config.users.me}".home;
         };
         text = ''
           shopt -s nullglob
