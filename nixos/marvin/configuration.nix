@@ -29,7 +29,7 @@
 
   services.postfix.sendDirect = true;
 
-  nix.gc = {
+  nix.gc.store = {
     trigger.freePercent = 15;
     target.freePercent = 25;
   };

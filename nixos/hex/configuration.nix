@@ -67,7 +67,7 @@
     cores = 8;
   };
 
-  nix.gc = {
+  nix.gc.store = {
     target.freePercent = 25;
     trigger.freePercent = 15;
   };
