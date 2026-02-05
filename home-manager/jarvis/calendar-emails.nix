@@ -12,31 +12,35 @@ let
   ];
 in
 {
-  imports = [
-    (lib.mkRemovedOptionModule [ "services" "calendarEmails" ] "")
-  ];
-
-  assertions = [
-    {
-      assertion = config.systemd.user.enable;
-      message = ''
-        Sending calendar emails requires systemd to be enabled.
+  sops = {
+    secrets."gcalcli/client-id" = { };
+    secrets."gcalcli/client-secret" = { };
+    templates.gcalclirc = {
+      content = ''
+        --client-id=${config.sops.placeholder."gcalcli/client-id"}
+        --client-secret=${config.sops.placeholder."gcalcli/client-secret"}
+        --default-calendar=${config.accounts.email.primaryAccount.userName}
       '';
-    }
-  ];
+      path = "${config.xdg.configHome}/gcalcli/gcalclirc";
+    };
+  };
 
   systemd.user =
     let
       reportScript = pkgs.mypkgs.writeCheckedShellScript {
         name = "report-calendar.sh";
         text = ''
+          date () { ${lib.getExe' pkgs.coreutils "date"} "$@"; }
+          gcalcli () { ${lib.getExe pkgs.gcalcli} "$@"; }
+          colourmail () { ${lib.getExe pkgs.mypkgs.colourmail} "$@"; }
+
           calendar_name="$1"
-          today="$(${pkgs.coreutils}/bin/date -I)"
-          next_month="$(${pkgs.coreutils}/bin/date -I --date='1 month')"
-          ${pkgs.gcalcli}/bin/gcalcli \
+          today="$(date -I)"
+          next_month="$(date -I --date='1 month')"
+          gcalcli \
                   --calendar "$calendar_name" \
                   agenda "$today" "$next_month" |
-              ${pkgs.mypkgs.colourmail}/bin/colourmail \
+              colourmail \
                   -s "Upcoming calendar events in $calendar_name" \
                   -- ${lib.strings.escapeShellArg config.home.username}
         '';
@@ -59,7 +63,10 @@ in
             Install.WantedBy = [ "timers.target" ];
           };
           services."report-calendar@${escapedCal}" = {
-            Unit.Description = "Email upcoming calendar events for %I";
+            Unit = {
+              Description = "Email upcoming calendar events for %I";
+              After = [ "sops-nix.service" ];
+            };
             Service = {
               Type = "oneshot";
               ExecStart = "${reportScript} %I";
