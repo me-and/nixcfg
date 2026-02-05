@@ -100,4 +100,6 @@
   );
 
   programs.mosh.enable = true;
+
+  services.postfix.sendViaMythicBeasts = true;
 }

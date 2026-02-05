@@ -11,24 +11,28 @@ let
   cfg = config.services.postfix;
 in
 {
-  imports = [
-    (lib.mkRemovedOptionModule [ "services" "postfix" "sendViaTastycake" ] ''
-      Tastycake stopped relaying third-party domain emails, so this configuration
-      stopped being useful.
-    '')
-  ];
-
-  options.services.postfix.sendDirect = lib.mkEnableOption "sending emails to remote SMTP servers directly";
+  options.services.postfix = {
+    sendDirect = lib.mkEnableOption "sending emails to remote SMTP servers directly";
+    sendViaMythicBeasts = lib.mkEnableOption "sending emails via the Mythic Beasts SMTP servers";
+  };
 
   config = lib.mkMerge [
     {
-      warnings = lib.optional (!cfg.sendDirect) ''
-        services.postfix.sendDirect is not enabled.  You want this, or to fix
-        your config to use an SMTP server, to be able to send emails from this
-        system.
+      warnings = lib.optional ((!cfg.sendDirect) && (!cfg.sendViaMythicBeasts)) ''
+        Neither services.postfix.sendDirect nor
+        services.postfix.sendViaMythicBeasts are set.  You want one or the
+        other to be able to send emails from this system.
       '';
 
       assertions = [
+        {
+          assertion = !(cfg.sendDirect && cfg.sendViaMythicBeasts);
+          message = ''
+            services.postfix.sendDirect and
+            services.postfix.sendViaMythicBeasts conflict.  You must only
+            enable one or the other.
+          '';
+        }
         {
           assertion = cfg.sendDirect -> hasFqdn;
           message = ''
@@ -67,6 +71,27 @@ in
       services.postfix.settings.main.smtp_tls_chain_files = [
         "${config.security.acme.certs."${fqdn}".directory}/full.pem"
       ];
+    })
+
+    (lib.mkIf cfg.sendViaMythicBeasts {
+      sops = {
+        secrets.smtp-auth = { };
+        templates.smtp-auth.content = "[smtp-auth.mythic-beasts.com]:587 ${config.sops.placeholder.smtp-auth}";
+      };
+
+      services.postfix = {
+        mapFiles.sasl_passwd = config.sops.templates.smtp-auth.path;
+
+        settings.main = {
+          smtp_sasl_auth_enable = true;
+          smtp_sasl_password_maps = "hash:/var/lib/postfix/conf/sasl_passwd";
+          smtp_sasl_tls_security_options = "noanonymous";
+          smtp_tls_security_level = "secure";
+          smtp_tls_mandatory_ciphers = "high";
+          smtp_tls_mandatory_protocols = ">=TLSv1.3";
+          relayhost = [ "[smtp-auth.mythic-beasts.com]:587" ];
+        };
+      };
     })
   ];
 }
