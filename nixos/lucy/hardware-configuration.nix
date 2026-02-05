@@ -33,21 +33,6 @@
     fsType = "ext4";
   };
 
-  fileSystems."/home/adam/.cache/mail" = {
-    device = "/dev/disk/by-uuid/3c029ca6-21be-43a2-b147-25368bc98336";
-    fsType = "btrfs";
-    options = [
-      "subvol=@mail"
-      "noexec"
-    ];
-  };
-
-  fileSystems."/usr/local/share/archives" = {
-    device = "/dev/disk/by-uuid/a26954eb-74b3-4d60-a386-c6985563475f";
-    fsType = "btrfs";
-    options = [ "noexec" ];
-  };
-
   swapDevices = [
     { device = "/dev/disk/by-uuid/d30e4b40-4b60-4e9b-829a-45c8498220c7"; }
   ];
