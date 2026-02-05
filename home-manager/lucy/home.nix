@@ -28,10 +28,7 @@ let
     "report-onedrive-conflicts"
     "taskwarrior-monthly"
   ];
-  systemdPathSymlinks = map systemdWantsPath [
-    "taskwarrior-dinwoodie.org-emails"
-    "sign-petitions"
-  ];
+  systemdPathSymlinks = map systemdWantsPath [ "sign-petitions" ];
 
   systemdSymlinks = lib.mergeAttrsList (
     systemdServiceSymlinks ++ systemdTimerSymlinks ++ systemdPathSymlinks

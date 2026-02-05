@@ -69,7 +69,6 @@ in
     accounts.email.accounts = {
       main.goimapnotify.boxes = {
         INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -i";
-        TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
       };
 
       pd = {

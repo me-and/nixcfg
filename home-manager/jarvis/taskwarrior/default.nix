@@ -1,8 +1,11 @@
 { config, pkgs, ... }:
 {
-  accounts.email.accounts.taskwarrior = {
-    enable = true;
-    goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
+  accounts.email.accounts = {
+    taskwarrior = {
+      enable = true;
+      goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
+    };
+    main.goimapnotify.boxes.TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
   };
 
   systemd.user = {
@@ -62,6 +65,16 @@
           ExecStartPost = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
         };
       };
+
+      taskwarrior-main-emails = {
+        Unit.Description = "Create Taskwarrior tasks from my emails to my main account";
+        Unit.OnSuccess = [ "taskwarrior-sync.service" ];
+        Service = {
+          Type = "oneshot";
+          # ExecStart defined in the private flake.
+          ExecStartPost = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
+        };
+      };
     };
 
     timers = {
@@ -98,6 +111,19 @@
           [
             "${inbox}/new"
             "${inbox}/cur"
+          ];
+      };
+
+      taskwarrior-main-emails = {
+        Unit.Description = "Create Taskwarrior tasks from emails to my main account";
+        Install.WantedBy = [ "paths.target" ];
+        Path.DirectoryNotEmpty =
+          let
+            folder = config.accounts.email.accounts.main.maildir.absPath + "/TaskWarrior";
+          in
+          [
+            "${folder}/new"
+            "${folder}/cur"
           ];
       };
     };
