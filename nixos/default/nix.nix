@@ -18,10 +18,8 @@
       '';
     };
 
-    systemd.services.nix-daemon = {
-      serviceConfig.EnvironmentFile = config.sops.templates.nix-daemon-environment.path;
-      after = [ "sops-nix.service" ];
-    };
+    systemd.services.nix-daemon.serviceConfig.EnvironmentFile =
+      config.sops.templates.nix-daemon-environment.path;
     nix.extraOptions = ''
       !include ${config.sops.templates.auth-tokens.path}
     '';
