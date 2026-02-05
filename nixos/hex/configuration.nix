@@ -56,7 +56,7 @@
 
   programs.mosh.enable = true;
 
-  services.postfix.sendDirect = true;
+  services.postfix.sendViaMythicBeasts = true;
 
   programs.kdeconnect.enable = true;
 
