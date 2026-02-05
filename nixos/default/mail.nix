@@ -76,7 +76,10 @@ in
     (lib.mkIf cfg.sendViaMythicBeasts {
       sops = {
         secrets.smtp-auth = { };
-        templates.smtp-auth.content = "[smtp-auth.mythic-beasts.com]:587 ${config.sops.placeholder.smtp-auth}";
+        templates.smtp-auth = {
+          content = "[smtp-auth.mythic-beasts.com]:587 ${config.sops.placeholder.smtp-auth}";
+          restartUnits = [ "postfix-setup.service" ];
+        };
       };
 
       services.postfix = {
