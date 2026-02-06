@@ -11,6 +11,7 @@
     nixos-hardware.nixosModules.framework-16-7040-amd
     personalCfg.nixosModules.winapps
     personalCfg.nixosModules.nix-builder
+    personalCfg.nixosModules.postfix-mythic
     personalCfg.nixosModules.tzupdate
   ];
 
@@ -55,8 +56,6 @@
   ];
 
   programs.mosh.enable = true;
-
-  services.postfix.sendViaMythicBeasts = true;
 
   programs.kdeconnect.enable = true;
 
