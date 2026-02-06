@@ -28,8 +28,6 @@
   # TODO set up keys to enable this.
   nix.nixBuildDotNet.substituter.enable = false;
 
-  services.postfix.sendDirect = true;
-
   nix.gc.store = {
     trigger.freePercent = 15;
     target.freePercent = 25;

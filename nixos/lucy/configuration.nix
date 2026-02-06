@@ -54,10 +54,6 @@
     RebootWatchdogSec = "5m";
   };
 
-  # Send emails by connecting directly to the remote SMTP servers, since we're
-  # going to be at a fixed IP address so SPF checks are valid.
-  services.postfix.sendDirect = true;
-
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
 

@@ -4,11 +4,15 @@
   options,
   pkgs,
   disko,
+  personalCfg,
   ...
 }:
 
 {
-  imports = [ disko.nixosModules.default ];
+  imports = [
+    disko.nixosModules.default
+    personalCfg.nixosModules.postfix-mythic
+  ];
 
   boot = {
     loader = {
@@ -100,6 +104,4 @@
   );
 
   programs.mosh.enable = true;
-
-  services.postfix.sendViaMythicBeasts = true;
 }
