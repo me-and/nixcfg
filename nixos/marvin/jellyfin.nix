@@ -7,4 +7,9 @@
     };
     niceness = -5;
   };
+
+  systemd.services.jellyfin = {
+    after = [ "usr-local-share-av.mount" ];
+    bindsTo = [ "usr-local-share-av.mount" ];
+  };
 }
