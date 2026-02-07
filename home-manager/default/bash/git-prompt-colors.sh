@@ -49,7 +49,7 @@ override_git_prompt_colors() {
 	GIT_PROMPT_END_USER="$prompt_end_lead ${lvl_mark}${user_prompt} "
 	GIT_PROMPT_END_ROOT="$prompt_end_lead ${lvl_mark}${root_prompt} "
 
-	GIT_PROMPT_START_USER='\n_LAST_COMMAND_INDICATOR_ '"$HOST_COLOUR"'\u@\h '"$PWD_COLOUR"'\w'"$ResetColor"
+	GIT_PROMPT_START_USER='_LAST_COMMAND_INDICATOR_ '"$HOST_COLOUR"'\u@\h '"$PWD_COLOUR"'\w'"$ResetColor"
 	GIT_PROMPT_START_ROOT="$GIT_PROMPT_START_USER"
 }
 

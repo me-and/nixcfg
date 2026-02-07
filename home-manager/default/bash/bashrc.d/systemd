@@ -1,0 +1,19 @@
+[[ -v TMUX_TASKLOOP ]] && return 0
+
+__have_prompt=
+for __cmd in "${PROMPT_COMMAND[@]}"; do
+	if [[ "$__cmd" = _prompt_systemd ]]; then
+		__have_prompt=Yes
+		break
+	fi
+done
+if [[ -z "$__have_prompt" ]]; then
+	_prompt_systemd () {
+		systemctl list-units --failed --quiet
+		systemctl --user list-units --failed --quiet
+	}
+
+	PROMPT_COMMAND+=(echo _prompt_systemd)
+fi
+
+# vim: ft=bash ts=8 noet
