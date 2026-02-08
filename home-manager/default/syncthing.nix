@@ -1,5 +1,13 @@
-{ config, lib, ... }:
-lib.mkIf config.services.syncthing.enable {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.services.syncthing;
+in
+lib.mkIf cfg.enable {
   services.syncthing = {
     overrideDevices = lib.mkDefault true;
     overrideFolders = lib.mkDefault true;
@@ -54,6 +62,22 @@ lib.mkIf config.services.syncthing.enable {
       ".syncthing.*.tmp"
     ];
   };
+
+  home.activation.checkSyncthingIgnores =
+    let
+      stignoreContents = lib.concatLines cfg.settings."defaults/ignores".lines;
+      stignoreRefFile = pkgs.writeText "stignore" stignoreContents;
+
+      folderConfigsToCheck = lib.filter (v: v.enable) (builtins.attrValues cfg.settings.folders);
+      pathsToCheck = lib.map (lib.getAttr "path") folderConfigsToCheck;
+    in
+    lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+      for dir in ${lib.escapeShellArgs pathsToCheck}; do
+          if ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
+              warnEcho "Syncthing ignore file $dir/.stignore does not match reference ${stignoreRefFile}"
+          fi
+      done
+    '';
 
   sops.secrets.syncthing = { };
   systemd.user.services.syncthing-init.Unit.After = [ "sops-nix.service" ];
