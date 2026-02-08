@@ -140,5 +140,15 @@ in
         };
       }
     ) syncingAccounts;
+
+    systemd.user.timers."offlineimap-full@main" = {
+      Timer = {
+        OnActiveSec = "0s";
+        OnUnitInactiveSec = "1h";
+        AccuracySec = "1h";
+        RandomizedDelaySec = "1h";
+      };
+      Install.WantedBy = [ "timers.target" ];
+    };
   };
 }
