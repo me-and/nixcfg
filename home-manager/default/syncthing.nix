@@ -21,6 +21,7 @@ lib.mkIf config.services.syncthing.enable {
       "(?d)desktop.ini"
       "(?d)Thumbs.db"
       "(?d).thumbnails"
+      "(?d).directory"
 
       # Links that Windows keeps creating and are system-specific.
       "*.lnk"
