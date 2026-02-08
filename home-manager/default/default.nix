@@ -88,5 +88,6 @@
   };
   services.ssh-agent.enable = true;
 
+  xdg.enable = true;
   xdg.autostart.enable = true;
 }
