@@ -9,8 +9,8 @@ for __cmd in "${PROMPT_COMMAND[@]}"; do
 done
 if [[ -z "$__have_prompt" ]]; then
 	_prompt_systemd () {
-		systemctl list-units --failed --quiet
-		systemctl --user list-units --failed --quiet
+		systemctl list-units --failed --quiet --no-pager
+		systemctl --user list-units --failed --quiet --no-pager
 	}
 
 	PROMPT_COMMAND+=(echo _prompt_systemd)
