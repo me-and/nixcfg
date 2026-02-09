@@ -28,7 +28,6 @@
         lsof
         man-pages
         moreutils
-        mosh
         ncdu
         nix-diff
         nix-output-monitor
@@ -48,6 +47,7 @@
         file-age
         final-eol
         git-report
+        mosh
         mtimewait
         nix-about
         nix-dangling-roots

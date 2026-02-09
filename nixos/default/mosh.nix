@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -16,10 +17,13 @@ in
     };
   };
 
-  config = lib.mkIf (cfg.portRange != null) {
-    # Don't use the default port configuration.
-    programs.mosh.openFirewall = false;
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.portRange != null) {
+      # Don't use the default port configuration.
+      programs.mosh.openFirewall = false;
 
-    networking.firewall.allowedUDPPortRanges = [ cfg.portRange ];
-  };
+      networking.firewall.allowedUDPPortRanges = [ cfg.portRange ];
+    })
+    { programs.mosh.package = pkgs.mypkgs.mosh; }
+  ];
 }
