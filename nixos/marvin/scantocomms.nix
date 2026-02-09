@@ -193,7 +193,7 @@ in
                   fi
 
                   # Move the file.
-                  mkdir -p -- "$fulldestdir"
+                  sudo -n -u ${lib.escapeShellArg me} -g ${lib.escapeShellArg myGroup} -- mkdir -p -- "$fulldestdir"
                   mv -n -- "$file" "$fulldest"
                   chown ${lib.escapeShellArg me}:${lib.escapeShellArg myGroup} -- "$fulldest"
                   if [[ -e "$file" ]]; then
