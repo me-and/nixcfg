@@ -223,7 +223,14 @@
         in
         mapAttrs (n: v: closeOverlay (import v)) overlayFiles;
 
-      lib = import ./lib { inherit (nixpkgs) lib; };
+      lib = import ./lib {
+        inherit (nixpkgs) lib;
+        utils = import "${nixpkgs}/nixos/lib/utils.nix" {
+          inherit (nixpkgs) lib;
+          config = throw "unexpected config access";
+          pkgs = throw "unexpected pkgs access";
+        };
+      };
     }
     // eachSystem [ "x86_64-linux" "aarch64-linux" ] (
       system:

@@ -1,3 +1,4 @@
+# Could alternatively implement this using utils.escapeSystemdPath.
 {
   lib,
   escapeSystemdString,
