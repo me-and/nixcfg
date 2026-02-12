@@ -61,6 +61,16 @@ lib.mkIf cfg.enable {
       ".stignore"
       ".syncthing.*.tmp"
     ];
+
+    settings.folders.Public = {
+      path = config.xdg.userDirs.publicShare;
+      devices = builtins.attrNames cfg.settings.devices;
+      rescanIntervalS = 7 * 24 * 60 * 60;
+      versioning = {
+        type = "staggered";
+        params.maxAge = toString (365 * 24 * 60 * 60);
+      };
+    };
   };
 
   home.activation.checkSyncthingIgnores =
