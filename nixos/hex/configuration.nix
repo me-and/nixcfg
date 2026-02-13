@@ -12,7 +12,6 @@
     personalCfg.nixosModules.winapps
     personalCfg.nixosModules.nix-builder
     personalCfg.nixosModules.postfix-mythic
-    personalCfg.nixosModules.tzupdate
   ];
 
   boot.loader.systemd-boot.enable = true;
