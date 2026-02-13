@@ -44,6 +44,7 @@
       ++ (with pkgs.mypkgs; [
         aaisp-quota
         coldiff
+        dirup
         file-age
         final-eol
         git-report
