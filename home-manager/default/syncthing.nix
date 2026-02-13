@@ -84,6 +84,7 @@ lib.mkIf cfg.enable {
     syncthing = {
       Unit.After = [ "syncthing-check-ignores.service" ];
       Unit.Requires = [ "syncthing-check-ignores.service" ];
+      Unit.Wants = [ "syncthing-init.service" ];
     };
     syncthing-init = {
       Unit.After = [
