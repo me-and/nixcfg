@@ -20,7 +20,10 @@
   lib,
   fetchurl,
   stdenv,
-  xorg,
+  imake,
+  libX11,
+  libXext,
+  makedepend,
   # If you have your own UIDs allocated, this is the place to define them, e.g.
   # by adding `"-DDefaultUIDRoot=1.2.840.99999"`.
   imakeConfigurationArgs ? [ ],
@@ -33,10 +36,10 @@ stdenv.mkDerivation rec {
     hash = "sha256-NYGLckMVyNmmxo4vexdVqfVaSL1izoS7n8m+1ZZodiw=";
   };
   nativeBuildInputs = [
-    xorg.imake
-    xorg.libX11
-    xorg.libXext
-    xorg.makedepend
+    imake
+    libX11
+    libXext
+    makedepend
   ];
   preBuild = ''
     makeFlagsArray+=(
