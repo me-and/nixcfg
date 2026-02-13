@@ -30,7 +30,6 @@
         moreutils
         ncdu
         nix-diff
-        nix-output-monitor
         nixfmt-tree
         nixos-generators
         psmisc
@@ -53,6 +52,7 @@
         nix-about
         nix-dangling-roots
         nix-locate-bin
+        nom
         toil
       ]);
 
