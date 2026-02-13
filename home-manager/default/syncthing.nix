@@ -25,11 +25,11 @@ lib.mkIf cfg.enable {
     # configured?
     settings."defaults/ignores".lines = [
       # Directory metadata
-      "(?d).DS_Store"
-      "(?d)desktop.ini"
-      "(?d)Thumbs.db"
-      "(?d).thumbnails"
-      "(?d).directory"
+      "(?d).DS_Store" # macOS
+      "(?d)desktop.ini" # Windows
+      "(?d)Thumbs.db" # Windows
+      "(?d).thumbnails" # Something on Android?
+      "(?d).directory" # Something on Linux?
 
       # Links that Windows keeps creating and are system-specific.
       "*.lnk"
@@ -40,16 +40,17 @@ lib.mkIf cfg.enable {
       ".*.swp"
 
       # Non-Syncthing file transfers.
-      ".rsync-partial"
-      ".rsync-tmp"
-      ".unison.*"
-      "*.download"
-      "*.crdownload"
-      ".partial-*"
+      ".rsync-partial" # rsync
+      ".rsync-tmp" # rsync
+      ".unison.*" # unison
+      "*.download" # web browsers (possibly Edge?)
+      "*.crdownload" # Google Chrome / Chromium
+      ".partial-*" # Unsure, maybe Firefox
+      "*.partial" # rclone
 
       # Deleted files.
-      ".Trash-*"
-      ".trashed-*"
+      ".Trash-*" # Dolphin and possibly other Linux utils
+      ".trashed-*" # Something on Android?
 
       # Syncthing metadata.  Normally Syncthing ignores these itself, but when
       # I'm syncing, say /home/adam and /home/adam/Documents, Syncthing will
