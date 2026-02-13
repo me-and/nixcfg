@@ -8,6 +8,15 @@
 
   system.stateVersion = "25.11";
 
+  # Allow working with all LVM features I sometimes use.
+  boot.initrd.kernelModules = [
+    "dm-snapshot"
+    "dm-raid"
+    "dm-mirror"
+    "dm-cache"
+    "dm-cache-smq"
+  ];
+
   # Ignore the lid closing and opening: this is a laptop being used as a home
   # server, so I want to be able to close the lid and have the system keep
   # running.
