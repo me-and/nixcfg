@@ -72,6 +72,7 @@ in
     ]
     ++ (with pkgs.mypkgs; [
       gh-random-pr
+      operons
       pd-sync-with-fileserver
       unison-nox
     ]);
