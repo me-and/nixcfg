@@ -73,22 +73,66 @@ lib.mkIf cfg.enable {
     };
   };
 
-  home.activation.checkSyncthingIgnores =
-    let
-      stignoreContents = lib.concatLines cfg.settings."defaults/ignores".lines;
-      stignoreRefFile = pkgs.writeText "stignore" stignoreContents;
+  systemd.user.services = {
+    syncthing = {
+      Unit.After = [ "syncthing-check-ignores.service" ];
+      Unit.Requires = [ "syncthing-check-ignores.service" ];
+    };
+    syncthing-init = {
+      Unit.After = [
+        "syncthing-check-ignores.service"
+        "sops-nix.service"
+      ];
+      Unit.Requires = [
+        "syncthing-check-ignores.service"
+        "sops-nix.service"
+      ];
+    };
+    syncthing-check-ignores = {
+      Unit.Description = "Check Syncthing folders and .stignore files are set up correctly";
+      Service = {
+        Type = "oneshot";
+        ExecStart = pkgs.mypkgs.writeCheckedShellScript {
+          name = "syncthing-check-ignores.sh";
+          runtimeInputs = with pkgs; [
+            coreutils
+            diffutils
+          ];
+          text =
+            let
+              stignoreContents = lib.concatLines cfg.settings."defaults/ignores".lines;
+              stignoreRefFile = pkgs.writeText "stignore" stignoreContents;
 
-      folderConfigsToCheck = lib.filter (v: v.enable) (builtins.attrValues cfg.settings.folders);
-      pathsToCheck = lib.map (lib.getAttr "path") folderConfigsToCheck;
-    in
-    lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-      for dir in ${lib.escapeShellArgs pathsToCheck}; do
-          if ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
-              warnEcho "Syncthing ignore file $dir/.stignore does not match reference ${stignoreRefFile}"
-          fi
-      done
-    '';
+              folderConfigsToCheck = lib.filter (v: v.enable) (builtins.attrValues cfg.settings.folders);
+              pathsToCheck = lib.map (lib.getAttr "path") folderConfigsToCheck;
+            in
+            ''
+              rc=0
+              for dir in ${lib.escapeShellArgs pathsToCheck}; do
+                  if [[ ! -d "$dir" ]]; then
+                      # Directory doesn't yet exist, so we can safely create it and
+                      # populate the .stignore file.
+                      mkdir -p "$dir"
+                      cp ${stignoreRefFile} "$dir"/.stignore
+                  elif [[ ! -e "$dir"/.stignore ]]; then
+                      rc=1
+                      printf 'missing stignore file: %s\n' "$dir"/.stignore
+                  elif ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
+                      rc=1
+                      printf 'stignore file with unexpected content: %s\n' "$dir"/.stignore
+                  fi
+              done
+
+              if (( rc != 0 )); then
+                  printf 'expected content in %s\n' ${stignoreRefFile}
+              fi
+
+              exit "$rc"
+            '';
+        };
+      };
+    };
+  };
 
   sops.secrets.syncthing = { };
-  systemd.user.services.syncthing-init.Unit.After = [ "sops-nix.service" ];
 }
