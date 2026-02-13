@@ -245,6 +245,10 @@ in
         localPath = config.xdg.userDirs.publicShare;
         remotePath = "onedrive:Public";
       }
+      {
+        localPath = config.home.homeDirectory + "/Calibre Library";
+        remotePath = "onedrive:Calibre Library";
+      }
     ];
   };
 
