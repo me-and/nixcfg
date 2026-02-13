@@ -105,30 +105,29 @@ lib.mkIf cfg.enable {
             coreutils
             diffutils
           ];
-          text =
-            ''
-              rc=0
-              for dir in ${lib.escapeShellArgs syncedPaths}; do
-                  if [[ ! -d "$dir" ]]; then
-                      # Directory doesn't yet exist, so we can safely create it and
-                      # populate the .stignore file.
-                      mkdir -p "$dir"
-                      cp --no-preserve=mode ${stignoreRefFile} "$dir"/.stignore
-                  elif [[ ! -e "$dir"/.stignore ]]; then
-                      rc=1
-                      printf 'missing stignore file: %s\n' "$dir"/.stignore
-                  elif ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
-                      rc=1
-                      printf 'stignore file with unexpected content: %s\n' "$dir"/.stignore
-                  fi
-              done
+          text = ''
+            rc=0
+            for dir in ${lib.escapeShellArgs syncedPaths}; do
+                if [[ ! -d "$dir" ]]; then
+                    # Directory doesn't yet exist, so we can safely create it and
+                    # populate the .stignore file.
+                    mkdir -p "$dir"
+                    cp --no-preserve=mode ${stignoreRefFile} "$dir"/.stignore
+                elif [[ ! -e "$dir"/.stignore ]]; then
+                    rc=1
+                    printf 'missing stignore file: %s\n' "$dir"/.stignore
+                elif ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
+                    rc=1
+                    printf 'stignore file with unexpected content: %s\n' "$dir"/.stignore
+                fi
+            done
 
-              if (( rc != 0 )); then
-                  printf 'expected content in %s\n' ${stignoreRefFile}
-              fi
+            if (( rc != 0 )); then
+                printf 'expected content in %s\n' ${stignoreRefFile}
+            fi
 
-              exit "$rc"
-            '';
+            exit "$rc"
+          '';
         };
       };
     };
@@ -145,19 +144,18 @@ lib.mkIf cfg.enable {
             coreutils
             diffutils
           ];
-          text =
-            ''
-              for dir in ${lib.escapeShellArgs syncedPaths}; do
-                  if [[ ! -d "$dir" ]]; then
-                      # Directory doesn't yet exist, so we can safely create it and
-                      # populate the .stignore file.
-                      mkdir -p "$dir"
-                      cp --no-preserve=mode ${stignoreRefFile} "$dir"/.stignore
-                  elif ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
-                      cp --no-preserve=mode ${stignoreRefFile} "$dir"/.stignore
-                  fi
-              done
-            '';
+          text = ''
+            for dir in ${lib.escapeShellArgs syncedPaths}; do
+                if [[ ! -d "$dir" ]]; then
+                    # Directory doesn't yet exist, so we can safely create it and
+                    # populate the .stignore file.
+                    mkdir -p "$dir"
+                    cp --no-preserve=mode ${stignoreRefFile} "$dir"/.stignore
+                elif ! cmp --quiet "$dir"/.stignore ${stignoreRefFile}; then
+                    cp --no-preserve=mode ${stignoreRefFile} "$dir"/.stignore
+                fi
+            done
+          '';
         };
       };
     };
