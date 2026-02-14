@@ -84,5 +84,7 @@ in
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.virtualHost.enable (
       [ 80 ] ++ lib.optional cfg.virtualHost.tls.enable 443
     );
+
+    users.groups."${cfg.group}".members = [ config.users.me ];
   };
 }
