@@ -2,7 +2,7 @@
   lib,
   runtimeShell,
   coreutils,
-  opusTools,
+  opus-tools,
   substCheckedShellApplication,
 }:
 substCheckedShellApplication {
@@ -12,7 +12,7 @@ substCheckedShellApplication {
     inherit runtimeShell;
     PATH = lib.makeBinPath [
       coreutils
-      opusTools
+      opus-tools
     ];
   };
 }
