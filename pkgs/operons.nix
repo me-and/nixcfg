@@ -8,7 +8,7 @@ writeCheckedShellApplication {
     "SC2034" # Script makes heavy use of indirect references.
   ];
   text = ''
-    _operon_find_args=( -type f \( -name '*.mp3' -o -name '*.m4a' -o -name '*.ogg' -o -name '*.opus' -o -name '*.flac' -o -name '*.wav' \) )
+    _operon_find_args=( -type f \( -name '*.mp3' -o -name '*.m4a' -o -name '*.m4b' -o -name '*.ogg' -o -name '*.opus' -o -name '*.flac' -o -name '*.wav' \) )
 
     _operons_act () {
         local page=
