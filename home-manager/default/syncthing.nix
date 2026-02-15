@@ -101,6 +101,7 @@ lib.mkIf cfg.enable {
       Unit.Description = "Check Syncthing folders and .stignore files are set up correctly";
       Service = {
         Type = "oneshot";
+        RemainAfterExit = true;
         ExecStart = pkgs.mypkgs.writeCheckedShellScript {
           name = "syncthing-check-ignores.sh";
           runtimeInputs = with pkgs; [
