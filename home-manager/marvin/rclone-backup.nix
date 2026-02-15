@@ -158,7 +158,10 @@ in
 
   config.services.rcloneBackups = {
     enable = true;
-    commonArgs = [ "--modify-window=1s" ];
+    commonArgs = [
+      "--modify-window=1s"
+      "--fast-list"
+    ];
     commonExcludes =
       let
         syncthingExcludes = config.services.syncthing.settings."defaults/ignores".lines;
