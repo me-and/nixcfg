@@ -46,6 +46,7 @@ in
       abcde
       android-tools # adb
       azuredatastudio
+      calibre
       cardimpose
       cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
       discord
