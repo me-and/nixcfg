@@ -57,6 +57,7 @@ lib.mkIf cfg.enable {
       # Deleted files.
       ".Trash-*" # Dolphin and possibly other Linux utils
       ".trashed-*" # Something on Android?
+      ".caltrash" # Calibre
 
       # Syncthing metadata.  Normally Syncthing ignores these itself, but when
       # I'm syncing, say /home/adam and /home/adam/Documents, Syncthing will
