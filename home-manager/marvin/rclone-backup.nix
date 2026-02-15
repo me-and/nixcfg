@@ -205,6 +205,10 @@ in
       mungedExcludes;
     folders = [
       {
+        localPath = "/usr/local/share/av/audiobooks";
+        remotePath = "onedrive:Audiobooks";
+      }
+      {
         localPath = "/usr/local/share/av/music";
         remotePath = "onedrive:Music";
       }
