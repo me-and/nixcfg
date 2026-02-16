@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Recover runner disk space
-        uses: wimpysworld/nothing-but-nix@v9
+        uses: wimpysworld/nothing-but-nix@v10
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install Nix
