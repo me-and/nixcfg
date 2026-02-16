@@ -256,6 +256,10 @@ in
         localPath = config.home.homeDirectory + "/Calibre Library";
         remotePath = "onedrive:Calibre Library";
       }
+      {
+        localPath = config.home.homeDirectory + "/Playnite backups";
+        remotePath = "onedrive:Playnite backups";
+      }
     ];
   };
 
