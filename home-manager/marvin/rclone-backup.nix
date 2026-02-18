@@ -64,6 +64,17 @@ in
                   });
                 default = ".rclone_access_check";
               };
+              extraServiceConfig = lib.mkOption {
+                description = ''
+                  Extra configuration to be merged with all systemd service
+                  units affecting this folder.  Merged with every systemd
+                  service unit using `lib.recursiveUpdate`.
+                '';
+                default = { };
+                example = {
+                  Unit.AssertPathIsMountPoint = "<localPath>";
+                };
+              };
 
               instanceName = lib.mkOption {
                 description = "Instance name for the systemd units";
@@ -125,7 +136,7 @@ in
                         ++ (builtins.map mylib.escapeSystemdExecArg (buildRcloneCmd cmd extraRcloneArgs paths))
                       );
                   in
-                  {
+                  lib.mapAttrs (n: v: lib.recursiveUpdate v config.extraServiceConfig) {
                     "rclone-sync@${config.instanceName}" = {
                       Unit.Description = "rclone sync of ${config.localPath} to ${config.remotePath}";
                       Service.Type = "oneshot";
