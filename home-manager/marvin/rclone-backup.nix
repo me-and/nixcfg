@@ -51,6 +51,19 @@ in
                 type = with lib.types; listOf str;
                 default = [ ];
               };
+              checkAccessFile = lib.mkOption {
+                description = ''
+                  Filename to use with rclone's `--check-access` argument with
+                  `rclone bisync` commands.  Set to `null` to disable using
+                  this rclone feature.
+                '';
+                type =
+                  with lib.types;
+                  nullOr (pathWith {
+                    absolute = false;
+                  });
+                default = ".rclone_access_check";
+              };
 
               instanceName = lib.mkOption {
                 description = "Instance name for the systemd units";
@@ -92,33 +105,37 @@ in
                 default =
                   let
                     buildRcloneCmd =
-                      cmd: paths:
+                      cmd: extraArgs: paths:
                       [
                         rclone
                         cmd
                       ]
                       ++ cfg.commonArgs
+                      ++ extraArgs
                       ++ (lib.optional (config.excludeFile != null) "--exclude-from=${config.excludeFile}")
                       ++ paths;
                     buildFlockedExecCmd =
-                      cmd: paths:
+                      cmd: extraRcloneArgs: paths:
                       lib.concatStringsSep " " (
                         [
                           flock
                           "--no-fork"
                           "%t/rclonemisc"
                         ]
-                        ++ (builtins.map mylib.escapeSystemdExecArg (buildRcloneCmd cmd paths))
+                        ++ (builtins.map mylib.escapeSystemdExecArg (buildRcloneCmd cmd extraRcloneArgs paths))
                       );
                   in
                   {
                     "rclone-sync@${config.instanceName}" = {
                       Unit.Description = "rclone sync of ${config.localPath} to ${config.remotePath}";
                       Service.Type = "oneshot";
-                      Service.ExecStart = buildFlockedExecCmd "sync" [
-                        config.localPath
-                        config.remotePath
-                      ];
+                      Service.ExecStart =
+                        buildFlockedExecCmd "sync"
+                          [ ]
+                          [
+                            config.localPath
+                            config.remotePath
+                          ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
                     };
@@ -126,10 +143,35 @@ in
                       Unit.Description = "rclone sync of ${config.localPath} to ${config.remotePath}";
                       Unit.Conflicts = [ "rclone-sync@${config.instanceName}.service" ];
                       Service.Type = "oneshot";
-                      Service.ExecStart = buildFlockedExecCmd "sync" [
-                        config.remotePath
-                        config.localPath
-                      ];
+                      Service.ExecStart =
+                        buildFlockedExecCmd "sync"
+                          [ ]
+                          [
+                            config.remotePath
+                            config.localPath
+                          ];
+                      Service.Nice = 19;
+                      Service.IOSchedulingClass = "idle";
+                    };
+                    "rclone-bisync@${config.instanceName}" = {
+                      Unit.Description = "rclone bisync of ${config.localPath} with ${config.remotePath}";
+                      Service.Type = "oneshot";
+                      Service.ExecStart =
+                        buildFlockedExecCmd "bisync"
+                          (
+                            [
+                              "--max-lock=24h"
+                              "--resilient"
+                            ]
+                            ++ lib.optionals (config.checkAccessFile != null) [
+                              "--check-access"
+                              "--check-filename=${config.checkAccessFile}"
+                            ]
+                          )
+                          [
+                            config.localPath
+                            config.remotePath
+                          ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
                     };
@@ -138,12 +180,16 @@ in
                       Unit.After = [
                         "rclone-sync@${config.instanceName}.service"
                         "rclone-rsync@${config.instanceName}.service"
+                        "rclone-bisync@${config.instanceName}.service"
                       ];
                       Service.Type = "oneshot";
-                      Service.ExecStart = buildFlockedExecCmd "check" [
-                        config.localPath
-                        config.remotePath
-                      ];
+                      Service.ExecStart =
+                        buildFlockedExecCmd "check"
+                          [ ]
+                          [
+                            config.localPath
+                            config.remotePath
+                          ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
                     };
