@@ -43,13 +43,19 @@
   fileSystems."/usr/local/share/av" = {
     device = "/dev/disk/by-uuid/06ab96b5-b34b-47e7-862d-1410dd0a5425";
     fsType = "btrfs";
-    options = [ "subvol=@av,noexec" ];
+    options = [
+      "subvol=@av"
+      "noexec"
+    ];
   };
 
   fileSystems."/usr/local/share/archives" = {
     device = "/dev/disk/by-uuid/a26954eb-74b3-4d60-a386-c6985563475f";
     fsType = "btrfs";
-    options = [ "subvol=/,noexec" ];
+    options = [
+      "subvol=/"
+      "noexec"
+    ];
   };
 
   swapDevices = [
