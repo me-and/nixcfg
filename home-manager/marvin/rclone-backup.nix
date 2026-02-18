@@ -317,6 +317,12 @@ in
         localPath = config.home.homeDirectory + "/Playnite backups";
         remotePath = "onedrive:Playnite backups";
       }
+      {
+        localPath = config.home.homeDirectory + "/Held for other people";
+        remotePath = "onedrive:Held for other people";
+        extraServiceConfig.Unit.AssertPathIsMountPoint =
+          config.home.homeDirectory + "/Held for other people";
+      }
     ];
   };
 
