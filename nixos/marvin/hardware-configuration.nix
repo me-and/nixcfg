@@ -58,6 +58,15 @@
     ];
   };
 
+  fileSystems."/home/adam/Held for other people" = {
+    device = "/dev/disk/by-uuid/465e95d0-4f82-4fb0-961f-3e9fe4f1ca2d";
+    fsType = "btrfs";
+    options = [
+      "subvol=@"
+      "noexec"
+    ];
+  };
+
   swapDevices = [
     { device = "/dev/disk/by-uuid/0fa2bff0-6803-4f5d-8b1f-b1f2de5e8e42"; }
   ];
