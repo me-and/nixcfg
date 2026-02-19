@@ -166,6 +166,10 @@ in
                     };
                     "rclone-bisync@${config.instanceName}" = {
                       Unit.Description = "rclone bisync of ${config.localPath} with ${config.remotePath}";
+                      Unit.Conflicts = [
+                        "rclone-sync@${config.instanceName}.service"
+                        "rclone-rsync@${config.instanceName}.service"
+                      ];
                       Service.Type = "oneshot";
                       Service.ExecStart =
                         buildFlockedExecCmd "bisync"
