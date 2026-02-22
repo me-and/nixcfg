@@ -139,7 +139,6 @@ in
                   lib.mapAttrs (n: v: lib.recursiveUpdate v config.extraServiceConfig) {
                     "rclone-sync@${config.instanceName}" = {
                       Unit.Description = "rclone sync of ${config.localPath} to ${config.remotePath}";
-                      Service.Type = "oneshot";
                       Service.ExecStart =
                         buildFlockedExecCmd "sync"
                           [ ]
@@ -149,11 +148,18 @@ in
                           ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
+                      Service.RestartForceExitStatus = [
+                        "SIGHUP"
+                        "SIGTERM"
+                        "SIGINT"
+                        "SIGPIPE"
+                      ];
+                      Service.StartLimitIntervalSec = "1w";
+                      Service.StartLimitBurst = 3;
                     };
                     "rclone-rsync@${config.instanceName}" = {
                       Unit.Description = "rclone sync of ${config.localPath} to ${config.remotePath}";
                       Unit.Conflicts = [ "rclone-sync@${config.instanceName}.service" ];
-                      Service.Type = "oneshot";
                       Service.ExecStart =
                         buildFlockedExecCmd "sync"
                           [ ]
@@ -163,6 +169,14 @@ in
                           ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
+                      Service.RestartForceExitStatus = [
+                        "SIGHUP"
+                        "SIGTERM"
+                        "SIGINT"
+                        "SIGPIPE"
+                      ];
+                      Service.StartLimitIntervalSec = "1w";
+                      Service.StartLimitBurst = 3;
                     };
                     "rclone-bisync@${config.instanceName}" = {
                       Unit.Description = "rclone bisync of ${config.localPath} with ${config.remotePath}";
@@ -170,7 +184,6 @@ in
                         "rclone-sync@${config.instanceName}.service"
                         "rclone-rsync@${config.instanceName}.service"
                       ];
-                      Service.Type = "oneshot";
                       Service.ExecStart =
                         buildFlockedExecCmd "bisync"
                           (
@@ -189,6 +202,14 @@ in
                           ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
+                      Service.RestartForceExitStatus = [
+                        "SIGHUP"
+                        "SIGTERM"
+                        "SIGINT"
+                        "SIGPIPE"
+                      ];
+                      Service.StartLimitIntervalSec = "1w";
+                      Service.StartLimitBurst = 3;
                     };
                     "rclone-check@${config.instanceName}" = {
                       Unit.Description = "rclone check of ${config.localPath} to ${config.remotePath}";
@@ -197,7 +218,6 @@ in
                         "rclone-rsync@${config.instanceName}.service"
                         "rclone-bisync@${config.instanceName}.service"
                       ];
-                      Service.Type = "oneshot";
                       Service.ExecStart =
                         buildFlockedExecCmd "check"
                           [ ]
@@ -207,6 +227,14 @@ in
                           ];
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
+                      Service.RestartForceExitStatus = [
+                        "SIGHUP"
+                        "SIGTERM"
+                        "SIGINT"
+                        "SIGPIPE"
+                      ];
+                      Service.StartLimitIntervalSec = "1w";
+                      Service.StartLimitBurst = 3;
                     };
                   };
               };

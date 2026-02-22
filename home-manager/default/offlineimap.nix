@@ -44,7 +44,6 @@ lib.mkIf config.programs.offlineimap.enable {
               };
               Service = {
                 UMask = "077";
-                Type = "oneshot";
                 TimeoutStopSec = "10m";
                 ExecStart = pkgs.mypkgs.writeCheckedShellScript {
                   name = "sync-offlineimap-${name}.sh";
@@ -57,7 +56,14 @@ lib.mkIf config.programs.offlineimap.enable {
                     exec flock -Fx ${lib.escapeShellArg maildir} offlineimap -u basic -o -a ${lib.escapeShellArg name}
                   '';
                 };
-                SuccessExitStatus = [ "SIGTERM" ];
+                RestartForceExitStatus = [
+                  "SIGHUP"
+                  "SIGTERM"
+                  "SIGINT"
+                  "SIGPIPE"
+                ];
+                StartLimitIntervalSec = "1w";
+                StartLimitBurst = 3;
                 ExecStop = stopSyncScript;
               };
             };
@@ -73,12 +79,18 @@ lib.mkIf config.programs.offlineimap.enable {
               };
               Service = {
                 UMask = "077";
-                Type = "oneshot";
                 StandardInput = "socket";
                 StandardOutput = "journal";
                 StandardError = "journal";
                 TimeoutStopSec = "10m";
-                SuccessExitStatus = [ "SIGTERM" ];
+                RestartForceExitStatus = [
+                  "SIGHUP"
+                  "SIGTERM"
+                  "SIGINT"
+                  "SIGPIPE"
+                ];
+                StartLimitIntervalSec = "1w";
+                StartLimitBurst = 3;
                 ExecStart = pkgs.mypkgs.writeCheckedShellScript {
                   name = "sync-offlineimap-folder-${name}.sh";
                   runtimeInputs = [
@@ -115,7 +127,6 @@ lib.mkIf config.programs.offlineimap.enable {
             };
             Service = {
               UMask = "077";
-              Type = "oneshot";
               ExecStart =
                 let
                   script = pkgs.mypkgs.writeCheckedShellScript {
