@@ -1,1 +1,1 @@
-{ utils }: utils.escapeSystemdExecArgs
+{ lib, escapeSystemdExecArg }: lib.concatMapStringsSep " " escapeSystemdExecArg
