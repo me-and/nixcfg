@@ -37,6 +37,11 @@
   # TODO set up keys to enable this.
   nix.nixBuildDotNet.substituter.enable = false;
 
+  nix.settings = {
+    max-jobs = 4;
+    cores = 6;
+  };
+
   nix.gc.store = {
     trigger.freePercent = 15;
     target.freePercent = 25;
