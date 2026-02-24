@@ -34,9 +34,6 @@
 
   programs.mosh.enable = true;
 
-  # TODO set up keys to enable this.
-  nix.nixBuildDotNet.substituter.enable = false;
-
   nix.settings = {
     max-jobs = 4;
     cores = 6;
