@@ -18,6 +18,13 @@ let
     '';
   };
 
+  nom-realise = writeCheckedShellApplication {
+    name = "nom-realise";
+    text = ''
+      nix-store --realise --log-format internal-json -v "$@" |& ${lib.getExe nix-output-monitor} --json
+    '';
+  };
+
   # nix-output-monitor has other executables that are just symlinks to the
   # `nom` in their local directory, and presumably alter their behaviour based
   # on the executable name.  My `nom` can't handle that, but `symlinkJoin` will
@@ -37,6 +44,7 @@ symlinkJoin {
   name = "nom";
   paths = [
     nom
+    nom-realise
     nomWrappers
     nix-output-monitor
   ];
