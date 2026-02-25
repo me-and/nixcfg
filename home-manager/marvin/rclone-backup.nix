@@ -154,8 +154,8 @@ in
                         "SIGINT"
                         "SIGPIPE"
                       ];
-                      Service.StartLimitIntervalSec = "1w";
-                      Service.StartLimitBurst = 3;
+                      Unit.StartLimitIntervalSec = "1w";
+                      Unit.StartLimitBurst = 3;
                     };
                     "rclone-rsync@${config.instanceName}" = {
                       Unit.Description = "rclone sync of ${config.localPath} to ${config.remotePath}";
@@ -175,8 +175,8 @@ in
                         "SIGINT"
                         "SIGPIPE"
                       ];
-                      Service.StartLimitIntervalSec = "1w";
-                      Service.StartLimitBurst = 3;
+                      Unit.StartLimitIntervalSec = "1w";
+                      Unit.StartLimitBurst = 3;
                     };
                     "rclone-bisync@${config.instanceName}" = {
                       Unit.Description = "rclone bisync of ${config.localPath} with ${config.remotePath}";
@@ -208,8 +208,8 @@ in
                         "SIGINT"
                         "SIGPIPE"
                       ];
-                      Service.StartLimitIntervalSec = "1w";
-                      Service.StartLimitBurst = 3;
+                      Unit.StartLimitIntervalSec = "1w";
+                      Unit.StartLimitBurst = 3;
                     };
                     "rclone-check@${config.instanceName}" = {
                       Unit.Description = "rclone check of ${config.localPath} to ${config.remotePath}";
@@ -233,8 +233,8 @@ in
                         "SIGINT"
                         "SIGPIPE"
                       ];
-                      Service.StartLimitIntervalSec = "1w";
-                      Service.StartLimitBurst = 3;
+                      Unit.StartLimitIntervalSec = "1w";
+                      Unit.StartLimitBurst = 3;
                     };
                   };
               };

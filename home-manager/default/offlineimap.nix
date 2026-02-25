@@ -41,6 +41,8 @@ lib.mkIf config.programs.offlineimap.enable {
               Unit = {
                 Description = "Sync of all labels for account %I";
                 After = [ "sops-nix.service" ];
+                StartLimitIntervalSec = "1w";
+                StartLimitBurst = 3;
               };
               Service = {
                 UMask = "077";
@@ -62,8 +64,6 @@ lib.mkIf config.programs.offlineimap.enable {
                   "SIGINT"
                   "SIGPIPE"
                 ];
-                StartLimitIntervalSec = "1w";
-                StartLimitBurst = 3;
                 ExecStop = stopSyncScript;
               };
             };
@@ -76,6 +76,8 @@ lib.mkIf config.programs.offlineimap.enable {
                   "offlineimap-folder@%i.socket"
                   "sops-nix.service"
                 ];
+                StartLimitIntervalSec = "1w";
+                StartLimitBurst = 3;
               };
               Service = {
                 UMask = "077";
@@ -89,8 +91,6 @@ lib.mkIf config.programs.offlineimap.enable {
                   "SIGINT"
                   "SIGPIPE"
                 ];
-                StartLimitIntervalSec = "1w";
-                StartLimitBurst = 3;
                 ExecStart = pkgs.mypkgs.writeCheckedShellScript {
                   name = "sync-offlineimap-folder-${name}.sh";
                   runtimeInputs = [
