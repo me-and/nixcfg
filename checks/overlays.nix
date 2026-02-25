@@ -7,17 +7,11 @@
   overlays,
 }:
 let
-  inherit (builtins)
-    attrNames
-    elem
-    getAttr
-    map
-    ;
+  inherit (builtins) attrNames getAttr map;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
   inherit (lib.lists) remove;
   inherit (lib.meta) availableOn;
-  inherit (lib.trivial) warnIfNot;
   inherit (mylib) unionOfDisjointAttrsList;
   inherit (pkgs.stdenv) hostPlatform;
 
