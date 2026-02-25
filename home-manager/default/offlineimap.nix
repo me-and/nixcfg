@@ -41,7 +41,7 @@ lib.mkIf config.programs.offlineimap.enable {
               Unit = {
                 Description = "Sync of all labels for account %I";
                 After = [ "sops-nix.service" ];
-                StartLimitIntervalSec = "1w";
+                StartLimitIntervalSec = "5min";
                 StartLimitBurst = 3;
               };
               Service = {
@@ -76,8 +76,8 @@ lib.mkIf config.programs.offlineimap.enable {
                   "offlineimap-folder@%i.socket"
                   "sops-nix.service"
                 ];
-                StartLimitIntervalSec = "1w";
-                StartLimitBurst = 3;
+                StartLimitIntervalSec = "5min";
+                StartLimitBurst = 5;
               };
               Service = {
                 UMask = "077";
