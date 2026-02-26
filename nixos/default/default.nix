@@ -56,7 +56,7 @@ in
   home-manager.useGlobalPkgs = true;
 
   # Make sure `apropos` and similar work.
-  documentation.man.generateCaches = true;
+  documentation.man.cache.enable = true;
 
   nix.settings = {
     trusted-users = [ "@wheel" ];

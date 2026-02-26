@@ -7,17 +7,13 @@
   overlays,
 }:
 let
-  inherit (builtins)
-    attrNames
-    elem
-    getAttr
-    map
-    ;
+  inherit (builtins) attrNames getAttr map;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
   inherit (lib.lists) remove;
-  inherit (lib.trivial) warnIfNot;
+  inherit (lib.meta) availableOn;
   inherit (mylib) unionOfDisjointAttrsList;
+  inherit (pkgs.stdenv) hostPlatform;
 
   # Work out the set of attribute names that exist when applying all the
   # overlays to an empty set.  This is the list of attributes in nixpkgs that
@@ -46,7 +42,7 @@ recurseIntoAttrs (
       let
         pkg = getAttr p pkgs;
       in
-      {
+      optionalAttrs (availableOn hostPlatform pkg) {
         "${p}" = recurseIntoAttrs {
           package = pkg;
           tests = recurseIntoAttrs (pkg.passthru.tests or { });
