@@ -1,0 +1,29 @@
+# I keep seeing ~/.gitconfig being created, I *think* by gh.  Certainly it
+# encodes some fragile paths for gh authentication.  To try to work out what
+# command(s) trigger this, so I can fix it, add a warning to the Bash prompt
+# when the file appears.
+__have_prompt=
+for __cmd in "${PROMPT_COMMAND[@]}"; do
+	if [[ "$__cmd" = _prompt_unexpected_gitconfig ]]; then
+		__have_prompt=Yes
+		break
+	fi
+done
+if [[ -z "$__have_prompt" ]]; then
+	_prompt_unexpected_gitconfig () {
+		if [[ -e ~/.gitconfig ]]; then
+			echo -e '\e[31m~/.gitconfig appeared!\e[0m'
+		fi
+	}
+
+	# Store in some arbitrary high index of PROMPT_COMMAND to ensure it
+	# gets run after the newline that followed the output from the previous
+	# command.
+	if [[ -v PROMPT_COMMAND[300] ]]; then
+		echo 'unexpected value already stored in Bash'\''s PROMPT_COMMAND[300]' >&2
+	else
+		PROMPT_COMMAND[300]=_prompt_unexpected_gitconfig
+	fi
+fi
+
+# vim: ft=bash ts=4 noet

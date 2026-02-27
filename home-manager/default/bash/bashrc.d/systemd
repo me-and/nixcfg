@@ -13,7 +13,16 @@ if [[ -z "$__have_prompt" ]]; then
 		systemctl --user list-units --failed --quiet --no-pager
 	}
 
-	PROMPT_COMMAND+=(echo _prompt_systemd)
+	# Not a great place to put this, but good enough for now: add a
+	# newline before all the other commands I run that print output that
+	# should be immediately before the prompt.
+	if [[ -v PROMPT_COMMAND[50] ]]; then
+		echo 'unexpected value already stored in Bash'\''s PROMPT_COMMAND[50]' >&2
+	else
+		PROMPT_COMMAND[50]=echo
+	fi
+
+	PROMPT_COMMAND+=(_prompt_systemd)
 fi
 
 # vim: ft=bash ts=8 noet
