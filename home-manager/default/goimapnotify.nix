@@ -5,6 +5,7 @@
 {
   config,
   lib,
+  mylib,
   pkgs,
   ...
 }:
@@ -23,6 +24,22 @@ let
           type = lib.types.attrsOf (lib.types.submodule boxSubmodule);
           description = "Configuration for individual mailboxes.";
           default = { };
+        };
+        wait = lib.mkOption {
+          type = lib.types.ints.unsigned;
+          default = 1;
+          description = ''
+            Number of seconds to wait between being notified of a new email and
+            triggering the specified command.
+          '';
+        };
+        idleRestart = lib.mkOption {
+          type = with lib.types; nullOr ints.positive;
+          default = null;
+          description = ''
+            Number of minutes between restarts of the IMAP IDLE command, which
+            may be necessary for some IMAP servers.
+          '';
         };
 
         accountConfig = lib.mkOption {
@@ -45,6 +62,12 @@ let
             username = config.userName;
             passwordCmd = lib.concatMapStringsSep " " lib.escapeShellArg config.passwordCommand;
             boxes = lib.mapAttrsToList (n: v: v.mailboxConfig) config.goimapnotify.boxes;
+          }
+          // lib.optionalAttrs (config.goimapnotify.wait != 1) {
+            inherit (config.goimapnotify) wait;
+          }
+          // lib.optionalAttrs (config.goimapnotify.idleRestart != null) {
+            idleLogoutTimeout = config.goimapnotify.idleRestart;
           };
         };
       };
@@ -105,6 +128,16 @@ in
     services.goimapnotify = {
       enable = lib.mkEnableOption "goimapnotify";
       package = lib.mkPackageOption pkgs "goimapnotify" { };
+      logLevel = lib.mkOption {
+        description = "goimapnotify log level";
+        type = lib.types.enum [
+          "error"
+          "warn"
+          "info"
+          "debug"
+        ];
+        default = "info";
+      };
 
       config = lib.mkOption {
         description = "The full configuration to pass to goimapnotify.";
@@ -128,10 +161,6 @@ in
 
   config = lib.mkIf cfg.enable {
     # Based on the goimapnotify service unit file in the upstream repository.
-    #
-    # TODO: add config to remove the FailureAction from this unit and replace
-    # it with a StartLimitAction, since I don't care about occasional failures
-    # provided the thing restarts sensibly.
     systemd.user.services.goimapnotify = {
       Unit = {
         Description = "Execute scripts on IMAP mailbox changes (new/deleted/update messages) using IDLE, golang version.";
@@ -140,11 +169,13 @@ in
       };
       Install.WantedBy = [ "default.target" ];
       Service = {
-        Type = "simple";
-        ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-          name = "goimapnotify.sh";
-          text = "exec ${lib.getExe cfg.package} -conf ${lib.escapeShellArg cfg.configFile}";
-        };
+        ExecStart = mylib.escapeSystemdExecArgs [
+          (lib.getExe cfg.package)
+          "-conf"
+          cfg.configFile
+          "-log-level"
+          cfg.logLevel
+        ];
         Restart = "always";
         RestartSec = 30;
       };
