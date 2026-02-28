@@ -88,6 +88,13 @@ in
       };
     };
 
+    # I'm seeing emails to my taskwarrior address not getting picked up.
+    # Maybe the debug logs contain the explanation.  Maybe I should just give
+    # up and set the idleRestart setting for that account.  Maybe I should try
+    # calling mailsync with an option that doesn't return until it's done
+    # syncing.
+    services.goimapnotify.logLevel = "debug";
+
     systemd.user.services = lib.concatMapAttrs (
       n: v:
       let
