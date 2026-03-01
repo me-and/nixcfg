@@ -10,9 +10,10 @@ in
       env = prevAttrs.env // {
         FONTCONFIG_FILE = prevAttrs.env.FONTCONFIG_FILE.overrideAttrs (prevFontAttrs: {
           fontDirectories =
-            if all (d: d.name != "noto-fonts-subset") prevFontAttrs.fontDirectories
-            then warn "unnecessary libreoffice overlay" prevFontAttrs.fontDirectories
-            else map (d: if d.name == "noto-fonts-subset" then noto-fonts else d) prevFontAttrs.fontDirectories;
+            if all (d: d.name != "noto-fonts-subset") prevFontAttrs.fontDirectories then
+              warn "unnecessary libreoffice overlay" prevFontAttrs.fontDirectories
+            else
+              map (d: if d.name == "noto-fonts-subset" then noto-fonts else d) prevFontAttrs.fontDirectories;
         });
       };
     });
