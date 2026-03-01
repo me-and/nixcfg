@@ -68,6 +68,7 @@ in
       prusa-slicer
       qalculate-gtk
       quodlibet-without-gst-plugins # operon
+      rdfind
       scribus
       signal-desktop
       telegram-desktop
