@@ -189,11 +189,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1772394856,
-        "narHash": "sha256-vp/cZp04jm+LKXvzFZjlgw+VSPzx8JHXoGCz+HFQR2c=",
+        "lastModified": 1772448612,
+        "narHash": "sha256-M7U0beIgIjBMDNizfstJGjNvR/tnXTAx0+vjugMFHrM=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "ba77a5c99357925f5447a9cca8713d287de39d93",
+        "rev": "6c0813f4f8ce6dcac97d42abcd28a868ef2f3af9",
         "type": "github"
       },
       "original": {
@@ -224,11 +224,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772340640,
-        "narHash": "sha256-1nq7+Kt5IUBD8Hu3nptVPbMf+22rNJoHT0t9L1X+GKA=",
+        "lastModified": 1772401007,
+        "narHash": "sha256-YHykQg0h9hrlZGpMcywnaFzQ1Kn/5YNCCOSaaAl6z7Q=",
         "owner": "Mic92",
         "repo": "sops-nix",
-        "rev": "dec4d8eac700dcd2fe3c020857d3ee220ec147f1",
+        "rev": "d8be5ea4cd3bc363492ab5bc6e874ccdc5465fe4",
         "type": "github"
       },
       "original": {
@@ -270,11 +270,11 @@
     "user-systemd-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1771841696,
-        "narHash": "sha256-BCsyB4E0STCTHYMIWpvajPhJb7uLL5TM7WkuDxuNsWU=",
+        "lastModified": 1772448675,
+        "narHash": "sha256-wbvIeOW1sp+HHcmue1UI6qdmCbV9jxkGazsfeXnpCkk=",
         "owner": "me-and",
         "repo": "user-systemd-config",
-        "rev": "03a35c080e52dc2fcd63ae066d2e0b1794c58048",
+        "rev": "f1be7d62db3f85734c1d0c278274c3029a466054",
         "type": "github"
       },
       "original": {
