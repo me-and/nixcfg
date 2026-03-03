@@ -1,24 +1,15 @@
-{ config, pkgs, modulesPath, ... }:
+{ config, pkgs, modulesPath, personalCfg, ... }:
 {
-  imports = [ "${modulesPath}/virtualisation/qemu-vm.nix" ];
+  imports = [
+    "${modulesPath}/virtualisation/qemu-vm.nix"
+    personalCfg.nixosModules.minimal
+  ];
 
   system.stateVersion = "25.11";
 
-  #boot.loader.systemd-boot.enable = true;
-  #boot.loader.efi.canTouchEfiVariables = true;
-
   nixpkgs.hostPlatform = "x86_64-linux";
 
-  users.users = {
-    "${config.users.me}".hashedPassword = "";
-    root.hashedPassword = "";
-  };
   services.getty.autologinUser = config.users.me;
-  security.sudo.wheelNeedsPassword = false;
-
-  nix.gc.store.enable = false;
-  nix.nixBuildDotNet.substituter.enable = false;
-  nix.githubTokenFromSops = false;
 
   virtualisation.graphics = false;
   virtualisation.qemu.options = [ "-serial mon:stdio" ];
