@@ -101,6 +101,11 @@
           system = "x86_64-linux";
           me = "adam";
         };
+
+        demo = {
+          system = "x86_64-linux";
+          me = "adam";
+        };
       };
 
       overlaysFromFlakes = concatMap (flake: attrValues flake.overlays);
