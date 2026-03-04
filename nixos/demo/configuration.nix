@@ -41,5 +41,5 @@
   services.postfix.enable = lib.mkForce false;
   programs.nix-index.enable = lib.mkForce false;
   systemd.timers.nix-index.enable = false;
-  home-manager.users.root = lib.mkForce { };
+  home-manager.users.root = lib.mkForce ({ osConfig, ... }: { home.stateVersion = osConfig.system.stateVersio; });
 }
