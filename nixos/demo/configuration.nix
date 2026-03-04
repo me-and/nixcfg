@@ -30,4 +30,16 @@
     systemPackages = [ resize ];
     loginShellInit = "${resize}/bin/resize";
   };
+
+  programs.bash.logout = "sudo systemctl poweroff";
+
+  services.avahi.enable = lib.mkForce false;
+  programs.screen.enable = lib.mkForce false;
+  services.locate.enable = lib.mkForce false;
+  services.openssh.enable = false;
+  documentation.man.cache.enable = lib.mkForce false;
+  services.postfix.enable = lib.mkForce false;
+  programs.nix-index.enable = lib.mkForce false;
+  systemd.timers.nix-index.enable = false;
+  home-manager.users.root = lib.mkForce { };
 }

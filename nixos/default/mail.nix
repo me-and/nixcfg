@@ -29,12 +29,14 @@ in
   };
 
   # Always want to be able to use `mail` to send emails.
-  environment.systemPackages = [ pkgs.mailutils ];
-  environment.etc = lib.mkIf hasFqdn {
-    "mailutils.conf".text = ''
-      address {
-        email-domain ${fqdn};
-      };
-    '';
+  environment = lib.mkIf config.services.postfix.enable {
+    systemPackages = [ pkgs.mailutils ];
+    etc = lib.mkIf hasFqdn {
+      "mailutils.conf".text = ''
+        address {
+          email-domain ${fqdn};
+        };
+      '';
+    };
   };
 }
