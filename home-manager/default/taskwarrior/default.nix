@@ -474,6 +474,7 @@ in
     ] "Instead, set programs.taskwarrior.backup as required.")
     ./backup.nix
     ./project-check.nix
+    ./create-recurring.nix
   ];
 
   options.programs.taskwarrior = {

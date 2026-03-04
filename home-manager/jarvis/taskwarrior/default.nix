@@ -1,5 +1,7 @@
 { config, pkgs, ... }:
 {
+  programs.taskwarrior.recurrence.systemdSchedule.enable = true;
+
   home.file.".config/systemd/user/timers.target.wants/taskwarrior-monthly.timer".source =
     config.home.file.".config/systemd".source + "/user/taskwarrior-monthly.timer";
 
@@ -13,16 +15,6 @@
 
   systemd.user = {
     services = {
-      taskwarrior-create-recurring-tasks = {
-        Unit = {
-          Description = "Create recurring Taskwarrior tasks";
-          Wants = [ "taskwarrior-sync.service" ];
-          After = [ "taskwarrior-sync.service" ];
-          OnSuccess = [ "taskwarrior-sync.service" ];
-        };
-        Service.Type = "oneshot";
-        Service.ExecStart = "${config.programs.taskwarrior.package}/bin/task rc.recurrence=true ids";
-      };
       taskwarrior-check-active-tasks = {
         Unit = {
           Description = "Check for Taskwarrior tasks that have been active too long";
@@ -81,16 +73,6 @@
     };
 
     timers = {
-      taskwarrior-create-recurring-tasks = {
-        Unit.Description = "Regularly create recurring Taskwarrior tasks";
-        Install.WantedBy = [ "timers.target" ];
-        Timer = {
-          OnActiveSec = "0s";
-          OnUnitInactiveSec = "8h";
-          RandomizedDelaySec = "8h";
-          AccuracySec = "8h";
-        };
-      };
       taskwarrior-check-active-tasks = {
         Unit.Description = "Regularly check for tasks that have been active too long";
         Install.WantedBy = [ "timers.target" ];
