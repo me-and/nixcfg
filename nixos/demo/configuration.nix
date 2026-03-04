@@ -1,4 +1,4 @@
-{ config, pkgs, modulesPath, personalCfg, ... }:
+{ config, lib, pkgs, modulesPath, personalCfg, ... }:
 {
   imports = [
     "${modulesPath}/virtualisation/qemu-vm.nix"
