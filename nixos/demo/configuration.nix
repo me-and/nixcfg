@@ -27,7 +27,7 @@
       fi
     '';
   in {
-    systemPackages = [ resize ];
+    systemPackages = [ resize pkgs.gh ];
     loginShellInit = "${resize}/bin/resize";
   };
 
