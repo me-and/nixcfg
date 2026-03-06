@@ -146,7 +146,7 @@ writeCheckedShellApplication {
     case "$command" in
     "")
         echo 'No command specified' >&2
-        return 64  # EX_USAGE
+        exit 64  # EX_USAGE
         ;;
     list)
         operons_list "$@";;
@@ -166,7 +166,7 @@ writeCheckedShellApplication {
         operons_count "$@";;
     *)
         echo "Unrecognised command $command" >&2
-        return 64  # EX_USAGE
+        exit 64  # EX_USAGE
         ;;
     esac
   '';
