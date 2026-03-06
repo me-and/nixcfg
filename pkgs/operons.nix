@@ -65,6 +65,23 @@ writeCheckedShellApplication {
         done
     }
 
+    operons_info () {
+        if [[ -t 0 ]]; then
+            _operons_info_unpaged "$@" | less -R
+        else
+            _operons_info_unpaged "$@"
+        fi
+    }
+
+    _operons_info_unpaged () {
+        local commands=(-print0)
+        _operons_act commands "$@" | sort -z | while read -rd "" f; do
+            printf '%s\n' "$f"
+            operon info "$f"
+            echo
+        done
+    }
+
     operons_onetag () {
         local escape="" file_name="" output
         local opt OPTIND=1 OPTARG
@@ -150,6 +167,8 @@ writeCheckedShellApplication {
         ;;
     list)
         operons_list "$@";;
+    info)
+        operons_info "$@";;
     onetag)
         operons_onetag "$@";;
     clear)
