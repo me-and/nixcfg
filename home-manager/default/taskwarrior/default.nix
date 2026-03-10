@@ -316,6 +316,10 @@ let
       # I do care about age, I want older tasks to bubble up to the top of
       # my queue.
       age.coefficient = 3;
+
+      # I think the default for active might be too high for me.  Let's tweak
+      # it...
+      active.coefficient = 1.8;
     };
 
     # Disable nagging: I don't want to be told if I'm not completing the
