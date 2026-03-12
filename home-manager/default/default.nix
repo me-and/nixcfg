@@ -53,6 +53,7 @@
         nix-dangling-roots
         nix-locate-bin
         nom
+        select-by-weight
         toil
       ]);
 
