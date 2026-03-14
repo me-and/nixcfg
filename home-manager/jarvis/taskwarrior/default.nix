@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   programs.taskwarrior.recurrence.systemdSchedule.enable = true;
 
@@ -67,7 +72,7 @@
         Unit.OnSuccess = [ "taskwarrior-sync.service" ];
         Service = {
           Type = "oneshot";
-          # ExecStart defined in the private flake.
+          ExecStart = lib.getExe pkgs.privatepkgs.taskwarrior-from-emails;
           ExecStartPost = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
         };
       };
