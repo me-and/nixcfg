@@ -26,7 +26,7 @@ let
 
       config = {
         goimapnotify = lib.mkIf config.syncToPrimary.enable {
-          boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e ${lib.escapeShellArg name} -i";
+          boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -w -e ${lib.escapeShellArg name} -i";
         };
       };
     };
@@ -68,7 +68,7 @@ in
     services.goimapnotify.enable = true;
     accounts.email.accounts = {
       main.goimapnotify.boxes = {
-        INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -i";
+        INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -w -i";
       };
 
       pd = {

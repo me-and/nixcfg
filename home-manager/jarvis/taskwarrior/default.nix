@@ -8,9 +8,10 @@
   accounts.email.accounts = {
     taskwarrior = {
       enable = true;
-      goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
+      goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -w -e taskwarrior -i";
     };
-    main.goimapnotify.boxes.TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
+    main.goimapnotify.boxes.TaskWarrior.onNewMail =
+      "${pkgs.mypkgs.mailsync}/bin/mailsync -w TaskWarrior";
   };
 
   systemd.user = {
