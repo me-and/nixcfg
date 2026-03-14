@@ -91,26 +91,65 @@ lib.mkIf config.programs.offlineimap.enable {
                   "SIGINT"
                   "SIGPIPE"
                 ];
-                ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-                  name = "sync-offlineimap-folder-${name}.sh";
-                  runtimeInputs = [
-                    pkgs.util-linux
-                    config.programs.offlineimap.package
-                  ];
-                  text = ''
-                    mkdir -p -- ${lib.escapeShellArg maildir}
-                    while :; do
-                        labels=()
-                        while read -rt1 label; do
-                            labels+=("$label")
+                ExecStart =
+                  let
+                    script = pkgs.mypkgs.writeCheckedShellScript {
+                      name = "sync-offlineimap-folder-${name}.sh";
+                      runtimeInputs = [
+                        pkgs.util-linux
+                        config.programs.offlineimap.package
+                      ];
+                      text = ''
+                        maildir=${lib.escapeShellArg maildir}
+                        mkdir -p -- "$maildir"
+                        exec {maildir_fd}<"$maildir"
+
+                        # We don't read directly from the socket, as that would get
+                        # in the way of systemd's socket management, but do use it
+                        # as an obvious path to flock to prevent simultaneous
+                        # access to the socket.
+                        socket="$1"
+                        exec {socket_fd}<"$socket"
+
+                        while :; do
+                            # Get the flock for the socket.  This ensures there's
+                            # nothing else writing to or reading from the socket,
+                            # so we can be sure to get a complete list of labels
+                            # and to avoid partial reads where some other process
+                            # reads something else from the pipe.
+                            flock -x "$socket_fd"
+
+                            labels=()
+                            while read -rt0; do
+                                # Get the flock for the mail folder now if we don't
+                                # already have it.  If we waited until we were
+                                # actually syncing, and we end up waiting a while
+                                # for some other process to release the lock, other
+                                # labels might be added to the list to sync while
+                                # we're waiting.  This way, we can sync those
+                                # folders in parallel.
+                                flock -x "$maildir_fd"
+
+                                read -r label
+                                labels+=("$label")
+                            done
+                            flock -u "$socket_fd"
+
+                            (( "''${#labels[*]}" > 0 )) || exit 0
+                            IFS=,;
+                            printf "labels: %s\n" "''${labels[*]}"
+                            offlineimap -u basic -o -k mbnames:enabled=no -a ${lib.escapeShellArg name} -f "''${labels[*]}"
+
+                            # Release the lock on the mail folder.  We might be
+                            # about to grab it again, but this gives other
+                            # processes that might be waiting for the lock a chance
+                            # to grab it.
+                            flock -u "$maildir_fd"
                         done
-                        (( "''${#labels[*]}" > 0 )) || exit 0
-                        IFS=,;
-                        printf "labels: %s\n" "''${labels[*]}"
-                        flock -Fx ${lib.escapeShellArg maildir} offlineimap -u basic -o -k mbnames:enabled=no -a ${lib.escapeShellArg name} -f "''${labels[*]}"
-                    done
-                  '';
-                };
+                      '';
+                    };
+                  in
+                  "${script} %t/offlineimapsync/%i";
                 ExecStop = stopSyncScript;
               };
             };

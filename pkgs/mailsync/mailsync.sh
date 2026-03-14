@@ -98,6 +98,14 @@ else
 		exit 1
 	fi
 
+	# Get a flock for the socket.  It seems unlikely, but it's good
+	# practice to make sure nothing else is writing to the socket at the
+	# same time in case something strange happens, and it also lets us
+	# indicate to the other end of the socket that it can read a complete
+	# list of labels.
+	exec {flock_fd}<"$socket_path"
+	flock -x "$flock_fd"
+
 	# Sync any folders requested by name.  Note names with an '&' in them need to
 	# be translated to the format used by the remote end; this should match
 	# translations in the OfflineIMAP config file.
@@ -109,6 +117,8 @@ else
 	for arg in "${folders[@]}"; do
 		echo "$arg" >"$socket_path"
 	done
+
+	flock -u "$flock_fd"
 
 	# Writing to the socket should have started the unit anyway, but running
 	# systemctl will (a) make sure we block if we've been asked to, and (b) make

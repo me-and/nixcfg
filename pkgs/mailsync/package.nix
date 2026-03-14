@@ -4,6 +4,7 @@
   runtimeShell,
   systemd,
   coreutils,
+  util-linux,
 }:
 substCheckedShellApplication {
   name = "mailsync";
@@ -13,6 +14,7 @@ substCheckedShellApplication {
     PATH = lib.makeBinPath [
       systemd
       coreutils
+      util-linux # flock
     ];
   };
 }
