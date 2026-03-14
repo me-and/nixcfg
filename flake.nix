@@ -87,11 +87,6 @@
           me = "adam";
         };
 
-        lucy = {
-          system = "aarch64-linux";
-          me = "adam";
-        };
-
         marvin = {
           system = "x86_64-linux";
           me = "adam";
