@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   programs.taskwarrior.recurrence.systemdSchedule.enable = true;
 
@@ -8,9 +13,10 @@
   accounts.email.accounts = {
     taskwarrior = {
       enable = true;
-      goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
+      goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -w -e taskwarrior -i";
     };
-    main.goimapnotify.boxes.TaskWarrior.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
+    main.goimapnotify.boxes.TaskWarrior.onNewMail =
+      "${pkgs.mypkgs.mailsync}/bin/mailsync -w TaskWarrior";
   };
 
   systemd.user = {
@@ -66,7 +72,7 @@
         Unit.OnSuccess = [ "taskwarrior-sync.service" ];
         Service = {
           Type = "oneshot";
-          # ExecStart defined in the private flake.
+          ExecStart = lib.getExe pkgs.privatepkgs.taskwarrior-from-emails;
           ExecStartPost = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
         };
       };
