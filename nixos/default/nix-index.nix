@@ -19,6 +19,8 @@ lib.mkMerge [
         pkgs.jq
       ];
       serviceConfig.Type = "oneshot";
+      serviceConfig.Nice = 19;
+      serviceConfig.IOSchedulingClass = "idle";
       serviceConfig.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "update-nix-index.sh";
         text = ''
