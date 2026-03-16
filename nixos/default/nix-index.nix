@@ -45,6 +45,28 @@ lib.mkMerge [
               fi
           }
 
+          # nix-index likes to use carriage return in its output.  That's not
+          # very useful when logs are going to the system journal, as it
+          # results in the output mostly saying "[... blob data]".  Use `tr`
+          # to prevent that.  The "generating index" part is also very noisy,
+          # so only output one line of that output every ten seconds.
+          #
+          # Use stdbuf to ensure lines are written to the journal promptly.
+          process_stderr () {
+              SECONDS=10
+              stdbuf -oL tr '\r' '\n' |
+                  while read -r line; do
+                      if [[ "$line" = '+ generating index: '* ]]; then
+                          if (( SECONDS >= 10 )); then
+                              SECONDS=0
+                              printf '%s\n' "$line"
+                          fi
+                      else
+                          printf '%s\n' "$line"
+                      fi
+                  done
+          }
+
           do_cache_update () {
               mkdir -p -- "$NIX_INDEX_DATABASE"
 
@@ -58,13 +80,18 @@ lib.mkMerge [
               rm -rf -- "$NIX_INDEX_DATABASE"/tmp.nix-index.*
               tmpdir="$(mktemp --dir "$NIX_INDEX_DATABASE"/tmp.nix-index.XXXXX)"
 
-              # nix-index likes to use carriage return in its output.  That's not
-              # very useful when logs are going to the system journal, as it
-              # results in the output mostly saying "[... blob data]".  Use `tr`
-              # to prevent that.  See https://www.shellcheck.net/wiki/SC2312 for
-              # more info on the exec approach being taken.
+              # Exec trick based on https://www.shellcheck.net/wiki/SC2312:
+              # create a new file descriptor that points to a background
+              # process running the process_stderr function and sending its
+              # output to our current stderr.  Then send stderr from nix-index
+              # to that file descriptor; running nix-index directly means if it
+              # produces a non-zero exit code, that'll be caught by the script
+              # directly.  Once nix-index finishes, close the file descriptor
+              # and wait for the process to end; the wait command will give us
+              # the exit code from that background process.
+              #
               # shellcheck disable=SC2312
-              exec {stderr_wrangling_fd}> >(tr '\r' '\n' >&2)
+              exec {stderr_wrangling_fd}> >(process_stderr >&2)
               stderr_wrangling_pid="$!"
               nix-index --db "$tmpdir" --nixpkgs "$nixpkgs_path" 2>&"$stderr_wrangling_fd"
               exec {stderr_wrangling_fd}>&-
