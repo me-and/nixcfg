@@ -94,8 +94,18 @@ let
     systemd.services.cups.enableStrictShellChecks = false; # TODO fix
   };
 in
-lib.mkMerge [
-  loopDeviceConfig
-  mailStateConfig
-  shellcheckConfig
-]
+{
+  options.systemd.services = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.submodule {
+        serviceConfig.SyslogIdentifier = lib.mkDefault "%N";
+      }
+    );
+  };
+
+  config = lib.mkMerge [
+    loopDeviceConfig
+    mailStateConfig
+    shellcheckConfig
+  ];
+}
