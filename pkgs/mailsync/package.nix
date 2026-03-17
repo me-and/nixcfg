@@ -14,7 +14,6 @@ substCheckedShellApplication {
     PATH = lib.makeBinPath [
       systemd
       coreutils
-      util-linux # flock
     ];
   };
 }

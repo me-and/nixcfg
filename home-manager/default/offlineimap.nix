@@ -92,8 +92,7 @@ lib.mkIf config.programs.offlineimap.enable {
                   "SIGPIPE"
                 ];
                 ExecStart =
-                  let
-                    script = pkgs.mypkgs.writeCheckedShellScript {
+                    pkgs.mypkgs.writeCheckedShellScript {
                       name = "sync-offlineimap-folder-${name}.sh";
                       runtimeInputs = [
                         pkgs.util-linux
@@ -104,21 +103,7 @@ lib.mkIf config.programs.offlineimap.enable {
                         mkdir -p -- "$maildir"
                         exec {maildir_fd}<"$maildir"
 
-                        # We don't read directly from the socket, as that would get
-                        # in the way of systemd's socket management, but do use it
-                        # as an obvious path to flock to prevent simultaneous
-                        # access to the socket.
-                        socket="$1"
-                        exec {socket_fd}<"$socket"
-
                         while :; do
-                            # Get the flock for the socket.  This ensures there's
-                            # nothing else writing to or reading from the socket,
-                            # so we can be sure to get a complete list of labels
-                            # and to avoid partial reads where some other process
-                            # reads something else from the pipe.
-                            flock -x "$socket_fd"
-
                             labels=()
                             while read -rt0; do
                                 # Get the flock for the mail folder now if we don't
@@ -133,7 +118,6 @@ lib.mkIf config.programs.offlineimap.enable {
                                 read -r label
                                 labels+=("$label")
                             done
-                            flock -u "$socket_fd"
 
                             (( "''${#labels[*]}" > 0 )) || exit 0
                             IFS=,;
@@ -148,8 +132,6 @@ lib.mkIf config.programs.offlineimap.enable {
                         done
                       '';
                     };
-                  in
-                  "${script} %t/offlineimapsync/%i";
                 ExecStop = stopSyncScript;
               };
             };
