@@ -91,47 +91,46 @@ lib.mkIf config.programs.offlineimap.enable {
                   "SIGINT"
                   "SIGPIPE"
                 ];
-                ExecStart =
-                    pkgs.mypkgs.writeCheckedShellScript {
-                      name = "sync-offlineimap-folder-${name}.sh";
-                      runtimeInputs = [
-                        pkgs.util-linux
-                        config.programs.offlineimap.package
-                      ];
-                      text = ''
-                        maildir=${lib.escapeShellArg maildir}
-                        mkdir -p -- "$maildir"
-                        exec {maildir_fd}<"$maildir"
+                ExecStart = pkgs.mypkgs.writeCheckedShellScript {
+                  name = "sync-offlineimap-folder-${name}.sh";
+                  runtimeInputs = [
+                    pkgs.util-linux
+                    config.programs.offlineimap.package
+                  ];
+                  text = ''
+                    maildir=${lib.escapeShellArg maildir}
+                    mkdir -p -- "$maildir"
+                    exec {maildir_fd}<"$maildir"
 
-                        while :; do
-                            labels=()
-                            while read -rt0; do
-                                # Get the flock for the mail folder now if we don't
-                                # already have it.  If we waited until we were
-                                # actually syncing, and we end up waiting a while
-                                # for some other process to release the lock, other
-                                # labels might be added to the list to sync while
-                                # we're waiting.  This way, we can sync those
-                                # folders in parallel.
-                                flock -x "$maildir_fd"
+                    while :; do
+                        labels=()
+                        while read -rt0; do
+                            # Get the flock for the mail folder now if we don't
+                            # already have it.  If we waited until we were
+                            # actually syncing, and we end up waiting a while
+                            # for some other process to release the lock, other
+                            # labels might be added to the list to sync while
+                            # we're waiting.  This way, we can sync those
+                            # folders in parallel.
+                            flock -x "$maildir_fd"
 
-                                read -r label
-                                labels+=("$label")
-                            done
-
-                            (( "''${#labels[*]}" > 0 )) || exit 0
-                            IFS=,;
-                            printf "labels: %s\n" "''${labels[*]}"
-                            offlineimap -u basic -o -k mbnames:enabled=no -a ${lib.escapeShellArg name} -f "''${labels[*]}"
-
-                            # Release the lock on the mail folder.  We might be
-                            # about to grab it again, but this gives other
-                            # processes that might be waiting for the lock a chance
-                            # to grab it.
-                            flock -u "$maildir_fd"
+                            read -r label
+                            labels+=("$label")
                         done
-                      '';
-                    };
+
+                        (( "''${#labels[*]}" > 0 )) || exit 0
+                        IFS=,;
+                        printf "labels: %s\n" "''${labels[*]}"
+                        offlineimap -u basic -o -k mbnames:enabled=no -a ${lib.escapeShellArg name} -f "''${labels[*]}"
+
+                        # Release the lock on the mail folder.  We might be
+                        # about to grab it again, but this gives other
+                        # processes that might be waiting for the lock a chance
+                        # to grab it.
+                        flock -u "$maildir_fd"
+                    done
+                  '';
+                };
                 ExecStop = stopSyncScript;
               };
             };
