@@ -40,6 +40,9 @@ lib.mkIf cfg.enable {
       # Links that Windows keeps creating and are system-specific.
       "*.lnk"
 
+      # Generic temporary files.
+      "*.tmp"
+
       # Temporary editor files.
       "~$*"
       ".~lock.*#"
