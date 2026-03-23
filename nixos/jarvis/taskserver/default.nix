@@ -44,7 +44,10 @@ in
       ];
     in
     {
-      wants = deps;
-      after = deps;
+      wants = [
+        "acme-${cfg.fqdn}.service"
+        "acme-order-renew-${cfg.fqdn}.service"
+      ];
+      after = [ "acme-${cfg.fqdn}.service" ];
     };
 }
