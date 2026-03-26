@@ -94,11 +94,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773935367,
-        "narHash": "sha256-+RjULqqbCYmOJG+99pNqEGRJV7bX8DYPbxKUhKWFKsI=",
+        "lastModified": 1774539458,
+        "narHash": "sha256-H9GIOqdMfQZ6lFetsQhO9TCq53hYzpTHDWOt3PRh9V0=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "a7ec5440474cdcc9939cc67c320f01aea0a2f195",
+        "rev": "e2e5f512b33ed19a7a3271d0b73ed5eefcc0be5f",
         "type": "github"
       },
       "original": {
@@ -124,11 +124,11 @@
     },
     "nixos-hardware": {
       "locked": {
-        "lastModified": 1773533765,
-        "narHash": "sha256-qonGfS2lzCgCl59Zl63jF6dIRRpvW3AJooBGMaXjHiY=",
+        "lastModified": 1774465523,
+        "narHash": "sha256-4v7HPm63Q90nNn4fgkgKsjW1AH2Klw7XzPtHJr562nM=",
         "owner": "NixOS",
         "repo": "nixos-hardware",
-        "rev": "f8e82243fd601afb9f59ad230958bd073795cbfe",
+        "rev": "de895be946ad1d8aafa0bb6dfc7e7e0e9e466a29",
         "type": "github"
       },
       "original": {
@@ -139,11 +139,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1773821835,
-        "narHash": "sha256-TJ3lSQtW0E2JrznGVm8hOQGVpXjJyXY2guAxku2O9A4=",
+        "lastModified": 1774386573,
+        "narHash": "sha256-4hAV26quOxdC6iyG7kYaZcM3VOskcPUrdCQd/nx8obc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "b40629efe5d6ec48dd1efba650c797ddbd39ace0",
+        "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
         "type": "github"
       },
       "original": {
@@ -224,11 +224,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773889674,
-        "narHash": "sha256-+ycaiVAk3MEshJTg35cBTUa0MizGiS+bgpYw/f8ohkg=",
+        "lastModified": 1774303811,
+        "narHash": "sha256-fhG4JAcLgjKwt+XHbjs8brpWnyKUfU4LikLm3s0Q/ic=",
         "owner": "Mic92",
         "repo": "sops-nix",
-        "rev": "29b6519f3e0780452bca0ac0be4584f04ac16cc5",
+        "rev": "614e256310e0a4f8a9ccae3fa80c11844fba7042",
         "type": "github"
       },
       "original": {
@@ -270,11 +270,11 @@
     "user-systemd-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1773869014,
-        "narHash": "sha256-Lfa32aKhLD38A7UMg6zSRBO7R5MULrMj7VTVexh5MCM=",
+        "lastModified": 1774547345,
+        "narHash": "sha256-icxX/n9m59V9StwNJdu1zTUN3N8xCugdFyQYsFmGiUQ=",
         "owner": "me-and",
         "repo": "user-systemd-config",
-        "rev": "cbf411b22d91e64b5c01369f2f27dbe74b9ab45b",
+        "rev": "8db8f5343e7ed5cf12cdc2df6840e18816e417b0",
         "type": "github"
       },
       "original": {
