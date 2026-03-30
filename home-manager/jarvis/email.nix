@@ -148,14 +148,22 @@ in
       }
     ) syncingAccounts;
 
-    systemd.user.timers."offlineimap-full@main" = {
-      Timer = {
-        OnActiveSec = "0s";
-        OnUnitInactiveSec = "1h";
-        AccuracySec = "1h";
-        RandomizedDelaySec = "1h";
-      };
-      Install.WantedBy = [ "timers.target" ];
-    };
+    systemd.user.timers = lib.concatMapAttrs (
+      n: v:
+      let
+        escapedName = mylib.escapeSystemdString v.name;
+      in
+      {
+        "offlineimap-full@${escapedName}" = {
+          Timer = {
+            OnActiveSec = "0s";
+            OnUnitInactiveSec = "1h";
+            AccuracySec = "1h";
+            RandomizedDelaySec = "1h";
+          };
+          Install.WantedBy = [ "timers.target" ];
+        };
+      }
+    ) (lib.filterAttrs (n: v: v.enable && v.offlineimap.enable) accountsCfg);
   };
 }
