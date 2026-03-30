@@ -86,7 +86,7 @@ full_report () {
 	elif [[ "$recurse" ]]; then
 		found_subdir=
 		for subdir in "$dir"/*; do
-			if [[ -d "$subdir" ]]; then
+			if [[ -d "$subdir" && ! -L "$subdir" ]]; then
 				full_report "$subdir" | head_and_indent "${subdir#./}"
 				found_subdir=Yes
 			fi
