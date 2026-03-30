@@ -58,24 +58,6 @@ in
   # Make sure `apropos` and similar work.
   documentation.man.cache.enable = true;
 
-  nix.settings = {
-    trusted-users = [ "@wheel" ];
-    sandbox = "relaxed";
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-
-  # Prioritize non-build work.
-  nix.daemonIOSchedPriority = 7;
-  nix.daemonCPUSchedPolicy = "batch";
-  systemd.services.nix-daemon.serviceConfig = {
-    OOMScoreAdjust = 500;
-    ManagedOOMMemoryPressure = "kill";
-    ManagedOOMSwap = "kill";
-  };
-
   # Make sure all the systemd units for time wrangling that I care about get
   # included.
   systemd.additionalUpstreamSystemUnits = [
@@ -99,9 +81,6 @@ in
     "gitlab.com".publicKey =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf";
   };
-
-  # Using flakes so have no need for channels.
-  nix.channel.enable = false;
 
   services.nix-serve = {
     openFirewall = true;
