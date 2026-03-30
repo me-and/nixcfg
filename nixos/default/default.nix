@@ -70,7 +70,11 @@ in
   # Prioritize non-build work.
   nix.daemonIOSchedPriority = 7;
   nix.daemonCPUSchedPolicy = "batch";
-  systemd.services.nix-daemon.serviceConfig.OOMScoreAdjust = 500;
+  systemd.services.nix-daemon.serviceConfig = {
+    OOMScoreAdjust = 500;
+    ManagedOOMMemoryPressure = "kill";
+    ManagedOOMSwap = "kill";
+  };
 
   # Make sure all the systemd units for time wrangling that I care about get
   # included.
