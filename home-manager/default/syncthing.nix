@@ -89,6 +89,10 @@ lib.mkIf cfg.enable {
       Unit.After = [ "syncthing-check-ignores.service" ];
       Unit.Requires = [ "syncthing-check-ignores.service" ];
       Unit.Wants = [ "syncthing-init.service" ];
+
+      # https://github.com/nix-community/home-manager/pull/9018
+      Unit.StartLimitIntervalSec = 60;
+      Unit.StartLimitBurst = 4;
     };
     syncthing-init = {
       Unit.After = [
