@@ -1,29 +1,24 @@
 # https://github.com/NixOS/nixpkgs/issues/502836
+# https://github.com/NixOS/nixpkgs/pull/458464
 final: prev:
 let
   inherit (final) lib;
-
-  patch = final.fetchpatch {
-    url = "https://github.com/quic-go/quic-go/commit/8bfbd717c8379913493f3d6a80a09eb901420030.patch";
-    hash = "sha256-ULNJ7j9/VKHpZK7m2O6jTeXk+xvpED03TE0xPdlAQZ0=";
-    stripLen = 1;
-    extraPrefix = "vendor/github.com/quic-go/quic-go/";
-  };
-
   overrideSyncthing =
     syncthing:
-    syncthing.overrideAttrs (prevAttrs: {
-      passthru = prevAttrs.passthru // {
-        overrideModAttrs = lib.composeExtensions prevAttrs.passthru.overrideModAttrs (
-          finalModAttrs: prevModAttrs: {
-            postBuild = ''
-              patch -p1 <${patch}
-            '';
-          }
-        );
-      };
-      vendorHash = "sha256-QTnVVsBDqnpup2PBxTMYh0UkhZ7e2Nh/lF83JU5h6K8=";
-    });
+    if lib.versionAtLeast syncthing.version "2.0.15" then
+      lib.warn "unnecessary syncthing overlay" syncthing
+    else
+      syncthing.overrideAttrs (
+        finalAttrs: prevAttrs: {
+          version = "2.0.15";
+          src = final.fetchFromGitHub {
+            inherit (prevAttrs.src) owner repo;
+            tag = "v${finalAttrs.version}";
+            hash = "sha256-v77ovjV+UoCRA1GteP+HDqC8dsRvtOhFX/IkSgSIf8Y=";
+          };
+          vendorHash = "sha256-boYTLgvH+iWlh3y3Z0LPvSVGEget3X94AthtJKphhCw=";
+        }
+      );
 in
 {
   syncthing = overrideSyncthing prev.syncthing;
