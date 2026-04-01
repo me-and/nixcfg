@@ -17,6 +17,14 @@ let
             hash = "sha256-v77ovjV+UoCRA1GteP+HDqC8dsRvtOhFX/IkSgSIf8Y=";
           };
           vendorHash = "sha256-boYTLgvH+iWlh3y3Z0LPvSVGEget3X94AthtJKphhCw=";
+
+          # https://github.com/NixOS/nixpkgs/pull/505674
+          # In particular, I want to be able to evaluate the aarch64 tests on
+          # x86_64 and vice versa, and the IFD that this test currently uses
+          # means that fails.
+          passthru = prevAttrs.passthru // {
+            tests = builtins.removeAttrs prevAttrs.passthru.tests [ "syncthing-folders" ];
+          };
         }
       );
 in
