@@ -13,5 +13,12 @@
     };
   };
 
-  programs.gh.enable = true;
+  programs.gh = {
+    enable = true;
+    extensions = with pkgs; [
+      gh-gonest
+      gh-notify
+      mypkgs.gh-pulls
+    ];
+  };
 }
