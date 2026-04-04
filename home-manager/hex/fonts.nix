@@ -7,4 +7,6 @@
     atkinson-hyperlegible-next
     cardo # Free digitisation of Bembo, aka Aldine 401
   ];
+
+  nixpkgs.config.allowUnfreePackages = [ "albertus" ];
 }

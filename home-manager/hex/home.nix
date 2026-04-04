@@ -83,6 +83,14 @@ in
       unison-nox
     ]);
 
+  nixpkgs.config.allowUnfreePackages = [
+    "azuredatastudio"
+    "castlabs-electron" # For tidal-hifi
+    "discord"
+    "makemkv"
+    "zoom"
+  ];
+
   programs.firefox.enable = true;
   programs.keepassxc.enable = true;
 

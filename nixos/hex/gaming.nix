@@ -9,6 +9,10 @@
     gamescopeSession.enable = true;
     protontricks.enable = true;
   };
+  nixpkgs.config.allowUnfreePackages = [
+    "steam"
+    "steam-unwrapped"
+  ];
 
   programs.gamescope = {
     enable = true;

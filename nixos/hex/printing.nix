@@ -6,4 +6,9 @@
     hplip # PD GOD HP printers
     cnijfilter2 # Colour printer in Preston
   ];
+
+  nixpkgs.config.allowUnfreePackages = [
+    "cups-kyocera-3500-4500"
+    "cnijfilter2"
+  ];
 }
