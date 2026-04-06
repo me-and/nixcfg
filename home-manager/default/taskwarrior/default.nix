@@ -342,39 +342,39 @@ let
         readFilter = s: "( ${s} ) or +inbox or ( +OVERDUE hiddenTags.noword:overdueallowed )";
       in
       {
-        evening-weekend.read = readFilter "-business -southport -dadford -work -office";
-        allotment.read = readFilter "-home -southport -dadford -enfield -work -office";
+        evening-weekend.read = readFilter "-business -southport -steeplechase -work -office";
+        allotment.read = readFilter "-home -southport -steeplechase -enfield -work -office";
         day-off = {
           # Prioritise things that can only be done in business hours.
-          read = readFilter "-southport -dadford -work -office";
+          read = readFilter "-southport -steeplechase -work -office";
           rc.urgency.user.tag.business.coefficient = 6;
         };
         work = {
           # Prioritise things that can only be done at work or in business
           # hours.
-          read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex";
+          read = readFilter "-southport -steeplechase -multivac -hex -allotment -nsfw -alex";
           rc.urgency.user.tag = {
             work.coefficient = 6;
             business.coefficient = 4;
           };
         };
-        dadford = {
+        steeplechase = {
           # Prioritise things that can only be done on site, and filter out
           # things that aren't urgent and aren't PD related.
-          read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +dadford or urgency>=6 or project.is:pd or project:pd. )";
-          write = "+dadford";
-          rc.urgency.user.tag.dadford.coefficient = 10;
+          read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +steeplechase or urgency>=6 or project.is:pd or project:pd. )";
+          write = "+steeplechase";
+          rc.urgency.user.tag.steeplechase.coefficient = 10;
         };
         southport = {
           # Prioritise things that can only be done in Southport.
-          read = readFilter "-allotment -enfield -dadford -home -work -office";
+          read = readFilter "-allotment -enfield -steeplechase -home -work -office";
           rc.urgency.user.tag.southport.coefficient = 20;
         };
-        bike.read = readFilter "-home -southport -dadford -enfield -work -office -car -multivac -cornwall -phone -alex";
-        bed.read = readFilter "-home -southport -dadford -enfield -daylight -work -office -pc -multivac -hex -audio -business -alex -car -cornwall -phone -surface";
+        bike.read = readFilter "-home -southport -steeplechase -enfield -work -office -car -multivac -cornwall -phone -alex";
+        bed.read = readFilter "-home -southport -steeplechase -enfield -daylight -work -office -pc -multivac -hex -audio -business -alex -car -cornwall -phone -surface";
         office = {
           # Prioritise things that can only be done in the office.
-          read = readFilter "-southport -dadford -multivac -hex -allotment -nsfw -alex -home -car";
+          read = readFilter "-southport -steeplechase -multivac -hex -allotment -nsfw -alex -home -car";
           rc.urgency.user.tag = {
             business.coefficient = 2;
             work.coefficient = 6;
@@ -389,7 +389,7 @@ let
       # urgencies don't seem to work.
       work.coefficient = 0;
       business.coefficient = 0;
-      dadford.coefficient = 0;
+      steeplechase.coefficient = 0;
       southport.coefficient = 0;
       office.coefficient = 0;
 
