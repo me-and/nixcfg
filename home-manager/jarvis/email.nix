@@ -107,12 +107,20 @@ in
             Type = "oneshot";
             ExecStart = pkgs.mypkgs.writeCheckedShellScript {
               name = "sync-to-main.sh";
-              runtimeInputs = [ pkgs.coreutils ];
+              runtimeInputs = [
+                pkgs.coreutils
+                pkgs.util-linux
+              ];
               text = ''
                 declare -r FROM_MAILDIR=${lib.escapeShellArg v.maildir.absPath}/INBOX
                 declare -r TO_MAILDIR=${lib.escapeShellArg primaryAccount.maildir.absPath}/INBOX
 
                 shopt -s nullglob
+
+                exec {from_flock_fd}<${lib.escapeShellArg v.maildir.absPath} {to_flock_fd}<${lib.escapeShellArg primaryAccount.maildir.absPath}
+                flock -x "$from_flock_fd"
+                flock -x "$to_flock_fd"
+
                 for f in "$FROM_MAILDIR"/new/* "$FROM_MAILDIR"/cur/*; do
                     new="$(mktemp -p "$TO_MAILDIR"/tmp)"
                     {
@@ -122,6 +130,9 @@ in
                     mv --no-clobber "$new" "$TO_MAILDIR"/new
                     rm "$f"
                 done
+
+                flock -u "$from_flock_fd"
+                flock -u "$to_flock_fd"
 
                 ${pkgs.mypkgs.mailsync}/bin/mailsync -i
                 ${pkgs.mypkgs.mailsync}/bin/mailsync -e ${lib.escapeShellArg v.name} -i
