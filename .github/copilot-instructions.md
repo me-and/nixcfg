@@ -98,6 +98,7 @@ Add packages under `pkgs/`. They are exposed as `legacyPackages.<system>` and `p
 
 - **`nixcfg-private`** (`github:me-and/nixcfg-private`) is pulled in as the `private` flake input. Configuration that shouldn't be public (e.g. email setup, personal network details) belongs there, not here.
 - **`nixcfg-alianza`** is a separate flake owned by Alianza that pulls *this* repo in as an input. Work/employer-specific configuration belongs there. Nothing Alianza-specific should be added to this public repository.
+- **`user-systemd-config`** (`github:me-and/user-systemd-config`) is pulled in as a non-flake input. It contains legacy static files that haven't yet been ported to Nix config. Nothing should be added there, but some of its files are used by this repo's configurations.
 
 See the "Secrets and privacy" section of `README.md` for the full breakdown of what belongs where.
 
