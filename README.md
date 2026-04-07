@@ -18,12 +18,12 @@ Be warned: this config gets used as much as a playground and a learning opportun
 *   `homeConfigurations`: my Home Manager configurations, with `<username>@<hostname>` keys (just because that's how Home Manager runs things by default).
 *   `nixosModules`:
     *   `default`: my common NixOS configuration.  This is a mix of configuration I always want, and configuration controlled by options.
-    *   `<hostname>`: the modules that define system-specific configurarion.
+    *   `<hostname>`: the modules that define system-specific configuration.
     *   `<taskname>`: modules for importing when I want a system to perform a particular task.
 *   `homeModules`:
     *   `default`: my common Home Manager configuration.  This is a mix of configuration I always want, and configuration controlled by options.
-    *   `<username>`: the modules that define configuation I want anywhere I'm using a given username.
-    *   `<hostname>`: the modules that define system-specific configurarion.
+    *   `<username>`: the modules that define configuration I want anywhere I'm using a given username.
+    *   `<hostname>`: the modules that define system-specific configuration.
     *   `<username>@<hostname>`: the modules that define configuration specific to a username and host combination.
     *   `<taskname>`: modules for importing when I want a system to perform a particular task.
 *   `overlays`: [Nixpkgs overlays][].  Mostly these change derivations to add patches or fixes I want, but `overlays.pkgs` adds the contents of `legacyPackages` as `pkgs.mypkgs`, and the contents of `lib` as `pkgs.mylib`.  Note the flake output is an attribute set, with the overlay functions as values, but most inputs that look for overlays expect a list of overlay functions.
@@ -46,7 +46,7 @@ Be warned: this config gets used as much as a playground and a learning opportun
     *   `<taskname>`: this contains configuration that can be imported for performing some specific task.
 *   `home-manager`:
     *   `default`: this contains a series of Home Manager modules that is common to all my Home Manager configs.
-    *   `<username>`, `<hostname>` or `<username>@hostname`: this contains the configuration for each system's Home Manager configuration, set in `home.nix`.
+    *   `<username>`, `<hostname>` or `<username>@<hostname>`: this contains the configuration for each system's Home Manager configuration, set in `home.nix`.
     *   `<taskname>`: this contains configuration that can be imported for performing some specific task.
 *   `checks`: any tests that don't automatically happen as part of any of the other parts.
 
