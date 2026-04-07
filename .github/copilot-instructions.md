@@ -94,6 +94,13 @@ No `imports = [...]` needed for auto-discovered paths — files are picked up au
 
 Add packages under `pkgs/`. They are exposed as `legacyPackages.<system>` and `packages.<system>`, and automatically included in `checks`. Use `writeCheckedShellApplication` / `writeCheckedShellScript` (from `mypkgs`) for shell scripts — these run shellcheck.
 
+### Related Repositories
+
+- **`nixcfg-private`** (`github:me-and/nixcfg-private`) is pulled in as the `private` flake input. Configuration that shouldn't be public (e.g. email setup, personal network details) belongs there, not here.
+- **`nixcfg-alianza`** is a separate flake owned by Alianza that pulls *this* repo in as an input. Work/employer-specific configuration belongs there. Nothing Alianza-specific should be added to this public repository.
+
+See the "Secrets and privacy" section of `README.md` for the full breakdown of what belongs where.
+
 ### Secrets (SOPS)
 
 Secrets are managed with `sops-nix`. Secrets files live in the private flake input (`github:me-and/nixcfg-private`).
