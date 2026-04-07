@@ -3,6 +3,9 @@
   pkgs,
   ...
 }:
+let
+  nixd = lib.getExe pkgs.nixd;
+in
 {
   programs.vim =
     let
@@ -14,8 +17,11 @@
         # later, with the plugin and the config kept together in a semi-modular
         # fashion.
         plugins = with pkgs.vimPlugins; [
+          asyncomplete-lsp-vim
+          asyncomplete-vim
           jq-vim
           plantuml-syntax
+          vim-lsp
           vim-nix
           vim-openscad
           # TODO: make vimtex conditional on whether latexmk is installed, since
@@ -135,10 +141,30 @@
           let g:sh_no_error = 1
         '';
       };
+
+      lspConfig = {
+        extraConfig = ''
+          " Register nixd as the language server for Nix files.
+          if executable('${nixd}')
+            au User lsp_setup call lsp#register_server({
+              \ 'name': 'nixd',
+              \ 'cmd': {server_info->['${nixd}']},
+              \ 'allowlist': ['nix'],
+              \ })
+          endif
+
+          " Use asyncomplete for automatic completion popups.
+          let g:asyncomplete_auto_popup = 1
+          inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+          inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+          inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
+        '';
+      };
     in
     lib.mkMerge [
       commonConfig
       configToReview
       rainbowConfig
+      lspConfig
     ];
 }
