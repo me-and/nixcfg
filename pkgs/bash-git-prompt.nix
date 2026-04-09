@@ -1,22 +1,22 @@
 {
   fetchFromGitHub,
-  runCommandLocal,
+  stdenvNoCC,
   python3,
 }:
-let
+stdenvNoCC.mkDerivation (finalAttrs: {
+  pname = "bash-git-prompt";
+  version = "2.7.1";
   src = fetchFromGitHub {
     owner = "magicmonty";
     repo = "bash-git-prompt";
-    tag = "2.7.1";
+    tag = finalAttrs.version;
     hash = "sha256-FWeYzISY4+cS2xg6skfcpTXgbkBs41E/EzEb3JNdFoQ=";
   };
-in
-runCommandLocal "bash-git-prompt"
-  {
-    buildInputs = [ python3 ];
-  }
-  ''
-    cp --reflink=auto -pr ${src} $out
-    chmod -R u+w $out
-    patchShebangs $out
-  ''
+  buildInputs = [ python3 ];
+  nativeBuildInputs = [ python3 ];
+  installPhase = ''
+    runHook preInstall
+    cp --reflink=auto -pr ./ $out
+    runHook postInstall
+  '';
+})
