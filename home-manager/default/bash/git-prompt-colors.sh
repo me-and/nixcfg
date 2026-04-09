@@ -29,6 +29,10 @@ override_git_prompt_colors() {
 
 	GIT_PROMPT_START_USER='_LAST_COMMAND_INDICATOR_ '"$HOST_COLOUR"'\u@\h '"$PWD_COLOUR"'\w'"$ResetColor"
 	GIT_PROMPT_START_ROOT="$GIT_PROMPT_START_USER"
+
+	# The default flag icon doesn't appear in many monospaced fonts, so
+	# substitute it with one from Nerd Fonts.
+	GIT_PROMPT_STASHED="${BoldBlue}"
 }
 
 prompt_callback() {
