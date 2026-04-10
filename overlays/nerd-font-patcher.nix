@@ -1,5 +1,5 @@
 # Avoid warnings about not being able to find glyphnames.json.
-# TODO: submit a patch to nixpkgs.
+# https://github.com/NixOS/nixpkgs/pull/508732
 final: prev: {
   nerd-font-patcher = prev.nerd-font-patcher.overrideAttrs (prevAttrs: {
     installPhase = prevAttrs.installPhase or "" + ''
