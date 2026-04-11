@@ -19,8 +19,10 @@ lib.mkIf cfg.enable {
     overrideFolders = lib.mkDefault true;
     settings.options.urAccepted = 3;
 
-    settings.gui.user = "adam";
-    passwordFile = config.sops.secrets.syncthing.path;
+    guiCredentials = {
+      username = "adam";
+      passwordFile = config.sops.secrets.syncthing.path;
+    };
 
     # The overrideFolders config means this isn't actually used except for
     # dynamically created folders during a Syncthing invocation, but it might
