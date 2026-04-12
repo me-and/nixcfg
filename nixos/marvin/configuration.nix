@@ -28,9 +28,8 @@
   networking.domain = "dinwoodie.org";
   networking.wireless.enable = true;
 
-  # TODO Set up certificates to enable this.
-  networking.pd.vpn = false;
-  networking.pd.gonzo = false;
+  networking.pd.vpn = true;
+  networking.pd.gonzo = true;
 
   programs.mosh.enable = true;
 
