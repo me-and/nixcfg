@@ -153,6 +153,29 @@
         "type": "github"
       }
     },
+    "octogram": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1776071008,
+        "narHash": "sha256-598AZJtHgeDU47cc9eHmuVDzgv5rkPiQMjooApxG8BU=",
+        "owner": "me-and",
+        "repo": "octogram",
+        "rev": "7e852729d99320678df7c78851ac9021b43a6338",
+        "type": "github"
+      },
+      "original": {
+        "owner": "me-and",
+        "repo": "octogram",
+        "type": "github"
+      }
+    },
     "plasma-manager": {
       "inputs": {
         "home-manager": [
@@ -189,11 +212,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1776023459,
-        "narHash": "sha256-JnEsPL1NMm1k64xzpnp19Chi5g1NoCXbOZ11ukjQK98=",
+        "lastModified": 1776072136,
+        "narHash": "sha256-y3JGzq66Dd5ESrlyc8lWcKrVQmPPka5OcxJ8WZMOeKQ=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "fc5702eddc4e139caaa24a5ea1b406cde8369caa",
+        "rev": "c7e3b7404c4fa68f95a28b1c40b01e17708f582f",
         "type": "github"
       },
       "original": {
@@ -209,6 +232,7 @@
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
+        "octogram": "octogram",
         "plasma-manager": "plasma-manager",
         "private": "private",
         "sops-nix": "sops-nix",
