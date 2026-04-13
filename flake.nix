@@ -28,6 +28,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+    octogram = {
+      url = "github:me-and/octogram";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -52,6 +57,7 @@
       winapps,
       wsl,
       plasma-manager,
+      octogram,
       private,
       user-systemd-config,
     }@inputs:
@@ -129,6 +135,7 @@
               disko
               sops-nix
               wsl
+              octogram
               self
               ;
             mylib = self.lib;
