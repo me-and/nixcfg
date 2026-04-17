@@ -17,5 +17,6 @@ in
       wsl = "wsl.exe";
       explorer = "explorer.exe";
     };
+    sessionVariables.BROWSER = lib.getExe pkgs.mypkgs.start;
   };
 }

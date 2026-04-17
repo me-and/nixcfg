@@ -55,19 +55,6 @@
       cp = "cp -i";
     };
 
-    # TODO Handle these paths in a more Nix-friendly fashion, and/or without
-    # using any Bashisms, since this is going in .profile rather than
-    # .bash_profile.
-    profileExtra = ''
-      if [[ -e /proc/sys/fs/binfmt_misc/WSLInterop || -e /proc/sys/fs/binfmt_misc/WSLInterop-late || -e /sbin/wslinfo ]]; then
-              # If BROWSER hasn't already been set somehow, check wslview is available,
-              # and set BROWSER to delegate to that.
-              if [[ ! -v BROWSER ]] && command -v wslview >/dev/null; then
-                      export BROWSER=wslview
-              fi
-      fi
-    '';
-
     initExtra = ''
       # Function for neater wrapping of messages various.  Use with a here document
       # or here string.
