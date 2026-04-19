@@ -40,7 +40,6 @@ let
             "${script} %f";
           ExecReload = "/run/current-system/sw/bin/kill -HUP $MAINPID";
         };
-        Install.WantedBy = [ "default.target" ];
       };
     };
 
