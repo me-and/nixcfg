@@ -38,6 +38,11 @@ in
             --set-default SSL_CERT_DIR ${cacert}/etc/ssl/certs \
             --prefix PATH : ${lib.makeBinPath [ bash ]}
         '';
+
+        # Permit builds of the package as part of `nix flake check`.
+        meta = prevAttrs.meta // {
+          license = final.mylib.licenses.licensedToMe;
+        };
       }
   );
 }
