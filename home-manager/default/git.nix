@@ -18,7 +18,7 @@
     extensions = with pkgs; [
       gh-gonest
       gh-notify
-      mypkgs.gh-pulls
+      privatepkgs.gh-report-issues
     ];
   };
 }
