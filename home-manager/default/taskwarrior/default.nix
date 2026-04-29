@@ -311,7 +311,7 @@ let
 
       # Bump the priority of things that make my living space more pleasant,
       # because that's currently A Problem.
-      user.tag.ufyh.coefficient = 1.8;
+      user.tag.ufyh.coefficient = 3.6;
 
       # I do care about age, I want older tasks to bubble up to the top of
       # my queue.
