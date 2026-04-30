@@ -15,20 +15,24 @@ lib.mkIf config.programs.offlineimap.enable {
           runtimeInputs = with pkgs; [
             procps
             coreutils
+            util-linux
           ];
           text = ''
             [[ -v MAINPID ]] || exit 0
-            pkill -P "$MAINPID" -xo offlineimap
-            rc=0
-            timeout 8m tail -f --pid "$MAINPID" /dev/null || rc="$?"
-            if (( rc == 124 )); then
-                pkill -P "$MAINPID" -xo offlineimap
-                pkill -P "$MAINPID" -xo offlineimap
-                pkill -P "$MAINPID" -xo offlineimap
-                exec timeout 1m tail -f --pid "$MAINPID"
-            else
-                exit "$rc"
+
+            if ! offlineimap_pid="$(pgrep -P "$MAINPID" -o offlineimap)"; then
+                offlineimap_pid="$MAINPID"
             fi
+
+            kill "$offlineimap_pid"
+            rc=0
+            waitpid --timeout "$(( 8 * 60 ))" "$MAINPID" || rc="$?"
+            (( rc == 3 )) || exit "$rc"
+
+            kill "$offlineimap_pid"
+            kill "$offlineimap_pid"
+            kill "$offlineimap_pid"
+            exec waitpid --timeout 60 "$MAINPID"
           '';
         };
         perAccountServices =
