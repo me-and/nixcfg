@@ -53,6 +53,7 @@ in
       calibre
       cardimpose
       cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
+      chromium
       discord
       freecad
       gnucash
