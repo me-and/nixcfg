@@ -70,6 +70,10 @@ in
   # Make sure my user account can access the scanner directory.
   users.users."${me}".extraGroups = [ scannerUserGroup ];
 
+  # Make sure login works.
+  # https://github.com/NixOS/nixpkgs/issues/515531
+  security.pam.services.vsftpd.enable = true;
+
   # Set up the systemd service that will copy files from the FTP directory to
   # my documents folder
   systemd.services.scan-to-docs = {
