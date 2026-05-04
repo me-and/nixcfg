@@ -99,5 +99,10 @@
     # TODO
     # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.firefox.policies
     # policies = ...
+
+    configPath = lib.warnIf (lib.versionAtLeast config.home.stateVersion "26.05") ''
+      Unnecessary manual handling of `programs.firefox.configPath` now that
+      `home.stateVersion` is 26.05 or higher.
+    '' "${config.xdg.configHome}/mozilla/firefox";
   };
 }
