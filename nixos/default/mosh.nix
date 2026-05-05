@@ -17,22 +17,24 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.portRange != null) {
-      # Don't use the default port configuration.
-      programs.mosh.openFirewall = false;
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      (lib.mkIf (cfg.portRange != null) {
+        # Don't use the default port configuration.
+        programs.mosh.openFirewall = false;
 
-      networking.firewall.allowedUDPPortRanges = [ cfg.portRange ];
-    })
+        networking.firewall.allowedUDPPortRanges = [ cfg.portRange ];
+      })
 
-    {
-      programs.mosh.package = pkgs.mypkgs.mosh;
+      {
+        programs.mosh.package = pkgs.mypkgs.mosh;
 
-      # https://github.com/NixOS/nixpkgs/pull/515070
-      environment.sessionVariables = {
-        MOSH_SERVER_NETWORK_TMOUT = 60 * 60;
-        MOSH_SERVER_SIGNAL_TMOUT = 60;
-      };
-    }
-  ];
+        # https://github.com/NixOS/nixpkgs/pull/515070
+        environment.sessionVariables = lib.mkIf cfg.enable {
+          MOSH_SERVER_NETWORK_TMOUT = 60 * 60;
+          MOSH_SERVER_SIGNAL_TMOUT = 60;
+        };
+      }
+    ]
+  );
 }
