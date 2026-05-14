@@ -2,9 +2,8 @@ name: Update flake inputs
 
 on:
   schedule:
-    - cron: "0 6 * * 1" # Monday 6am UTC
+    - cron: "48 23 * * 6" # Weekly, randomly chosen
   workflow_dispatch:
-  # TODO Remove this because I don't want to run on every push once this is in main
   push:
 
 permissions:
@@ -27,6 +26,7 @@ jobs:
       - name: Configure git
         # TODO Which `git` is this using?
         run: |
+          which git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Switch to update branch
@@ -60,6 +60,7 @@ jobs:
         # TODO Should this be using nixpkgs' gh?
         # TODO Remove --dry-run
         run: |
+          which gh
           gh pr create \
             --title "flake: update flake inputs" \
             --body "Automated weekly update of flake inputs via \`nix flake update --commit-lock-file\`." \
