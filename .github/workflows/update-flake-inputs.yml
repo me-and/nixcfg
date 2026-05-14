@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "0 6 * * 1" # Monday 6am UTC
   workflow_dispatch:
+  # TODO Remove this because I don't want to run on every push once this is in main
+  push:
 
 concurrency:
   group: update-flake-inputs
@@ -55,8 +57,10 @@ jobs:
         # Exits 0 if the PR already exists (branch was force-pushed with new
         # commits, existing PR picks them up automatically).
         # TODO Should this be using nixpkgs' gh?
+        # TODO Remove --dry-run
         run: |
           gh pr create \
             --title "flake: update flake inputs" \
             --body "Automated weekly update of flake inputs via \`nix flake update --commit-lock-file\`." \
-            --base "${{ github.event.repository.default_branch }}"
+            --base "${{ github.event.repository.default_branch }}" \
+            --dry-run
