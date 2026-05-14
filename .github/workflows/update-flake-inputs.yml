@@ -1,0 +1,62 @@
+name: Update flake inputs
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 6am UTC
+  workflow_dispatch:
+
+concurrency:
+  group: update-flake-inputs
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Update flake.lock
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Configure git
+        # TODO Which `git` is this using?
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Switch to update branch
+        # TODO Which `git` is this using?
+        run: git checkout -B flake-update/automated
+      - name: Update flake inputs
+        id: update
+        # TODO Which `git` is this using?
+        run: |
+          before="$(git rev-parse HEAD)"
+          nix flake update --commit-lock-file
+          after="$(git rev-parse HEAD)"
+          if [[ "$before" != "$after" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate updated flake
+        if: steps.update.outputs.changed == 'true'
+        run: nix flake check --no-build --all-systems --keep-going
+      - name: Push branch
+        if: steps.update.outputs.changed == 'true'
+        # TODO Which `git` is this using?
+        run: git push --force origin flake-update/automated
+      - name: Create pull request
+        if: steps.update.outputs.changed == 'true'
+        # Exits 0 if the PR already exists (branch was force-pushed with new
+        # commits, existing PR picks them up automatically).
+        # TODO Should this be using nixpkgs' gh?
+        run: |
+          gh pr create \
+            --title "flake: update flake inputs" \
+            --body "Automated weekly update of flake inputs via \`nix flake update --commit-lock-file\`." \
+            --base "${{ github.event.repository.default_branch }}"
