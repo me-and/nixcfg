@@ -12,10 +12,17 @@ in
 {
   github-copilot-cli = prev.github-copilot-cli.overrideAttrs (
     finalAttrs: prevAttrs: {
-      src = fetchurl {
-        url = "https://github.com/github/copilot-cli/releases/download/v${finalAttrs.version}/github-copilot-${finalAttrs.version}.tgz";
-        hash = "sha256-cB1JtronwFZc1d/B5zHeJbX0GmdvxvAEwT+pplUA1Do=";
-      };
+      src =
+        lib.throwIf (finalAttrs.version != "1.0.40")
+          ''
+            github-copilot-cli version changed, source hash in
+            `overlays/github-copilot-cli.nix` probably needs updating.
+          ''
+          fetchurl
+          {
+            url = "https://github.com/github/copilot-cli/releases/download/v${finalAttrs.version}/github-copilot-${finalAttrs.version}.tgz";
+            hash = "sha256-y+fFSkiTI5QkdUgAvsvKBXjinCQ5zIWUriDOd/KJeR8=";
+          };
       sourceRoot = "package";
       autoPatchelfIgnoreMissingDeps = true;
 
