@@ -7,9 +7,8 @@ on:
   # TODO Remove this because I don't want to run on every push once this is in main
   push:
 
-concurrency:
-  group: update-flake-inputs
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 jobs:
   update:
