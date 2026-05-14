@@ -38,6 +38,9 @@ in
     usbutils
   ];
 
+  # I don't use the installed NixOS manual, so don't install it.
+  documentation.nixos.enable = false;
+
   # KDE has its own terminal emulator that I prefer to xterm, so don't install
   # xterm by default just because it's a default.
   services.xserver.excludePackages = [ pkgs.xterm ];
