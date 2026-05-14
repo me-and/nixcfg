@@ -53,6 +53,8 @@ jobs:
         run: git push --force origin flake-update/automated
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         # Exits 0 if the PR already exists (branch was force-pushed with new
         # commits, existing PR picks them up automatically).
         # TODO Should this be using nixpkgs' gh?
