@@ -1,7 +1,6 @@
 name: CI checks
 on:
   - push
-  - pull_request
 
 jobs:
   no-build-fmt:
