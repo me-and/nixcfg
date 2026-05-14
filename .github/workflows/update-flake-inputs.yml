@@ -1,0 +1,61 @@
+# Ideally we'd use Dependabot for this, but Dependabot doesn't (currently)
+# support flake updates that include private GitHub repos.
+name: Update flake inputs
+
+on:
+  schedule:
+    - cron: "48 23 * * 6" # Weekly, randomly chosen
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Update flake.lock
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Switch to update branch
+        run: git checkout -B flake-update/automated
+
+      - name: Update flake inputs
+        id: update
+        run: |
+          before="$(git rev-parse HEAD)"
+          nix flake update --commit-lock-file
+          after="$(git rev-parse HEAD)"
+          if [[ "$before" != "$after" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch
+        if: steps.update.outputs.changed == 'true'
+        run: git push --force origin flake-update/automated
+
+      # If there's an existing branch and pull request, this should
+      # update that rather than creating a new PR.
+      - name: Create pull request
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.CI_COMMIT_PR }}
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          gh pr create \
+            --title 'flake: update flake inputs' \
+            --body 'Automated weekly update of flake inputs via `nix flake update --commit-lock-file`.' \
+            --base "$TARGET_BRANCH"
