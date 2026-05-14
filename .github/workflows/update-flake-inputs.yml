@@ -29,7 +29,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Switch to update branch
-        run: git checkout -B flake-update/automated
+        run: git checkout -B flake-update
 
       - name: Update flake inputs
         id: update
@@ -45,7 +45,7 @@ jobs:
 
       - name: Push branch
         if: steps.update.outputs.changed == 'true'
-        run: git push --force origin flake-update/automated
+        run: git push --force-with-lease origin flake-update
 
       # If there's an existing branch and pull request, this should
       # update that rather than creating a new PR.
