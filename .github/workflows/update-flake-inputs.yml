@@ -7,10 +7,6 @@ on:
     - cron: "48 23 * * 6" # Weekly, randomly chosen
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   update:
     name: Update flake.lock
@@ -19,18 +15,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CI_COMMIT_TOKEN }}
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v22
         with:
           github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
-      - name: Set up Nix caching
-        uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Switch to update branch
-        run: git checkout -B flake-update
+        run: git switch -c flake-update
+
+      - name: Merge any existing update branch
+        run: "git merge --no-edit origin/flake-update || :"
 
       - name: Update flake inputs
         id: update
@@ -53,10 +53,11 @@ jobs:
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.CI_COMMIT_TOKEN }}
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           gh pr create \
             --title 'flake: update flake inputs' \
             --body 'Automated weekly update of flake inputs via `nix flake update --commit-lock-file`.' \
-            --base "$TARGET_BRANCH"
+            --base "$TARGET_BRANCH" \
+            --head flake-update
