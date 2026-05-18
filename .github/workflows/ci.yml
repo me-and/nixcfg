@@ -41,4 +41,4 @@ jobs:
       - name: Set up Nix caching
         uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: Run checks
-        run: nix run .#nix-run-available-checks
+        run: nix run .#nix-run-available-checks -- --github
