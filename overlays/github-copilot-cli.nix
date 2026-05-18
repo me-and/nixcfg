@@ -13,7 +13,7 @@ in
   github-copilot-cli = prev.github-copilot-cli.overrideAttrs (
     finalAttrs: prevAttrs: {
       src =
-        lib.warnIf (finalAttrs.version != "1.0.40")
+        lib.warnIf (finalAttrs.version != "1.0.44")
           ''
             github-copilot-cli version changed, source hash in
             `overlays/github-copilot-cli.nix` probably needs updating.
