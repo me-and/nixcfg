@@ -7,6 +7,10 @@ on:
     - cron: "48 23 * * 6" # Weekly, randomly chosen
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update:
     name: Update flake.lock
@@ -53,7 +57,7 @@ jobs:
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.CI_COMMIT_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           gh pr create \
