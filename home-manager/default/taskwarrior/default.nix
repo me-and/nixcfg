@@ -479,6 +479,7 @@ in
     ./backup.nix
     ./project-check.nix
     ./create-recurring.nix
+    ./check-config.nix
   ];
 
   options.programs.taskwarrior = {
