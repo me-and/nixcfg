@@ -54,12 +54,12 @@
       disko,
       home-manager,
       sops-nix,
-      winapps,
       wsl,
       plasma-manager,
       octogram,
       private,
       user-systemd-config,
+      ...
     }@inputs:
     let
       inherit (builtins)
@@ -68,7 +68,6 @@
         functionArgs
         intersectAttrs
         mapAttrs
-        removeAttrs
         ;
       inherit (nixpkgs.lib) nixosSystem;
       inherit (nixpkgs.lib.attrsets)

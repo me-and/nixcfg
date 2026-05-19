@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   # TODO Fix up these dependencies to be a bit more idiomatic rather than just
   # affecting the general Python installation.

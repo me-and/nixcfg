@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  options,
-  ...
-}:
+{ config, lib, ... }:
 {
   programs.firefox = {
     languagePacks = [ "en-GB" ];

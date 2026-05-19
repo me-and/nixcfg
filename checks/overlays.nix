@@ -7,7 +7,7 @@
   overlays,
 }:
 let
-  inherit (builtins) attrNames getAttr map;
+  inherit (builtins) attrNames getAttr;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
   inherit (lib.lists) remove;
