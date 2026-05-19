@@ -21,7 +21,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.CI_COMMIT_TOKEN }}
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v22
         with:
