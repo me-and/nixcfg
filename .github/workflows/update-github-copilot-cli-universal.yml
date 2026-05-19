@@ -1,0 +1,65 @@
+# TODO Make this generic for updating any and all packages that support it.
+name: Update github-copilot-cli-universal
+
+on:
+  schedule:
+    - cron: "31 14 * * 0" # Weekly, randomly chosen
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update github-copilot-cli-universal
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Configure git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Switch to update branch
+        run: git switch -c pkg-updates/github-copilot-cli-universal
+
+      - name: Update package
+        id: update
+        run: |
+          before="$(git rev-parse HEAD)"
+          nix run nixpkgs#nix-update -- \
+            --flake \
+            --build \
+            --commit \
+            --use-update-script \
+            github-copilot-cli-universal
+          after="$(git rev-parse HEAD)"
+          if [[ "$before" != "$after" ]]; then
+            echo 'changed=true' >>"$GITHUB_OUTPUT"
+          else
+            echo 'changed=false' >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch
+        if: steps.update.outputs.changed == 'true'
+        run: git push --force origin pkg-updates/github-copilot-cli-universal
+
+      - name: Create pull request
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          gh pr create \
+            --fill \
+            --base "$TARGET_BRANCH" \
+            --head pkg-updates/github-copilot-cli-universal
