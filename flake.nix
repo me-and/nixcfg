@@ -195,6 +195,7 @@
               {
                 home.username = me;
                 home.hostName = name;
+                nixpkgs.config = import ./config.nix;
               }
             ]
             ++ allModules self
