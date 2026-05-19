@@ -1,10 +1,15 @@
 name: CI checks
 on:
   - push
+  - pull_request
 
 jobs:
   no-build-fmt:
     name: Check formatting and evaluation
+    # Trigger CI when either (a) a commit is pushed (which implicitly excludes
+    # pushes from GitHub Actions) or (b) there's a pull request created by
+    # GitHub Actions.
+    if: github.event_name == 'push' || github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,6 +27,10 @@ jobs:
 
   build:
     name: Build check derivations
+    # Trigger CI when either (a) a commit is pushed (which implicitly excludes
+    # pushes from GitHub Actions) or (b) there's a pull request created by
+    # GitHub Actions.
+    if: github.event_name == 'push' || github.actor == 'github-actions[bot]'
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
