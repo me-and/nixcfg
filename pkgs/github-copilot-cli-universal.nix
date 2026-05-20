@@ -30,6 +30,15 @@ github-copilot-cli.overrideAttrs (
     sourceRoot = "package";
     autoPatchelfIgnoreMissingDeps = true;
 
+    # https://github.com/github/copilot-cli/issues/3392
+    postPatch = prevAttrs.postPatch or "" + ''
+      (
+        shopt -s globstar
+        substituteInPlace **/*.js \
+          --replace-quiet /bin/bash ${lib.getExe bash}
+      )
+    '';
+
     installPhase = ''
       runHook preInstall
       mkdir -p "$out"/lib/github-copilot-cli
