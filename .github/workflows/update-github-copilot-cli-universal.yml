@@ -44,7 +44,18 @@ jobs:
             github-copilot-cli-universal
           after="$(git rev-parse HEAD)"
           if [[ "$before" != "$after" ]]; then
-            echo 'changed=true' >>"$GITHUB_OUTPUT"
+            was_broken="$(nix eval .?rev="$before"#github-copilot-cli-universal.meta.broken)"
+            is_broken="$(nix eval .#github-copilot-cli-universal.meta.broken)"
+            if [[ "$was_broken" = "$is_broken" || "$is_broken" = 'false' ]]; then
+              # Either we're fixing something or it's no more broken than it
+              # was, so carry on.
+              echo 'changed=true' >>"$GITHUB_OUTPUT"
+            else
+              # The package is newly marked as broken.  Emit a warning but
+              # don't try to create a pull request.
+              echo '::warning file=pkgs/github-copilot-cli-universal.nix::Avoiding update to broken version'
+              echo 'changed=false' >>"$GITHUB_OUTPUT"
+            fi
           else
             echo 'changed=false' >>"$GITHUB_OUTPUT"
           fi

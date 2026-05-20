@@ -66,6 +66,9 @@ github-copilot-cli.overrideAttrs (
     # Permit builds of the package as part of `nix flake check`.
     meta = prevAttrs.meta // {
       license = mylib.licenses.licensedToMe;
+      # Used by GitHub Actions to check if it should create a pull request.
+      # https://github.com/github/copilot-cli/issues/3420
+      broken = finalAttrs.version == "1.0.49";
     };
   }
 )
