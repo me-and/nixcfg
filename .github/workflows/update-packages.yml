@@ -1,0 +1,36 @@
+name: Update packages
+
+on:
+  schedule:
+    - cron: "31 14 * * 0" # Weekly, randomly chosen
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          # TODO Remove the need for package updates to need access to my
+          # private repositories.
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: Configure git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Update packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: nix run .#nix-update-packages

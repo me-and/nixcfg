@@ -19,4 +19,6 @@ buildPythonPackage {
   nativeBuildInputs = [ setuptools ];
 
   dependencies = [ python-dateutil ];
+
+  passthru.updateScript = null;
 }

@@ -4,6 +4,7 @@
   stdenvNoCC,
   makeWrapper,
   jq,
+  nix-update-script,
 }:
 stdenvNoCC.mkDerivation {
   pname = "gh-gistsync";
@@ -22,4 +23,13 @@ stdenvNoCC.mkDerivation {
     wrapProgram "$out"/bin/gh-gistsync \
         --suffix PATH : ${lib.makeBinPath [ jq ]}
   '';
+
+  passthru.updateScript = nix-update-script {
+    attrPath = "gh-gistsync";
+    extraArgs = [
+      "--flake"
+      "--version"
+      "branch"
+    ];
+  };
 }
