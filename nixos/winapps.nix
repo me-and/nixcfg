@@ -13,17 +13,13 @@
 #   https://github.com/winapps-org/winapps/blob/main/README.md to
 #   ~/.config/winapps.
 # - Running the winapps installer to set up links to the Windows applications.
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
-  virtualisation.podman.enable = true;
-  environment.systemPackages =
-    (with pkgs; [
-      podman
-      podman-compose
-    ])
-    ++ (with pkgs.mypkgs.winapps; [
-      winapps
-      winapps-launcher
-      winapps-rdp
-    ]);
+  virtualisation.docker.enable = true;
+  users.groups.docker.members = [ config.users.me ];
+  environment.systemPackages = with pkgs.mypkgs.winapps; [
+    winapps
+    winapps-launcher
+    winapps-rdp
+  ];
 }

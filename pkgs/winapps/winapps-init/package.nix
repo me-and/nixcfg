@@ -2,14 +2,10 @@
   inputs,
   writeCheckedShellApplication,
   gnused,
-  podman-compose,
 }:
 writeCheckedShellApplication {
   name = "winapps-init";
-  runtimeInputs = [
-    gnused
-    podman-compose
-  ];
+  runtimeInputs = [ gnused ];
   text = ''
     password=
 
@@ -42,7 +38,5 @@ writeCheckedShellApplication {
     chmod 600 "$config_dir"/compose.yaml "$config_dir"/winapps.conf
     sed -i 's/PASSWORD: "MyWindowsPassword"/PASSWORD: "'"$password"'"/' "$config_dir"/compose.yaml
     sed -i 's/RDP_PASS="MyWindowsPassword"/RDP_PASS="'"$password"'"/' "$config_dir"/winapps.conf
-
-    podman-compose --file "$config_dir"/compose.yaml up
   '';
 }
