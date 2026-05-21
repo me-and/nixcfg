@@ -39,10 +39,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.personalCfg.follows = "";
     };
-    user-systemd-config = {
-      url = "github:me-and/user-systemd-config";
-      flake = false;
-    };
   };
 
   outputs =
@@ -58,7 +54,6 @@
       plasma-manager,
       octogram,
       private,
-      user-systemd-config,
       ...
     }@inputs:
     let
@@ -175,7 +170,7 @@
         nameValuePair "${me}@${name}" (homeManagerConfiguration {
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
-            inherit plasma-manager sops-nix user-systemd-config;
+            inherit plasma-manager sops-nix;
             mylib = self.lib;
             personalCfg = self;
             osConfig = self.nixosConfigurations."${name}".config;

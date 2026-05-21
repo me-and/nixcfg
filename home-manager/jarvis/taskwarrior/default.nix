@@ -7,9 +7,6 @@
 {
   programs.taskwarrior.recurrence.systemdSchedule.enable = true;
 
-  home.file.".config/systemd/user/timers.target.wants/taskwarrior-monthly.timer".source =
-    config.home.file.".config/systemd".source + "/user/taskwarrior-monthly.timer";
-
   accounts.email.accounts = {
     taskwarrior = {
       enable = true;

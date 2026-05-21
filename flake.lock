@@ -236,7 +236,6 @@
         "plasma-manager": "plasma-manager",
         "private": "private",
         "sops-nix": "sops-nix",
-        "user-systemd-config": "user-systemd-config",
         "winapps": "winapps",
         "wsl": "wsl"
       }
@@ -288,22 +287,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "user-systemd-config": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775827045,
-        "narHash": "sha256-/AotgNMDmBffTNaI/es1O0lg9GI2JO+rsA9BaNHXwI8=",
-        "owner": "me-and",
-        "repo": "user-systemd-config",
-        "rev": "3700052ffaca1ba66c901238b925e6a1e9f433d2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "me-and",
-        "repo": "user-systemd-config",
         "type": "github"
       }
     },
