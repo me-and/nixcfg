@@ -8,5 +8,7 @@
       command = lib.getExe pkgs.nil;
       fileExtensions.".nix" = "nix";
     };
+
+    agents.nix-regression-investigator = ./nix-regression-investigator.agent.md;
   };
 }
