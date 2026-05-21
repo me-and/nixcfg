@@ -64,7 +64,7 @@ For home-manager, modules are resolved from:
 
 NixOS modules receive: `nixos-hardware`, `disko`, `sops-nix`, `wsl`, `self`, `mylib`, `personalCfg`, `homeConfig`
 
-Home Manager modules receive: `plasma-manager`, `sops-nix`, `user-systemd-config`, `mylib`, `personalCfg`, `osConfig`
+Home Manager modules receive: `plasma-manager`, `sops-nix`, `mylib`, `personalCfg`, `osConfig`
 
 ### Nixpkgs Config and Overlays
 
@@ -98,7 +98,6 @@ Add packages under `pkgs/`. They are exposed as `legacyPackages.<system>` and `p
 
 - **`nixcfg-private`** (`github:me-and/nixcfg-private`, local path `../nixcfg-private`) is pulled in as the `private` flake input. Configuration that shouldn't be public (e.g. email setup, personal network details) belongs there, not here. It uses the same `dirmodules` auto-discovery pattern as this repo: `nixos/default/` is loaded for all hosts, `nixos/<hostname>/` for a specific host, and `nixos/<name>.nix` is available as `private.nixosModules.<name>` for explicit import. The same applies to `home-manager/`.
 - **`nixcfg-alianza`** (`github:me-and/nixcfg-alianza`, local path `../nixcfg-alianza`) is a separate flake that pulls *this* repo in as an input. Work/employer-specific configuration belongs there. Nothing Alianza-specific should be added to this public repository.
-- **`user-systemd-config`** (`github:me-and/user-systemd-config`, local path `../user-systemd-config`) is pulled in as a non-flake input. It contains Python automation scripts (email retention tagging, monthly Taskwarrior task generation) and systemd user units that have not yet been ported to Nix config. Nothing should be added there, but some of its files are used by this repo's configurations.
 
 See the "Secrets and privacy" section of `README.md` for the full breakdown of what belongs where.
 

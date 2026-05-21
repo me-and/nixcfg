@@ -212,11 +212,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1779372708,
-        "narHash": "sha256-OYmf4kVd49HJWHopNGt97l6va4evA5eT0hOsfUwk7Q0=",
+        "lastModified": 1779382100,
+        "narHash": "sha256-FkfjGYQUxE68eg5pE5KAFo0B8+P27JKTiFKILNMGk+c=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "8fd3fb8e525e060b41104deda3c6b161ed15b094",
+        "rev": "a1644861163db4877a78bf0001c3fca4f9ed55ee",
         "type": "github"
       },
       "original": {
@@ -236,7 +236,6 @@
         "plasma-manager": "plasma-manager",
         "private": "private",
         "sops-nix": "sops-nix",
-        "user-systemd-config": "user-systemd-config",
         "winapps": "winapps",
         "wsl": "wsl"
       }
@@ -288,22 +287,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "user-systemd-config": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775827045,
-        "narHash": "sha256-/AotgNMDmBffTNaI/es1O0lg9GI2JO+rsA9BaNHXwI8=",
-        "owner": "me-and",
-        "repo": "user-systemd-config",
-        "rev": "3700052ffaca1ba66c901238b925e6a1e9f433d2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "me-and",
-        "repo": "user-systemd-config",
         "type": "github"
       }
     },
