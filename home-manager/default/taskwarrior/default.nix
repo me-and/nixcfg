@@ -575,7 +575,10 @@ in
             Wants = [ "taskwarrior-wait-for-stability.service" ];
             After = [ "taskwarrior-wait-for-stability.service" ];
           };
-          Service = config.systemd.user.services.taskwarrior-gc.Service;
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${cfg.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+          };
         };
 
         taskwarrior-sync = lib.mkIf syncConfigured {

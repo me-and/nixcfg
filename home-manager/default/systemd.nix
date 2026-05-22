@@ -14,6 +14,22 @@
     type = lib.types.attrsOf (
       lib.types.submodule {
         config.Service.SyslogIdentifier = lib.mkDefault "%N";
+
+        # Based on nixpkgs' nixos/lib/systemd-lib.nix
+        config.Service.Environment =
+          let
+            pathPackages = with pkgs; [
+              coreutils
+              findutils
+              gnugrep
+              gnused
+            ];
+            extraPaths = [ (dirOf config.systemd.user.systemctlPath) ];
+          in
+          # Use lib.mkBefore to allow individual units to override the setting.
+          lib.mkBefore [
+            "PATH=${lib.concatStringsSep ":" ([ (lib.makeBinPath pathPackages) ] ++ extraPaths)}"
+          ];
       }
     );
   };
