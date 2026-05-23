@@ -22,13 +22,14 @@ in
           OnSuccess = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
         };
         Service.Type = "oneshot";
-        Service.ExecStart =
-          pkgs.runCommand "taskwarrior_projects.py" { buildInputs = [ pkgs.mypkgs.pythonWithAsmodeus ]; }
-            ''
-              cp ${./projects.py} "$out"
-              chmod +x "$out"
-              patchShebangs "$out"
-            '';
+        Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
+          name = "taskwarrior_projects.sh";
+          runtimeInputs = [
+            pkgs.mypkgs.pythonWithAsmodeus
+            config.programs.taskwarrior.package
+          ];
+          text = "exec python3 ${./projects.py}";
+        };
       };
 
       timers.taskwarrior-project-check = {

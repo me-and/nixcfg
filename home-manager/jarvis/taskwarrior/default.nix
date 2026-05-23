@@ -52,6 +52,7 @@
           Type = "oneshot";
           Environment = [
             "MAILDIR_PATH=${config.accounts.email.accounts.taskwarrior.maildir.absPath}/INBOX"
+            "PATH=${lib.makeBinPath [ config.programs.taskwarrior.package ]}"
           ];
           ExecStart =
             pkgs.runCommand "taskwarrior_email_inbox.py" { buildInputs = [ pkgs.mypkgs.pythonWithAsmodeus ]; }
@@ -71,6 +72,7 @@
           Type = "oneshot";
           ExecStart = lib.getExe pkgs.privatepkgs.taskwarrior-from-emails;
           ExecStartPost = "${pkgs.mypkgs.mailsync}/bin/mailsync TaskWarrior";
+          Environment = [ "PATH=${lib.makeBinPath [ config.programs.taskwarrior.package ]}" ];
         };
       };
     };
