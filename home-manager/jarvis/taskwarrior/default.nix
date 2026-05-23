@@ -8,10 +8,7 @@
   programs.taskwarrior.recurrence.systemdSchedule.enable = true;
 
   accounts.email.accounts = {
-    taskwarrior = {
-      enable = true;
-      goimapnotify.boxes.INBOX.onNewMail = "${pkgs.mypkgs.mailsync}/bin/mailsync -w -e taskwarrior -i";
-    };
+    taskwarrior.enable = true;
     main.goimapnotify.boxes.TaskWarrior.onNewMail =
       "${pkgs.mypkgs.mailsync}/bin/mailsync -w TaskWarrior";
   };
@@ -87,6 +84,16 @@
           RandomizedDelaySec = "24h";
           AccuracySec = "24h";
         };
+      };
+
+      # I used to use goimapnotify for taskwarrior emails, but Mythic Beasts
+      # seem to have stopped allowing me to have a goimapnotify connection at
+      # the same time as an OfflineIMAP one.  Instead, just check for emails
+      # more often than the default.
+      "offlineimap-full@taskwarrior".Timer = lib.mkForce {
+        AccuracySec = "15min";
+        OnUnitInactiveSec = "15min";
+        RandomizedDelaySec = "15min";
       };
     };
 
