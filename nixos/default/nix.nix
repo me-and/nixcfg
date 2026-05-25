@@ -9,7 +9,12 @@
   config = lib.mkMerge [
     (lib.mkIf config.nix.githubTokenFromSops {
       sops = {
-        secrets.github-token = { };
+        # Allow the user to read this secret directly for tools such as the
+        # Copilot CLI container wrapper.  Root can still read it regardless of
+        # ownership, so the nix-daemon EnvironmentFile below still works.
+        secrets.github-token = {
+          owner = config.users.me;
+        };
         templates.nix-daemon-environment.content = ''
           NIX_GITHUB_PRIVATE_USERNAME=.
           NIX_GITHUB_PRIVATE_PASSWORD=${config.sops.placeholder.github-token}
