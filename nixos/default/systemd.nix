@@ -1,10 +1,4 @@
-{
-  lib,
-  config,
-  options,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   # Units for setting up loopback devices.
   loopDeviceConfig =
