@@ -68,43 +68,6 @@
             in
             "${reportScript} %i %u %l %H";
         };
-
-        disk-usage-report = {
-          Unit.Description = "Email a disk usage report";
-          Service = {
-            Type = "oneshot";
-            ExecStart =
-              let
-                reportScript = pkgs.mypkgs.writeCheckedShellScript {
-                  name = "disk-usage-report-mail.sh";
-                  runtimeInputs = [ pkgs.mypkgs.disk-usage-report ];
-                  text = ''
-                    user="$1"
-                    shorthost="$2"
-                    longhost="$3"
-
-                    disk-usage-report | ${pkgs.mypkgs.colourmail}/bin/colourmail \
-                      -r "$user on $shorthost <''${user}@''${longhost}>" \
-                      -s "$shorthost disk usage report" \
-                      -- "$user"
-                  '';
-                };
-              in
-              "${reportScript} %u %l %H";
-            KillMode = "process";
-          };
-        };
-      };
-
-      timers.disk-usage-report = {
-        Unit.Description = "Send periodic disk usage reports";
-        Timer = {
-          OnCalendar = "weekly";
-          RandomizedDelaySec = "1h";
-          AccuracySec = "1h";
-          Persistent = true;
-        };
-        Install.WantedBy = [ "timers.target" ];
       };
     };
   };
