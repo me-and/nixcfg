@@ -21,7 +21,7 @@
         text =
           let
             subject = "${config.networking.hostName} disk usage report";
-            from = "${config.networking.hostName} <root@${config.networking.fqdn}>";
+            from = "${config.networking.hostName} <root@${config.networking.fqdnOrHostName}>";
           in
           ''
             disk-usage-report |
