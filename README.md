@@ -16,6 +16,7 @@ Be warned: this config gets used as much as a playground and a learning opportun
 *   `packages`: all the top-level derivations in `legacyPackages`.
 *   `nixosConfigurations`: my NixOS system configurations, with `<hostname>` keys.
 *   `homeConfigurations`: my Home Manager configurations, with `<username>@<hostname>` keys (just because that's how Home Manager runs things by default).
+    These are now assembled via `hosts/<hostname>/configuration.nix` and `hosts/<hostname>/users/<username>.nix`.
 *   `nixosModules`:
     *   `default`: my common NixOS configuration.  This is a mix of configuration I always want, and configuration controlled by options.
     *   `<hostname>`: the modules that define system-specific configuration.
@@ -49,6 +50,9 @@ Be warned: this config gets used as much as a playground and a learning opportun
     *   `<username>`, `<hostname>` or `<username>@<hostname>`: this contains the configuration for each system's Home Manager configuration, set in `home.nix`.
     *   `<taskname>`: this contains configuration that can be imported for performing some specific task.
 *   `checks`: any tests that don't automatically happen as part of any of the other parts.
+*   `hosts`: host entrypoint modules, following Blueprint-style layout:
+    *   `<hostname>/configuration.nix`: host-specific NixOS entrypoint module.
+    *   `<hostname>/users/<username>.nix`: per-host Home Manager entrypoint module.
 
 ## Secrets and privacy
 

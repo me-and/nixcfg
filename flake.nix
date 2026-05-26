@@ -132,13 +132,14 @@
               octogram
               self
               ;
+            flake = self;
             mylib = self.lib;
             personalCfg = self;
             homeConfig = self.homeConfigurations."${me}@${name}".config;
           };
           modules =
             let
-              allModules = source: [
+              privateModules = source: [
                 (source.nixosModules.default or { })
                 (source.nixosModules."${name}" or { })
                 (optionalAttrs includePersonal (source.nixosModules.personal or { }))
@@ -153,9 +154,9 @@
                 nixpkgs.hostPlatform = system;
               }
               home-manager.nixosModules.default
+              ./hosts/${name}/configuration.nix
             ]
-            ++ allModules self
-            ++ allModules private;
+            ++ privateModules private;
         }
       ) boxen;
 
@@ -171,13 +172,14 @@
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
             inherit plasma-manager sops-nix;
+            flake = self;
             mylib = self.lib;
             personalCfg = self;
             osConfig = self.nixosConfigurations."${name}".config;
           };
           modules =
             let
-              allModules = source: [
+              privateModules = source: [
                 (source.homeModules.default or { })
                 (source.homeModules."${me}" or { })
                 (source.homeModules."${name}" or { })
@@ -191,9 +193,9 @@
                 home.hostName = name;
                 nixpkgs.config = import ./config.nix;
               }
+              ./hosts/${name}/users/${me}.nix
             ]
-            ++ allModules self
-            ++ allModules private;
+            ++ privateModules private;
         })
       ) boxen;
 
