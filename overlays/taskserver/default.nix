@@ -8,13 +8,17 @@ in
 {
   taskserver = prev.taskserver.overrideAttrs (oldAttrs: {
     version = "1.1.0-unstable-2016-10-31";
-    # The upstream repository has a now-dead URL for the submodule.  The
-    # submodule is now available on GitHub, so wrap Git with a version that
-    # includes rewriting the URL for the submodule.
     src =
       let
         gitConfig = {
+          # The upstream repository has a now-dead URL for the submodule.  The
+          # submodule is now available on GitHub, so configure git to rewrite
+          # the URL for the submodule.
           url."https://github.com/GothenburgBitFactory/".insteadOf = "https://git.tasktools.org/scm/tm/";
+
+          # Disable maintenance, which causes non-deterministic behaviour.
+          # https://github.com/NixOS/nixpkgs/issues/524215
+          maintenance.auto = false;
         };
       in
       final.fetchFromGitHub {
