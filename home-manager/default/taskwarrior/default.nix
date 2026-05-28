@@ -483,6 +483,7 @@ in
     ] "Instead, set programs.taskwarrior.backup as required.")
     ./backup.nix
     ./project-check.nix
+    ./github-check.nix
     ./create-recurring.nix
     ./check-config.nix
   ];
