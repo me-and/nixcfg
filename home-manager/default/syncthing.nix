@@ -44,6 +44,7 @@ lib.mkIf cfg.enable {
 
       # Generic temporary files.
       "*.tmp"
+      ".Temp"
 
       # Temporary editor files.
       "~$*"
