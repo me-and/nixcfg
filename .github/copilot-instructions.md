@@ -6,7 +6,7 @@
 # Format all Nix files
 nix fmt
 
-# Check formatting without writing (CI mode)
+# Format all Nix files and exit with a non-zero return code if there were changes
 nix fmt -- --ci
 
 # Evaluate all flake outputs without building
