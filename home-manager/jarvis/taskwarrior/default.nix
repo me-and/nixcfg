@@ -5,7 +5,10 @@
   ...
 }:
 {
-  programs.taskwarrior.recurrence.systemdSchedule.enable = true;
+  programs.taskwarrior = {
+    recurrence.systemdSchedule.enable = true;
+    checkGitHubIssues.enable = true;
+  };
 
   accounts.email.accounts = {
     taskwarrior.enable = true;
