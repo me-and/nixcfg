@@ -1,12 +1,14 @@
 {
   fetchFromGitHub,
   python3Packages,
+  nix-update-script,
 }:
 let
   inherit (python3Packages) buildPythonPackage python-dateutil setuptools;
 in
 buildPythonPackage {
   name = "asmodeus";
+  version = "0-unstable-2026-03-02";
 
   src = fetchFromGitHub {
     owner = "me-and";
@@ -20,5 +22,11 @@ buildPythonPackage {
 
   dependencies = [ python-dateutil ];
 
-  passthru.updateScript = null;
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--flake"
+      "--version"
+      "branch"
+    ];
+  };
 }
