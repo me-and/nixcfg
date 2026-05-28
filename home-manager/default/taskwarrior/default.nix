@@ -78,6 +78,11 @@ let
       # Field for implementing the blocks: attribute, which is implemented
       # by my Asmodeus hook scripts.
       blocks.type = "string";
+
+      # Metadata to link Taskwarrior tasks with GitHub issues and pull
+      # requests.
+      ghmeta.type = "string";
+      ghmeta.label = "GitHub metadata";
     };
 
     report =
