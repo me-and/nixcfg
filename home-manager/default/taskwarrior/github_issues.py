@@ -4,6 +4,7 @@ import json
 import subprocess
 import uuid
 from collections import defaultdict
+from datetime import UTC, datetime
 
 from asmodeus.taskwarrior import TaskWarrior
 from asmodeus.types import Task
@@ -34,6 +35,14 @@ def gh_report_issues() -> list[dict[str, object]]:
 
 def issue_kind_for_url(url: str) -> str:
     return "PR" if "/pull/" in url else "issue"
+
+
+def parse_utc_iso_timestamp(value: str) -> datetime:
+    normalized = value.replace("Z", "+00:00")
+    parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is None:
+        raise RuntimeError(f"Expected timezone-aware timestamp, got {value!r}")
+    return parsed.astimezone(UTC)
 
 
 if __name__ == "__main__":
@@ -76,7 +85,16 @@ if __name__ == "__main__":
 
                 if changed:
                     task["ghmeta"] = json.dumps(entries, separators=(",", ":"))
-                    task.tag("inbox")
+                    updated_at = report_entry.get("updatedAt")
+                    if not isinstance(updated_at, str):
+                        raise RuntimeError(
+                            f"Expected report entry updatedAt to be a string, got {report_entry!r}"
+                        )
+
+                    report_updated_at = parse_utc_iso_timestamp(updated_at)
+                    task_modified = task.get_typed("modified", datetime, None)
+                    if task_modified is None or report_updated_at > task_modified.astimezone(UTC):
+                        task.tag("inbox")
                     task_uuid = task.get_typed("uuid", uuid.UUID)
                     tasks_to_export[task_uuid] = task
         else:
