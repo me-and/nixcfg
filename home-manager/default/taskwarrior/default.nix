@@ -78,6 +78,11 @@ let
       # Field for implementing the blocks: attribute, which is implemented
       # by my Asmodeus hook scripts.
       blocks.type = "string";
+
+      # Metadata to link Taskwarrior tasks with GitHub issues and pull
+      # requests.
+      ghmeta.type = "string";
+      ghmeta.label = "GitHub metadata";
     };
 
     report =
@@ -478,6 +483,7 @@ in
     ] "Instead, set programs.taskwarrior.backup as required.")
     ./backup.nix
     ./project-check.nix
+    ./github-check.nix
     ./create-recurring.nix
     ./check-config.nix
   ];
