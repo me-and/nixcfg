@@ -53,7 +53,11 @@ if __name__ == "__main__":
     task_entries_by_url: defaultdict[str, list[tuple[Task, list[dict[str, object]]]]] = defaultdict(list)
     for task in tw.from_taskwarrior(("-COMPLETED", "-DELETED", "ghmeta.any:")):
         ghmeta = task.get_typed("ghmeta", str)
-        entries = json.loads(ghmeta)
+        try:
+            entries = json.loads(ghmeta)
+        except json.decoder.JSONDecodeError:
+            raise RuntimeError(f"Failed to decode ghmeta on {task.describe()}")
+
         if not isinstance(entries, list):
             raise RuntimeError(f"Expected ghmeta to be a JSON list, got {entries!r}")
         for entry in entries:
