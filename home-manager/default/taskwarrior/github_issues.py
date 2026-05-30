@@ -49,6 +49,7 @@ if __name__ == "__main__":
     tw = TaskWarrior()
 
     report = gh_report_issues()
+    report_urls = {entry["url"] for entry in report}
 
     task_entries_by_url: defaultdict[str, list[tuple[Task, list[dict[str, object]]]]] = defaultdict(list)
     for task in tw.from_taskwarrior(("-COMPLETED", "-DELETED", "ghmeta.any:")):
@@ -110,5 +111,14 @@ if __name__ == "__main__":
                     ghmeta=json.dumps([report_entry], separators=(",", ":")),
                 )
             )
+
+    for url, matching_tasks in task_entries_by_url.items():
+        if url in report_urls:
+            continue
+
+        for task, _entries in matching_tasks:
+            task.tag("inbox")
+            task_uuid = task.get_typed("uuid", uuid.UUID)
+            tasks_to_export[task_uuid] = task
 
     tw.to_taskwarrior([*tasks_to_export.values(), *new_tasks])
