@@ -221,6 +221,10 @@ let
           description = "By ID for ease of wrangling";
           sort = [ "id" ];
         };
+        byproj = oldOrNewColumnConfig // {
+          description = "By project for ease of wrangling";
+          sort = [ "project+/" ];
+        };
         all.context = false;
         completed.context = false;
 
