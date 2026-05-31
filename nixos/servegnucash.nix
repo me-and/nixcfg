@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, pkgs, ... }:
 let
   nginxCfg = config.services.nginx;
 
@@ -22,7 +17,7 @@ in
   };
 
   systemd.tmpfiles.settings.gnucash-to-nginx = {
-    "${builtins.dirOf fileDstPath}" = {
+    "${dirOf fileDstPath}" = {
       "d$" = {
         mode = "0750";
         user = "root";
@@ -43,8 +38,8 @@ in
     before = [ "nginx.service" ];
     environment = {
       SOURCE = fileSrcPath;
-      DST_DIR = builtins.dirOf fileDstPath;
-      DST_NAME = builtins.baseNameOf fileDstPath;
+      DST_DIR = dirOf fileDstPath;
+      DST_NAME = baseNameOf fileDstPath;
       DST_GROUP = nginxCfg.group;
     };
     script = ''
@@ -76,7 +71,7 @@ in
     virtualHosts."${fqdn}" = {
       forceSSL = true;
       basicAuthFile = "/etc/nginx/auth/${fqdn}";
-      locations."= /gnucash.gnucash".root = builtins.dirOf fileDstPath;
+      locations."= /gnucash.gnucash".root = dirOf fileDstPath;
       enableACME = true;
       acmeRoot = null;
     };
