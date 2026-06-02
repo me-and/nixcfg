@@ -223,7 +223,10 @@ let
         };
         byproj = oldOrNewColumnConfig // {
           description = "By project for ease of wrangling";
-          sort = [ "project+/" ];
+          sort = [
+            "project+/"
+            "id+"
+          ];
         };
         all.context = false;
         completed.context = false;
