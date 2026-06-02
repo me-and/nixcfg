@@ -13,7 +13,7 @@
 github-copilot-cli.overrideAttrs (
   finalAttrs: prevAttrs: {
     pname = "github-copilot-cli-universal";
-    version = "1.0.51";
+    version = "1.0.57";
 
     src =
       lib.warnIf (lib.versionOlder finalAttrs.version prevAttrs.version)
@@ -25,7 +25,7 @@ github-copilot-cli.overrideAttrs (
         fetchurl
         {
           url = "https://github.com/github/copilot-cli/releases/download/v${finalAttrs.version}/github-copilot-${finalAttrs.version}.tgz";
-          hash = "sha256-ruVYZtQvUUkc3wNuA0HnkuQFoHX4863dObKhusHQ40g=";
+          hash = "sha256-gs+9GRtgUxmCH3/V/IpIFT5RysCI/Ls+6kATXcN8xnk=";
         };
     sourceRoot = "package";
     autoPatchelfIgnoreMissingDeps = true;
