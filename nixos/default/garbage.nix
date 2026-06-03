@@ -235,10 +235,10 @@ in
           description = "Regular Nix garbage collection";
           timerConfig = {
             Persistent = true;
-            OnCalendar = "weekly";
-            AccuracySec = "24h";
+            OnCalendar = "daily";
+            AccuracySec = "1h";
             RandomizedDelaySec = "1h";
-            RandomizedOffsetSec = "1w";
+            RandomizedOffsetSec = "24h";
           };
           wantedBy = [ "timers.target" ];
         };
@@ -271,10 +271,10 @@ in
             description = "Regular cleanup of old profiles for use %I";
             timerConfig = {
               Persistent = true;
-              OnCalendar = "weekly";
-              AccuracySec = "24h";
+              OnCalendar = "daily";
+              AccuracySec = "1h";
               RandomizedDelaySec = "1h";
-              RandomizedOffsetSec = "1w";
+              RandomizedOffsetSec = "24h";
             };
             wantedBy = [ "timers.target" ];
           };
