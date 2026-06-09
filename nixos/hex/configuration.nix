@@ -61,6 +61,4 @@
     target.freePercent = 25;
     trigger.freePercent = 15;
   };
-
-  services.nix-serve.enable = true;
 }
