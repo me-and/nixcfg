@@ -1,12 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  defaultPrio = (lib.mkOptionDefault null).priority;
-in
+{ lib, pkgs, ... }:
 {
   # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
   # Nix builds -- notably install images -- from being able to complete.

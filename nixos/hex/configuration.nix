@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   nixos-hardware,
   personalCfg,
   ...
