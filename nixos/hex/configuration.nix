@@ -60,4 +60,6 @@
     target.freePercent = 25;
     trigger.freePercent = 15;
   };
+
+  nix.signBuilds = true;
 }
