@@ -29,8 +29,6 @@
   # definitely has this option.
   services.openssh = {
     enable = false;
-  }
-  // lib.optionalAttrs (options.services.openssh ? generateHostKeys) {
     generateHostKeys = true;
   };
 
