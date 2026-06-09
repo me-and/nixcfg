@@ -42,11 +42,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.personalCfg.follows = "";
     };
-
-    # I'm only expecting to use this temporarily, and getting the auth to work
-    # properly will be a pain, so I'm just going to override it whenever I need
-    # it, which won't be often.
-    pdnix.url = "github:input-output-hk/empty-flake?rev=2040a05b67bf9a669ce17eca56beb14b4206a99a";
   };
 
   outputs =
@@ -62,7 +57,6 @@
       plasma-manager,
       octogram,
       private,
-      pdnix,
       ...
     }@inputs:
     let
@@ -139,7 +133,6 @@
               sops-nix
               wsl
               octogram
-              pdnix
               self
               ;
             mylib = self.lib;
