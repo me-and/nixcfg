@@ -1,12 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  defaultPrio = (lib.mkOptionDefault null).priority;
-in
+{ lib, pkgs, ... }:
 {
   # Would rather use boot.tmp.useTmpfs, but that prevents some of my largest
   # Nix builds -- notably install images -- from being able to complete.
@@ -83,12 +75,5 @@ in
     # https://docs.gitlab.com/user/gitlab_com/
     "gitlab.com".publicKey =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf";
-  };
-
-  services.nix-serve = {
-    openFirewall = true;
-    # TODO This is a stupid place for this file and it should be somewhere
-    # better.  Like sops-nix.
-    secretKeyFile = lib.warn "need to move nix-serve secret" "/home/adam/store-secret";
   };
 }

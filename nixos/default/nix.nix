@@ -1,10 +1,13 @@
 { config, lib, ... }:
 {
-  options.nix.githubTokenFromSops =
-    lib.mkEnableOption "getting the GitHub authentication token for Nix from SOPS"
-    // {
-      default = true;
-    };
+  options.nix = {
+    githubTokenFromSops =
+      lib.mkEnableOption "getting the GitHub authentication token for Nix from SOPS"
+      // {
+        default = true;
+      };
+    signBuilds = lib.mkEnableOption "automatically signing local builds using the key from SOPS";
+  };
 
   config = lib.mkMerge [
     (lib.mkIf config.nix.githubTokenFromSops {
@@ -24,6 +27,18 @@
       nix.extraOptions = ''
         !include ${config.sops.templates.auth-tokens.path}
       '';
+    })
+
+    (lib.mkIf config.nix.signBuilds {
+      sops = {
+        # Use templates to provide a degree of redirection, otherwise the
+        # attempt to access sops.secrets.nix-cache-key.path will fail due to
+        # infinite recursion in Nix when setting sops.secrets.nix-cache-key at
+        # the same time.
+        secrets.nix-cache-key = { };
+        templates.nix-cache-key.content = config.sops.placeholder.nix-cache-key;
+      };
+      nix.settings.secret-key-files = config.sops.templates.nix-cache-key.path;
     })
 
     {

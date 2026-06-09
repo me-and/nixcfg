@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   nixos-hardware,
   personalCfg,
   ...
@@ -62,5 +61,5 @@
     trigger.freePercent = 15;
   };
 
-  services.nix-serve.enable = true;
+  nix.signBuilds = true;
 }

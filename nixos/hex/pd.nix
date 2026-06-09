@@ -1,6 +1,10 @@
-{ lib, ... }:
+{ lib, personalCfg, ... }:
 {
   specialisation.pd.configuration = {
+    # Want to be able to serve the local store as https://<localip>:5000 as an
+    # easier alternative to providing SSH connections to all the remote hosts.
+    imports = [ personalCfg.nixosModules.nix-serve ];
+
     networking.pd.vpn = lib.mkForce false;
     networking.hosts."10.0.0.5" = [
       "profounddecisions.co.uk"
