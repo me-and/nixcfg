@@ -104,4 +104,6 @@
   );
 
   programs.mosh.enable = true;
+
+  nix.signBuilds = true;
 }
