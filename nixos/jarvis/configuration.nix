@@ -11,6 +11,7 @@
 {
   imports = [
     disko.nixosModules.default
+    personalCfg.nixosModules.nix-builder
     personalCfg.nixosModules.postfix-mythic
   ];
 
