@@ -22,7 +22,7 @@ override_git_prompt_colors() {
 		lvl_mark="${Magenta}${SHLVL}${ResetColor}"
 	fi
 
-	local prompt_end_lead='\n_TEMP_PLACEHOLDER__BATTERY_PLACEHOLDER_'"$TIME_COLOUR"'\D{%a %e %b %R}'"$ResetColor"
+	local prompt_end_lead='\n'"$TIME_COLOUR"'\D{%a %e %b %R}'"$ResetColor"
 
 	GIT_PROMPT_END_USER="$prompt_end_lead ${lvl_mark}${user_prompt} "
 	GIT_PROMPT_END_ROOT="$prompt_end_lead ${lvl_mark}${root_prompt} "
