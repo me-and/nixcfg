@@ -380,6 +380,7 @@ let
           read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +steeplechase or urgency>=6 or project.is:pd or project:pd. )";
           write = "+steeplechase";
           rc.urgency.user.tag.steeplechase.coefficient = 10;
+          rc.urgency.user.project.pd.coefficient = 3.6;
         };
         southport = {
           # Prioritise things that can only be done in Southport.
@@ -416,6 +417,12 @@ let
       # otherwise might.  Taskwarrior also has "wait:later", which could do
       # a similar job, except that seems to break Taskserver sync.
       later.coefficient = -10;
+    };
+    urgency.user.project = {
+      # Default urgency coefficients for things that have context-specific
+      # urgencies.  Without this configuration, the context-specific
+      # urgencies don't seem to work.
+      pd.coefficient = 0;
     };
 
     # Remove "special" from the set of verbose values, since I know what
