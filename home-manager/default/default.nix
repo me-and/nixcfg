@@ -34,8 +34,8 @@
         nixos-generators
         psmisc
         pv
+        ripgrep
         shellcheck
-        silver-searcher
         tmux
         tmux-xpanes
         unzip

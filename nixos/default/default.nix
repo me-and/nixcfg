@@ -56,13 +56,6 @@
   # Make sure all the systemd units for time wrangling that I care about get
   # included.
   systemd.additionalUpstreamSystemUnits = [
-    # TODO including this causes problems because it's also included by the
-    # default NixOS configuration, which can't cope with duplicates.  I want
-    # to make it cope with duplicates so I can have the config here to be
-    # able to rely on the file existing even if the reason for it existing
-    # in NixOS disappears.
-    # "time-sync.target"
-    "time-set.target"
     "systemd-time-wait-sync.service"
   ];
 
