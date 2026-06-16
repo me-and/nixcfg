@@ -377,7 +377,7 @@ let
         steeplechase = {
           # Prioritise things that can only be done on site, and filter out
           # things that aren't urgent and aren't PD related.
-          read = readFilter "-home -southport -enfield -work -office -nsfw -audio ( +steeplechase or urgency>=6 or project.is:pd or project:pd. )";
+          read = readFilter "-home -southport -enfield -work -office -nsfw -audio -allotment ( +steeplechase or urgency>=6 or project.is:pd or project:pd. )";
           write = "+steeplechase";
           rc.urgency.user.tag.steeplechase.coefficient = 10;
           rc.urgency.user.project.pd.coefficient = 3.6;
