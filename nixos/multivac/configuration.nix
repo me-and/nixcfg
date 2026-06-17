@@ -1,4 +1,4 @@
-{ lib, personalCfg, ... }:
+{ personalCfg, ... }:
 {
   imports = [ personalCfg.nixosModules.wsl ];
 
