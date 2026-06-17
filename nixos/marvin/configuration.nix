@@ -44,4 +44,6 @@
   };
 
   nix.signBuilds = true;
+
+  nix.buildOnJarvis = true;
 }

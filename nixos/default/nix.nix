@@ -7,6 +7,9 @@
         default = true;
       };
     signBuilds = lib.mkEnableOption "automatically signing local builds using the key from SOPS";
+
+    buildOnMarvin = lib.mkEnableOption "using marvin as a remote build machine";
+    buildOnJarvis = lib.mkEnableOption "using jarvis as a remote build machine";
   };
 
   config = lib.mkMerge [
@@ -39,6 +42,43 @@
         templates.nix-cache-key.content = config.sops.placeholder.nix-cache-key;
       };
       nix.settings.secret-key-files = config.sops.templates.nix-cache-key.path;
+    })
+
+    (lib.mkIf config.nix.buildOnMarvin {
+      nix.distributedBuilds = true;
+      nix.buildMachines = [
+        {
+          hostName = "marvin.dinwoodie.org";
+          maxJobs = 4;
+          protocol = "ssh-ng";
+          sshUser = "nix-ssh";
+          supportedFeatures = [
+            "nixos-test"
+            "kvm"
+            "big-parallel"
+            "benchmark"
+          ];
+          system = "x86_64-linux";
+        }
+      ];
+    })
+
+    (lib.mkIf config.nix.buildOnJarvis {
+      nix.distributedBuilds = true;
+      nix.buildMachines = [
+        {
+          hostName = "jarvis.dinwoodie.org";
+          maxJobs = 4;
+          protocol = "ssh-ng";
+          sshUser = "nix-ssh";
+          supportedFeatures = [
+            "nixos-test"
+            "big-parallel"
+            "benchmark"
+          ];
+          system = "aarch64-linux";
+        }
+      ];
     })
 
     {

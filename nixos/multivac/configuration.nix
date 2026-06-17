@@ -18,4 +18,7 @@
   # TODO Set this up, as I don't have any reason not to use it other than not
   # getting around to setting up the SSH keys.
   nix.nixBuildDotNet.substituter.enable = false;
+
+  nix.buildOnMarvin = true;
+  nix.buildOnJarvis = true;
 }

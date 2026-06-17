@@ -42,4 +42,7 @@
     target.freePercent = 25;
     trigger.freePercent = 15;
   };
+
+  nix.buildOnMarvin = true;
+  nix.buildOnJarvis = true;
 }

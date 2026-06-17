@@ -107,4 +107,6 @@
   programs.mosh.enable = true;
 
   nix.signBuilds = true;
+
+  nix.buildOnMarvin = true;
 }

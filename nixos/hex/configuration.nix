@@ -62,4 +62,7 @@
   };
 
   nix.signBuilds = true;
+
+  nix.buildOnMarvin = true;
+  nix.buildOnJarvis = true;
 }
