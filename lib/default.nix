@@ -18,4 +18,4 @@ let
     directory = ./.;
   };
 in
-builtins.removeAttrs (scope.packages scope) [ "default" ]
+removeAttrs (scope.packages scope) [ "default" ]

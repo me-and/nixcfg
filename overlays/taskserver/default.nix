@@ -88,6 +88,6 @@ in
     passthru =
       # Check we're only removing a single test with the expected name.
       assert (builtins.attrNames oldAttrs.passthru.tests) == [ "taskserver" ];
-      builtins.removeAttrs oldAttrs.passthru [ "tests" ];
+      removeAttrs oldAttrs.passthru [ "tests" ];
   });
 }
