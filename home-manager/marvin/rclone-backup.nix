@@ -11,6 +11,7 @@ let
   cfg = config.services.rcloneBackups;
   rclone = lib.getExe cfg.rclonePackage;
   flock = lib.getExe' pkgs.util-linux "flock";
+  systemctl = config.systemd.user.systemctlPath;
 in
 {
   options.services.rcloneBackups = {
@@ -133,7 +134,7 @@ in
                           "--no-fork"
                           "%t/rclonemisc"
                         ]
-                        ++ (builtins.map mylib.escapeSystemdExecArg (buildRcloneCmd cmd extraRcloneArgs paths))
+                        ++ (map mylib.escapeSystemdExecArg (buildRcloneCmd cmd extraRcloneArgs paths))
                       );
                   in
                   lib.mapAttrs (n: v: lib.recursiveUpdate v config.extraServiceConfig) {
@@ -146,6 +147,7 @@ in
                             config.localPath
                             config.remotePath
                           ];
+                      Service.ExecStartPre = "${systemctl} --user reset-failed rclone-check@${config.instanceName}";
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
                       Service.RestartForceExitStatus = [
@@ -167,6 +169,7 @@ in
                             config.remotePath
                             config.localPath
                           ];
+                      Service.ExecStartPre = "${systemctl} --user reset-failed rclone-check@${config.instanceName}";
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
                       Service.RestartForceExitStatus = [
@@ -200,6 +203,7 @@ in
                             config.localPath
                             config.remotePath
                           ];
+                      Service.ExecStartPre = "${systemctl} --user reset-failed rclone-check@${config.instanceName}";
                       Service.Nice = 19;
                       Service.IOSchedulingClass = "idle";
                       Service.RestartForceExitStatus = [
