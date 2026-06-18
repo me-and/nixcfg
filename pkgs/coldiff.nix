@@ -1,7 +1,6 @@
 {
   diffutils,
   ncurses,
-  bashInteractive,
   writeCheckedShellApplication,
 }:
 writeCheckedShellApplication {

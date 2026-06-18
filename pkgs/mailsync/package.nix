@@ -4,7 +4,6 @@
   runtimeShell,
   systemd,
   coreutils,
-  util-linux,
 }:
 substCheckedShellApplication {
   name = "mailsync";

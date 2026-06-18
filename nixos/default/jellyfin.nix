@@ -1,8 +1,6 @@
 {
   config,
   lib,
-  options,
-  pkgs,
   utils,
   ...
 }:
@@ -10,8 +8,6 @@ let
   cfg = config.services.jellyfin;
 
   inherit (lib)
-    mkIf
-    mkMerge
     mkEnableOption
     mkOption
     ;

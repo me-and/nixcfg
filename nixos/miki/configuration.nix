@@ -1,10 +1,4 @@
-{
-  config,
-  pkgs,
-  nixos-hardware,
-  personalCfg,
-  ...
-}:
+{ config, nixos-hardware, ... }:
 {
   imports = [
     nixos-hardware.nixosModules.framework-12-13th-gen-intel

@@ -1,10 +1,4 @@
-{
-  config,
-  lib,
-  mylib,
-  options,
-  ...
-}:
+{ config, lib, ... }:
 let
   cfg = config.users;
 

@@ -5,8 +5,6 @@
   ...
 }:
 let
-  inherit (builtins) toString;
-
   ftpPasvPortRange = {
     from = 56615;
     to = 56624;

@@ -1,10 +1,5 @@
 # Open the Syncthing ports if the user account has Syncthing configured.
-{
-  config,
-  lib,
-  homeConfig,
-  ...
-}:
+{ lib, homeConfig, ... }:
 {
   networking.firewall = lib.mkIf homeConfig.services.syncthing.enable {
     allowedTCPPorts = [ 22000 ];
