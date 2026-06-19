@@ -42,6 +42,12 @@ writeCheckedShellApplication {
                 shift 2
                 ;;
 
+            -p)
+                mode='printf'
+                printf="$2"
+                shift 2
+                ;;
+
             -t) mode=target
                 shift
                 ;;
@@ -49,11 +55,11 @@ writeCheckedShellApplication {
                 shift
                 ;;
 
-            -l*)
+            -[lp]*)
                 # Flag that takes an argument: separate and reparse
                 set -- "-''${1: 1:1}" "''${1: 2}" "''${@: 2}"
                 ;;
-            -a*|-t*|-T*)
+            -[atT]*)
                 # Flag that takes no arguments: separate and reparse.
                 set -- "-''${1: 1:1}" "-''${1: 2}" "''${@: 2}"
                 ;;
@@ -83,6 +89,10 @@ writeCheckedShellApplication {
 
         target0)
             find_roots '%l\0'
+            ;;
+
+        printf)
+            find_roots "$printf"
             ;;
 
         *)
