@@ -18,7 +18,15 @@
 
   # Always want screen.  Including this here looks like it also sets up some
   # PAM configuration, which is presumably relevant...
-  programs.screen.enable = true;
+  programs.screen = {
+    enable = true;
+    # Essentially everywhere I connect from supports true colour.
+    #
+    # TODO Extend the screen module to provide Nix-native configuration?
+    screenrc = ''
+      truecolor on
+    '';
+  };
 
   # Always want locate running.
   services.locate.enable = true;
