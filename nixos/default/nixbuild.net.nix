@@ -12,8 +12,6 @@ let
     "aarch64-linux"
     "armv7l-linux"
   ];
-
-  sshKey = config.sops.secrets.nixbuild-key.path;
 in
 {
   options.nix.nixBuildDotNet = {
@@ -42,6 +40,12 @@ in
           and the Nix default substituter priority is 0.
         '';
       };
+    };
+
+    sshKey = lib.mkOption {
+      description = "Path to the SSH key to connect to nixbuild.net.";
+      type = lib.types.path;
+      default = "/etc/ssh/ssh_host_ed25519_key";
     };
   };
 
@@ -83,9 +87,10 @@ in
 
   config =
     let
-      sharedConfig = lib.mkIf (cfg.builds.enable || cfg.substituter.enable) {
-        sops.secrets.nixbuild-key = { };
-
+      # Enable this unconditionally: it does no harm to have this configuration
+      # present, and makes it easier to do things like using nixbuild.net for a
+      # single build without enabling it generally.
+      sharedConfig = {
         programs.ssh.extraConfig = ''
           Host eu.nixbuild.net
               PubkeyAcceptedKeyTypes ssh-ed25519
@@ -98,6 +103,9 @@ in
             publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPIQCZc54poJ8vqawd8TraNryQeJnvH1eLpIDgbiqymM";
           };
         };
+        nix.settings.trusted-public-keys = [
+          "nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio="
+        ];
       };
 
       builderConfig = lib.mkIf cfg.builds.enable {
@@ -118,7 +126,7 @@ in
                 "kvm"
                 "nixos-test"
               ];
-              inherit sshKey;
+              inherit (cfg) sshKey;
               maxJobs = 10000;
             }
           ];
@@ -129,15 +137,12 @@ in
         let
           storeUrl =
             if cfg.substituter.priority == null then
-              "ssh://eu.nixbuild.net?ssh-key=${sshKey}"
+              "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKey}"
             else
-              "ssh://eu.nixbuild.net?ssh-key=${sshKey}&priority=${toString cfg.substituter.priority}";
+              "ssh://eu.nixbuild.net?ssh-key=${cfg.sshKey}&priority=${toString cfg.substituter.priority}";
         in
         lib.mkIf cfg.substituter.enable {
-          nix.settings = {
-            substituters = [ storeUrl ];
-            trusted-public-keys = [ "nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio=" ];
-          };
+          nix.settings.substituters = [ storeUrl ];
         };
     in
     lib.mkMerge [

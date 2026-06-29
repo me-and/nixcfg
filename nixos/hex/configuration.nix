@@ -65,4 +65,7 @@
 
   nix.buildOnMarvin = true;
   nix.buildOnJarvis = true;
+
+  sops.secrets.nixbuild-key = { };
+  nix.nixBuildDotNet.sshKey = config.sops.secrets.nixbuild-key.path;
 }

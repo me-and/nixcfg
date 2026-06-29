@@ -1,4 +1,9 @@
-{ nixos-hardware, personalCfg, ... }:
+{
+  config,
+  nixos-hardware,
+  personalCfg,
+  ...
+}:
 {
   imports = [
     nixos-hardware.nixosModules.dell-latitude-7430
@@ -46,4 +51,7 @@
   nix.signBuilds = true;
 
   nix.buildOnJarvis = true;
+
+  sops.secrets.nixbuild-key = { };
+  nix.nixBuildDotNet.sshKey = config.sops.secrets.nixbuild-key.path;
 }
