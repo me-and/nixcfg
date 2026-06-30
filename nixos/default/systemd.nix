@@ -44,6 +44,7 @@ let
     systemd.services."mail-state@" = {
       description = "Unit %i state report";
       serviceConfig.Type = "oneshot";
+      serviceConfig.RuntimeDirectory = "mail-state@%i";
       serviceConfig.ExecStart =
         let
           reportScript = pkgs.mypkgs.writeCheckedShellScript {

@@ -69,6 +69,7 @@ in
             };
             Service = {
               Type = "oneshot";
+              RuntimeDirectory = "%i";
               ExecStart = "${reportScript} %I";
             };
           };
