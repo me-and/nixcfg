@@ -33,7 +33,7 @@
 
   environment.systemPackages = with pkgs; [
     putty # For psusan
-    mypkgs.start # For start
+    xdg-utils # for xdg-open
   ];
 
   # I've seen problems with Nix store corruption on WSL, and these seem to
