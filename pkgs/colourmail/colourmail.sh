@@ -48,12 +48,18 @@ for arg; do
 	header_args+=(--to "$arg")
 done
 
-tempdir="$(mktemp -d colourmail.$$.XXXXX)"
-trap 'rm -rf -- "$tempdir"' EXIT
+if [[ -v RUNTIME_DIRECTORY ]]; then
+	# If there's a runtime directory, rely on the caller to manage cleanup.
+	work_dir="$RUNTIME_DIRECTORY"
+else
+	tmpdir="${TMPDIR:+"${XDG_RUNTIME_DIR:+/tmp}"}"
+	work_dir="$(mktemp --tmpdir="$tmpdir" -d colourmail.$$.XXXXX)"
+	trap 'rm -rf -- "$work_dir"' EXIT
+fi
 
-input_file="$tempdir"/input
-text_file="$tempdir"/text
-html_file="$tempdir"/html
+input_file="$work_dir"/input
+text_file="$work_dir"/text
+html_file="$work_dir"/html
 
 cat >"$input_file"
 
