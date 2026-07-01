@@ -20,10 +20,4 @@
       Compression yes
     '';
   };
-
-  specialisation.tether.configuration = {
-    programs.ssh.extraConfig = ''
-      Compression yes
-    '';
-  };
 }
