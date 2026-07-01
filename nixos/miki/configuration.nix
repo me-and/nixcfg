@@ -37,6 +37,8 @@
     trigger.freePercent = 15;
   };
 
+  nix.signBuilds = true;
+
   nix.buildOnMarvin = true;
   nix.buildOnJarvis = true;
 }
