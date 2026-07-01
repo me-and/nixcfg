@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  utils,
   mylib,
   ...
 }:
@@ -24,6 +25,22 @@ let
         RandomizedOffsetSec = "30d";
         RandomizedDelaySec = "10min";
       };
+    };
+
+  # https://github.com/NixOS/nixpkgs/pull/537569
+  mkScrubServiceOverrides =
+    fs:
+    let
+      fs' = mylib.escapeSystemdPath fs;
+    in
+    lib.nameValuePair "btrfs-scrub-${fs'}" {
+      serviceConfig.ExecStart = lib.mkForce "${pkgs.btrfs-progs}/bin/btrfs scrub start -B ${utils.escapeSystemdExecArg fs}";
+      serviceConfig.ExecStop = lib.mkForce (
+        pkgs.writeShellScript "btrfs-scrub-maybe-cancel" ''
+          fs=${lib.escapeShellArg fs}
+          (${pkgs.btrfs-progs}/bin/btrfs scrub status "$fs" | ${pkgs.gnugrep}/bin/grep finished) || ${pkgs.btrfs-progs}/bin/btrfs scrub cancel "$fs"
+        ''
+      );
     };
 
   mkBalanceService =
@@ -137,6 +154,7 @@ let
     };
 
   scrubTimerOverrides = listToAttrs (map mkScrubTimerOverrides scrubFileSystems);
+  scrubServiceOverrides = listToAttrs (map mkScrubServiceOverrides scrubFileSystems);
   balanceServices = listToAttrs (map mkBalanceService scrubFileSystems);
   balanceTimers = listToAttrs (map mkBalanceTimer scrubFileSystems);
   resumeServices = listToAttrs (map mkResumeService scrubFileSystems);
@@ -158,5 +176,6 @@ lib.mkIf hasBtrfs {
 
   # Deviations from upstream: add a periodic low-usage balance pass and resume
   # interrupted scrub/balance operations after reboot and after waking.
-  systemd.services = balanceServices // resumeServices // resumeAfterSleepServices;
+  systemd.services =
+    scrubServiceOverrides // balanceServices // resumeServices // resumeAfterSleepServices;
 }
