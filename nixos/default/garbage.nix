@@ -171,9 +171,8 @@ in
             update_free_space () {
                 local -i free_blocks total_blocks block_size
 
-                free_blocks="$(stat --file-system --format=%f /nix/store)"
-                total_blocks="$(stat --file-system --format=%b /nix/store)"
-                block_size="$(stat --file-system --format=%S /nix/store)"
+                read -r free_blocks total_blocks block_size < <(stat --file-system --format='%f %b %S' /nix/store)
+                wait "$!"
 
                 bytes_free=$((free_blocks * block_size))
                 bytes_total=$((total_blocks * block_size))
