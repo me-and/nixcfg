@@ -32,6 +32,7 @@
         nix-diff
         nixfmt-tree
         nixos-generators
+        nix-output-monitor
         psmisc
         pv
         ripgrep
@@ -52,7 +53,7 @@
         nix-about
         nix-dangling-roots
         nix-locate-bin
-        nom
+        nom-realise
         select-by-weight
         toil
       ]);
