@@ -58,7 +58,7 @@
             "big-parallel"
             "benchmark"
           ];
-          system = "x86_64-linux";
+          system = "x86_64-linux,i686-linux";
         }
       ];
     })
