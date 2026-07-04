@@ -36,6 +36,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
+    nix-output-monitor = {
+      url = "github:maralorn/nix-output-monitor";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     private = {
       url = "github:me-and/nixcfg-private";

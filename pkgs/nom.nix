@@ -6,18 +6,6 @@
   writeCheckedShellApplication,
 }:
 let
-  nom = writeCheckedShellApplication {
-    name = "nom";
-    text = ''
-      if (( $# >= 2 )) && [[ "$1" = flake && "$2" = check ]]; then
-          shift 2
-          nix flake check --log-format internal-json -v "$@" |& ${lib.getExe nix-output-monitor} --json
-      else
-          exec ${lib.getExe nix-output-monitor} "$@"
-      fi
-    '';
-  };
-
   nom-realise = writeCheckedShellApplication {
     name = "nom-realise";
     text = ''
@@ -43,7 +31,6 @@ in
 symlinkJoin {
   name = "nom";
   paths = [
-    nom
     nom-realise
     nomWrappers
     nix-output-monitor
