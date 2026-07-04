@@ -68,7 +68,7 @@
       nix.buildMachines = [
         {
           hostName = "jarvis.dinwoodie.org";
-          maxJobs = 4;
+          maxJobs = 2;
           protocol = "ssh-ng";
           sshUser = "nix-ssh";
           supportedFeatures = [
