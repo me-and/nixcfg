@@ -1,5 +1,30 @@
 { lib, pkgs, ... }:
 let
+  packageConfig = {
+    systemd.package =
+      let
+        fetchSystemdPR =
+          { pr, hash }:
+          pkgs.mypkgs.fetchGitHubPR {
+            inherit pr hash;
+            owner = "systemd";
+            repo = "systemd";
+          };
+      in
+      pkgs.systemd.overrideAttrs (prevAttrs: {
+        patches = prevAttrs.patches or [ ] ++ [
+          (fetchSystemdPR {
+            pr = "42826";
+            hash = "sha256-jWbTXqrKiX+9KGcAjiwGNSYzNtppN6eHO7ybzFrHuOI=";
+          })
+          (fetchSystemdPR {
+            pr = "42686";
+            hash = "sha256-dr76x8k4YC5Gxmv60kWa8ONVmW4Bye0cKoFBN/pta24=";
+          })
+        ];
+      });
+  };
+
   # Units for setting up loopback devices.
   loopDeviceConfig =
     let
@@ -99,6 +124,7 @@ in
   };
 
   config = lib.mkMerge [
+    packageConfig
     loopDeviceConfig
     mailStateConfig
     shellcheckConfig

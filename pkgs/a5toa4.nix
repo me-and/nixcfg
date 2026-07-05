@@ -1,5 +1,5 @@
-{ writeCheckedShellScript, texlive }:
-writeCheckedShellScript {
+{ writeCheckedShellApplication, texlive }:
+writeCheckedShellApplication {
   name = "a5toa4";
   runtimeInputs = [ texlive.pkgs.pdfjam.out ];
   text = ''

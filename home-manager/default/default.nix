@@ -43,6 +43,7 @@
       ]
       ++ (with pkgs.mypkgs; [
         aaisp-quota
+        cmdline
         coldiff
         dirup
         file-age
