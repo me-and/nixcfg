@@ -35,6 +35,11 @@ in
 
       imports = [ personalCfg.homeModules.git ];
 
+      # Root doesn't need the Home Manage documentation, and skipping it means
+      # irrelevant changes in Home Manager itself won't show up as changes in
+      # my NixOS configuration.
+      manual.manpages.enable = false;
+
       programs.git = {
         enable = true;
 
