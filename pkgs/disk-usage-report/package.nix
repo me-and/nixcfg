@@ -41,7 +41,7 @@ writeCheckedShellApplication {
     if [[ -e /nix/store ]]; then
         echo
 
-        nix_store_size="$(du --summarize --block-size=1 /nix/store | cut -f1)"
+        nix_store_size="$(find /nix/store -maxdepth 1 -mindepth 1 \! \( -type d -name .links \) \! \( -type d -name '*.chroot' \) \! \( -type f -name '*.lock' -empty \) -print0 | du --total --summarize --block-size=1 --files0-from=- | sed -n 's/\ttotal$//p')"
         nix_store_size_h="$(numfmt --suffix=B --to=iec-i <<<"$nix_store_size")"
         echo "Nix store size: $nix_store_size_h"
 
