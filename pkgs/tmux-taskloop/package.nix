@@ -5,20 +5,11 @@
   coreutils,
   mtimewait,
   ncurses,
-  tmux36a,
+  tmux,
   toil,
   stdenvNoCC,
   makeBinaryWrapper,
 }:
-let
-  # tmux 3.7 changes the hook behaviour in a way that breaks pane resizing for
-  # this package.  That should just be a config fix, but I'm not trivially
-  # working out what that fix is.  For now, use tmux 3.6a for this package,
-  # which is known to work.
-  #
-  # TODO get this package working with tmux 3.7.
-  tmux = tmux36a;
-in
 stdenvNoCC.mkDerivation {
   pname = "tmux-taskloop";
   version = "0.1.0";
