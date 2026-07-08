@@ -26,13 +26,11 @@ while read -d '' -r pkg; do
 		is_broken="$(nix eval --impure .?rev="$new_ref"#packages.x86_64-linux."$pkg".meta.broken)"
 		if [[ "$was_broken" = "$is_broken" || "$is_broken" = 'false' ]]; then
 			# Either we're fixing something or it wasn't broken in the first place, so carry on.
-			printf '%s\n' git push --force origin pkg-updates/"$pkg"
-			printf '\n'
-			printf '%s\n' gh pr create \
+			git push --force origin pkg-updates/"$pkg"
+			gh pr create \
 				--fill \
 				--base main \
 				--head pkg-updates/"$pkg"
-			printf '\n'
 		elif [[ "$is_broken" ]]; then
 			echo "::warning::Not pushing broken version of $pkg" >&2
 		fi
