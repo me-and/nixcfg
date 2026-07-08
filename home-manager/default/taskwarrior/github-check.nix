@@ -39,6 +39,7 @@ in
         Timer = {
           OnCalendar = "daily";
           AccuracySec = "6h";
+          RandomizedDelaySec = "1h";
           Persistent = true;
         };
       };
