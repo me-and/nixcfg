@@ -5,9 +5,11 @@ import subprocess
 import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
+from typing import Optional
 
+from asmodeus.json import JSONableUUIDList
 from asmodeus.taskwarrior import TaskWarrior
-from asmodeus.types import Task
+from asmodeus.types import Task, uuid_list_init
 
 
 def gh_report_issues() -> list[dict[str, object]]:
@@ -43,6 +45,83 @@ def parse_utc_iso_timestamp(value: str) -> datetime:
     if parsed.tzinfo is None:
         raise RuntimeError(f"Expected timezone-aware timestamp, got {value!r}")
     return parsed.astimezone(UTC)
+
+
+def common_project(projects: list[Optional[str]]) -> Optional[str]:
+    if not projects:
+        return "admin.inboxen.github"
+
+    unique_projects = set(projects)
+    if len(unique_projects) == 1:
+        return projects[0]
+
+    if any(project is None for project in unique_projects):
+        return "admin.inboxen.github"
+
+    split_projects = [project.split(".") for project in projects if project is not None]
+    if not split_projects:
+        return "admin.inboxen.github"
+
+    common_prefix: list[str] = split_projects[0]
+    for split_project in split_projects[1:]:
+        prefix_length = 0
+        while (
+            prefix_length < len(common_prefix)
+            and prefix_length < len(split_project)
+            and common_prefix[prefix_length] == split_project[prefix_length]
+        ):
+            prefix_length += 1
+        common_prefix = common_prefix[:prefix_length]
+        if not common_prefix:
+            return "admin.inboxen.github"
+
+    return ".".join(common_prefix)
+
+
+def add_blocking_dependency(task: Task, dependency_uuid: uuid.UUID) -> bool:
+    dependencies = task.get_typed("depends", JSONableUUIDList, None)
+    if dependencies is None:
+        dependencies = task["depends"] = uuid_list_init()
+
+    if dependency_uuid in dependencies:
+        return False
+
+    dependencies.append(dependency_uuid)
+    return True
+
+
+def make_issue_task(report_entry: dict[str, object], report_url: str) -> Task:
+    kind = issue_kind_for_url(report_url)
+    return Task(
+        description=f"Track the GitHub {kind} at {report_url}",
+        tags=["internet"],
+        priority="H",
+        project="admin.inboxen.github",
+        ghmeta=json.dumps([report_entry], separators=(",", ":")),
+    )
+
+
+def make_review_task(
+    *,
+    report_url: str,
+    description_prefix: str,
+    project: Optional[str],
+    ghmeta: Optional[dict[str, object]],
+) -> tuple[Task, uuid.UUID]:
+    blocker_uuid = uuid.uuid4()
+    kind = issue_kind_for_url(report_url)
+    task_kwargs: dict[str, object] = {
+        "uuid": blocker_uuid,
+        "description": f"{description_prefix} the GitHub {kind} at {report_url}",
+        "tags": ["internet"],
+        "priority": "H",
+    }
+    if project is not None:
+        task_kwargs["project"] = project
+    if ghmeta is not None:
+        task_kwargs["ghmeta"] = json.dumps([ghmeta], separators=(",", ":"))
+
+    return Task(**task_kwargs), blocker_uuid
 
 
 if __name__ == "__main__":
@@ -81,6 +160,11 @@ if __name__ == "__main__":
         matching_tasks = task_entries_by_url.get(report_url, [])
 
         if matching_tasks:
+            updated_at = report_entry.get("updatedAt")
+            if not isinstance(updated_at, str):
+                raise RuntimeError(f"Expected report entry updatedAt to be a string, got {report_entry!r}")
+            report_updated_at = parse_utc_iso_timestamp(updated_at)
+            all_tasks_older_or_equal = True
             for task, entries in matching_tasks:
                 changed = False
                 for index, entry in enumerate(entries):
@@ -90,35 +174,59 @@ if __name__ == "__main__":
 
                 if changed:
                     task["ghmeta"] = json.dumps(entries, separators=(",", ":"))
-                    updated_at = report_entry.get("updatedAt")
-                    if not isinstance(updated_at, str):
-                        raise RuntimeError(
-                            f"Expected report entry updatedAt to be a string, got {report_entry!r}"
-                        )
-
-                    report_updated_at = parse_utc_iso_timestamp(updated_at)
-                    task_modified = task.get_typed("modified", datetime, None)
-                    if task_modified is None or report_updated_at > task_modified.astimezone(UTC):
-                        task.tag("inbox")
                     task_uuid = task.get_typed("uuid", uuid.UUID)
                     tasks_to_export[task_uuid] = task
-        else:
-            kind = issue_kind_for_url(report_url)
-            new_tasks.append(
-                Task(
-                    description=f"Track the GitHub {kind} at {report_url}",
-                    tags=["inbox"],
-                    ghmeta=json.dumps([report_entry], separators=(",", ":")),
+
+                task_modified = task.get_typed("modified", datetime, None)
+                if task_modified is None:
+                    continue
+                task_modified_utc = task_modified.astimezone(UTC)
+                if task_modified_utc > report_updated_at:
+                    all_tasks_older_or_equal = False
+
+            if all_tasks_older_or_equal:
+                kind = issue_kind_for_url(report_url)
+                inbox_descriptions = (
+                    f"Track the GitHub {kind} at {report_url}",
+                    f"Review updates to the GitHub {kind} at {report_url}",
                 )
-            )
+                already_has_review = any(
+                    task.get_typed("description", str, None) in inbox_descriptions
+                    for task, _ in matching_tasks
+                )
+                if not already_has_review:
+                    blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
+                    review_task, blocker_uuid = make_review_task(
+                        report_url=report_url,
+                        description_prefix="Review updates to",
+                        project=blocker_project,
+                        ghmeta=report_entry,
+                    )
+                    new_tasks.append(review_task)
+
+                    for task, _entries in matching_tasks:
+                        if add_blocking_dependency(task, blocker_uuid):
+                            task_uuid = task.get_typed("uuid", uuid.UUID)
+                            tasks_to_export[task_uuid] = task
+        else:
+            new_tasks.append(make_issue_task(report_entry, report_url))
 
     for url, matching_tasks in task_entries_by_url.items():
         if url in report_urls:
             continue
 
+        blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
+        review_task, blocker_uuid = make_review_task(
+            report_url=url,
+            description_prefix="Review the closed/missing",
+            project=blocker_project,
+            ghmeta=None,
+        )
+        new_tasks.append(review_task)
+
         for task, _entries in matching_tasks:
-            task.tag("inbox")
-            task_uuid = task.get_typed("uuid", uuid.UUID)
-            tasks_to_export[task_uuid] = task
+            if add_blocking_dependency(task, blocker_uuid):
+                task_uuid = task.get_typed("uuid", uuid.UUID)
+                tasks_to_export[task_uuid] = task
 
     tw.to_taskwarrior([*tasks_to_export.values(), *new_tasks])
