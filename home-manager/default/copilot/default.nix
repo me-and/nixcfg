@@ -1,8 +1,13 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  llm-agents,
+  ...
+}:
 {
   programs.github-copilot-cli = {
     enable = true;
-    package = pkgs.mypkgs.github-copilot-cli-universal;
+    package = llm-agents.packages."${pkgs.stdenv.hostPlatform.system}".copilot-cli;
 
     lspServers.nix = {
       command = lib.getExe pkgs.nil;
