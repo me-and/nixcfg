@@ -40,6 +40,10 @@
       url = "github:maralorn/nix-output-monitor";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -60,6 +64,7 @@
       wsl,
       plasma-manager,
       octogram,
+      llm-agents,
       private,
       ...
     }@inputs:
@@ -182,7 +187,7 @@
         nameValuePair "${me}@${name}" (homeManagerConfiguration {
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
-            inherit plasma-manager sops-nix;
+            inherit llm-agents plasma-manager sops-nix;
             mylib = self.lib;
             personalCfg = self;
             osConfig = self.nixosConfigurations."${name}".config;
