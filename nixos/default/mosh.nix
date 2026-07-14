@@ -31,7 +31,7 @@ in
 
         # https://github.com/NixOS/nixpkgs/pull/515070
         environment.sessionVariables = lib.mkIf cfg.enable {
-          MOSH_SERVER_NETWORK_TMOUT = 60 * 60;
+          MOSH_SERVER_NETWORK_TMOUT = 60 * 60 * 12;
           MOSH_SERVER_SIGNAL_TMOUT = 60;
         };
       }
