@@ -94,8 +94,13 @@ jobs:
       - name: Deploy build results
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
         run: |
-          mapfile -t build_results < <(realpath results/*)
-          wait "$!" # Check return code from realpath
+          mapfile -d '' -t build_results < <(find results -type l -printf '%l\0')
+          wait "$!" # Check return code from find
+
+          if (( ${#build_results[*]} == 0 )); then
+            # Nothing to upload
+            exit 0
+          fi
 
           # `nix copy` seems to run as the current user, not the nix daemon, so
           # change the key owner to the current user.
