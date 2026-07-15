@@ -267,7 +267,7 @@ in
         systemd.timers = lib.genAttrs' cfg.profiles.users (username: {
           name = "nix-gc@${mylib.escapeSystemdString username}";
           value = {
-            description = "Regular cleanup of old profiles for use %I";
+            description = "Regular cleanup of old profiles for user %I";
             timerConfig = {
               Persistent = true;
               OnCalendar = "daily";
