@@ -27,7 +27,6 @@
       cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
       chromium
       discord
-      freecad
       gnucash
       gnome-calculator # Prefer this to the KDE options
       # jellyfin-media-player # Insecure!?
