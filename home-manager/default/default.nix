@@ -55,6 +55,7 @@
         nix-dangling-roots
         nix-locate-bin
         nom-realise
+        proc-cmdline
         select-by-weight
         toil
       ]);
