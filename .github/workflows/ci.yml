@@ -4,25 +4,24 @@ on:
   - pull_request
 
 jobs:
-# eval test disabled due to https://github.com/maralorn/nix-output-monitor/issues/293
-#  eval:
-#    name: Check evaluation
-#    # Trigger CI when either (a) a commit is pushed (which implicitly excludes
-#    # pushes from GitHub Actions) or (b) there's a pull request created by
-#    # GitHub Actions.
-#    if: github.event_name == 'push' || github.actor == 'github-actions[bot]'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v7
-#      - name: Install Nix
-#        uses: DeterminateSystems/nix-installer-action@v22
-#        with:
-#          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
-#      - name: Set up Nix caching
-#        uses: DeterminateSystems/magic-nix-cache-action@v14
-#      - name: Check evaluation
-#        run: nix flake check --no-build --all-systems --keep-going
+  eval:
+    name: Check evaluation
+    # Trigger CI when either (a) a commit is pushed (which implicitly excludes
+    # pushes from GitHub Actions) or (b) there's a pull request created by
+    # GitHub Actions.
+    if: github.event_name == 'push' || github.actor == 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+      - name: Check evaluation
+        run: nix flake check --no-build --all-systems --keep-going
 
   formatting:
     name: Check formatting
