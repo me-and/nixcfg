@@ -4,25 +4,24 @@ on:
   - pull_request
 
 jobs:
-# eval test disabled due to https://github.com/maralorn/nix-output-monitor/issues/293
-#  eval:
-#    name: Check evaluation
-#    # Trigger CI when either (a) a commit is pushed (which implicitly excludes
-#    # pushes from GitHub Actions) or (b) there's a pull request created by
-#    # GitHub Actions.
-#    if: github.event_name == 'push' || github.actor == 'github-actions[bot]'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v7
-#      - name: Install Nix
-#        uses: DeterminateSystems/nix-installer-action@v22
-#        with:
-#          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
-#      - name: Set up Nix caching
-#        uses: DeterminateSystems/magic-nix-cache-action@v14
-#      - name: Check evaluation
-#        run: nix flake check --no-build --all-systems --keep-going
+  eval:
+    name: Check evaluation
+    # Trigger CI when either (a) a commit is pushed (which implicitly excludes
+    # pushes from GitHub Actions) or (b) there's a pull request created by
+    # GitHub Actions.
+    if: github.event_name == 'push' || github.actor == 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+      - name: Set up Nix caching
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+      - name: Check evaluation
+        run: nix flake check --no-build --all-systems --keep-going
 
   formatting:
     name: Check formatting
@@ -59,13 +58,62 @@ jobs:
     steps:
       - name: Recover runner disk space
         uses: wimpysworld/nothing-but-nix@v10
+
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Set up keys
+        env:
+          NIX_SIGNING_KEY: ${{ secrets.NIX_SIGNING_KEY }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          sudo mkdir -p /etc/ssh
+          printf '%s\n' "$SSH_KEY" | sudo sh -c 'umask 0077 && tee /etc/ssh/id_ed25519' >/dev/null
+
+          sudo mkdir -p /etc/nix
+          printf '%s\n' "$NIX_SIGNING_KEY" | sudo sh -c 'umask 0077 && tee /etc/nix/key' >/dev/null
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v22
         with:
           github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+          extra-conf: |
+            substituters = https://cache.nixos.org?priority=100 ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=
+            secret-key-files = /etc/nix/key
+
       - name: Set up Nix caching
         uses: DeterminateSystems/magic-nix-cache-action@v14
+
       - name: Run checks
-        run: nix run .#nix-run-available-checks -- --github
+        run: |
+          mkdir -p results
+          nix run .#nix-run-available-checks -- --github --add-root results/result
+          ls -l results
+
+      - name: Deploy build results
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
+        run: |
+          mapfile -d '' -t build_results < <(find results -type l -printf '%l\0')
+          wait "$!" # Check return code from find
+
+          if (( ${#build_results[*]} == 0 )); then
+            # Nothing to upload
+            exit 0
+          fi
+
+          # `nix copy` seems to run as the current user, not the nix daemon, so
+          # change the key owner to the current user.
+          sudo chown --changes "$USER" /etc/ssh/id_ed25519
+
+          case "$HOSTTYPE" in
+            aarch64)
+              nix copy --to 'ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK' "${build_results[@]}"
+              ;;
+            x86_64)
+              nix copy --to 'ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=' "${build_results[@]}"
+              ;;
+            *)
+              echo "::error title=Unexpected host type::Deploy step failed due to unexpected host type $HOSTTYPE"
+              exit 1
+              ;;
+          esac

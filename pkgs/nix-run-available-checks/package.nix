@@ -14,8 +14,6 @@ writeCheckedShellApplication {
     nix-eval-jobs
   ];
   text = ''
-    shopt -s lastpipe
-
     system=${lib.escapeShellArg stdenv.hostPlatform.system}
     features_str="$(nix config show system-features)"
 
@@ -53,7 +51,9 @@ writeCheckedShellApplication {
         esac
     done
 
-    nix-eval-jobs \
+    mapfile -d "" -t drvs_to_realise < <(
+      # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
+      nix-eval-jobs \
         --flake \
         --check-cache-status \
         --meta \
@@ -63,8 +63,9 @@ writeCheckedShellApplication {
         --raw-output0 \
         --arg features_str "$features_str" \
         --arg system "$system" \
-        --arg github "$github" |
-      mapfile -d "" -t drvs_to_realise
+        --arg github "$github"
+    )
+    wait "$!"
 
     if command -v nom >/dev/null; then
         nix-store --realise "''${extra_realisation_args[@]}" --log-format internal-json -v "''${drvs_to_realise[@]}" |& nom --json
