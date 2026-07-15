@@ -17,11 +17,21 @@ writeCheckedShellApplication {
     system=${lib.escapeShellArg stdenv.hostPlatform.system}
     features_str="$(nix config show system-features)"
 
+    exclude_cache=Yes
     github=
     extra_realisation_args=()
     extra_eval_args=()
+    build=Yes
     while (( $# > 0 )); do
         case "$1" in
+        -a|--all)
+            exclude_cache=
+            shift
+            ;;
+        -B|--no-build)
+            build=
+            shift
+            ;;
         -g|--github)
             github=Yes
             shift
@@ -42,7 +52,7 @@ writeCheckedShellApplication {
             extra_eval_args+=("$1" "$2" "$3")
             shift 3
             ;;
-        -[gk]*)
+        -[aBgk]*)
             set -- "-''${1: 1:1}" "-''${1: 2}" "''${@: 2}"
             ;;
         *)  printf 'unexpected argument: %q\n' "$1" >&2
@@ -51,26 +61,38 @@ writeCheckedShellApplication {
         esac
     done
 
-    mapfile -d "" -t drvs_to_realise < <(
-      # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
+    if [[ "$exclude_cache" ]]; then
+        extra_eval_args+=(--check-cache-status)
+    fi
+
+    get_drvs () {
       nix-eval-jobs \
         --flake \
-        --check-cache-status \
         --meta \
         "''${extra_eval_args[@]}" \
         .#checks."$system" |
       jq --from-file ${./filter.jq} \
-        --raw-output0 \
+        --unbuffered \
         --arg features_str "$features_str" \
         --arg system "$system" \
-        --arg github "$github"
-    )
-    wait "$!"
+        --arg github "$github" \
+        "$@"
+    }
 
-    if command -v nom >/dev/null; then
-        nix-store --realise "''${extra_realisation_args[@]}" --log-format internal-json -v "''${drvs_to_realise[@]}" |& nom --json
+    if [[ "$build" ]]; then
+      mapfile -d "" -t drvs_to_realise < <(
+        # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
+        get_drvs --raw-output0
+      )
+      wait "$!"
+
+      if command -v nom >/dev/null; then
+          nix-store --realise "''${extra_realisation_args[@]}" --log-format internal-json -v "''${drvs_to_realise[@]}" |& nom --json
+      else
+          nix-store --realise "''${extra_realisation_args[@]}" "''${drvs_to_realise[@]}"
+      fi
     else
-        nix-store --realise "''${extra_realisation_args[@]}" "''${drvs_to_realise[@]}"
+      get_drvs --raw-output
     fi
   '';
 }
