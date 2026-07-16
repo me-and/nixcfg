@@ -61,12 +61,6 @@
       ]);
 
     sessionVariables = {
-      # TODO Move to using sessionPath once sessionSearchVariables is available
-      # and therefore paths are prepended rather than appended.
-      # TODO Surely adding .nix-profile/bin ought to be handled somewhere else
-      # and not need explicit configuration!?
-      PATH = "$HOME/.local/bin:$HOME/.nix-profile/bin\${PATH:+:$PATH}";
-
       EDITOR = "vim";
       VISUAL = "vim";
 
