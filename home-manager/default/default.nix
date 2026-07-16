@@ -56,6 +56,7 @@
         nom-realise
         proc-cmdline
         select-by-weight
+        sleep_until
         toil
       ]);
 
