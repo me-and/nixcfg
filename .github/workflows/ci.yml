@@ -82,7 +82,8 @@ jobs:
         with:
           github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
           extra-conf: |
-            substituters = https://cache.nixos.org?priority=100 ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=
+            extra-substituters = https://cache.nixos.org?priority=100 ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=
+            extra-trusted-public-keys = nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio= desktop-4d6hh84-nixos:r4RHfr9MIfeQE9B5DyLcFhKoiHOmK0uiimynEiWyq/U= hex.dinwoodie.org:5PilYKnq2MXyhkMlt/xf5ZgUTK8SacNpsVDFXNxJyFo= jarvis.dinwoodie.org:/2EVYzEXqkYG9ZffKlbRB0LuoSCNlaNRti7cdsL4Kis= marvin.dinwoodie.org:NYfVzRSMzkkYUOm2y1QCfBuqA8alMAKVnEd13/cGBwI= miki.dinwoodie.org:HbMGI348/e8RZ2v3T5cWqFIXRFRluUiytGOioI2KPoc= github.com/me-and/nixcfg-1:MqFIaBuw9s+k2ffBh99UZXK0BDwy3s5Y1eSmGpmN14I=
             secret-key-files = /etc/nix/key
 
       - name: Set up Nix caching
