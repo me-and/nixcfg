@@ -109,10 +109,9 @@ def make_review_task(
     ghmeta: Optional[dict[str, object]],
 ) -> tuple[Task, uuid.UUID]:
     blocker_uuid = uuid.uuid4()
-    kind = issue_kind_for_url(report_url)
     task_kwargs: dict[str, object] = {
         "uuid": blocker_uuid,
-        "description": f"{description_prefix} the GitHub {kind} at {report_url}",
+        "description": review_task_description(report_url=report_url, description_prefix=description_prefix),
         "tags": ["internet"],
         "priority": "H",
     }
@@ -124,15 +123,28 @@ def make_review_task(
     return Task(**task_kwargs), blocker_uuid
 
 
+def review_task_description(*, report_url: str, description_prefix: str) -> str:
+    kind = issue_kind_for_url(report_url)
+    return f"{description_prefix} the GitHub {kind} at {report_url}"
+
+
 if __name__ == "__main__":
     tw = TaskWarrior()
 
     report = gh_report_issues()
     report_urls = {entry["url"] for entry in report}
 
+    task_descriptions: set[str] = set()
     task_entries_by_url: defaultdict[str, list[tuple[Task, list[dict[str, object]]]]] = defaultdict(list)
-    for task in tw.from_taskwarrior(("-COMPLETED", "-DELETED", "ghmeta.any:")):
-        ghmeta = task.get_typed("ghmeta", str)
+    for task in tw.from_taskwarrior(("-COMPLETED", "-DELETED")):
+        description = task.get_typed("description", str, None)
+        if description is not None:
+            task_descriptions.add(description)
+
+        ghmeta = task.get_typed("ghmeta", str, None)
+        if ghmeta is None:
+            continue
+
         try:
             entries = json.loads(ghmeta)
         except json.decoder.JSONDecodeError:
@@ -185,15 +197,11 @@ if __name__ == "__main__":
                     all_tasks_older_or_equal = False
 
             if all_tasks_older_or_equal:
-                kind = issue_kind_for_url(report_url)
-                inbox_descriptions = (
-                    f"Track the GitHub {kind} at {report_url}",
-                    f"Review updates to the GitHub {kind} at {report_url}",
+                review_description = review_task_description(
+                    report_url=report_url,
+                    description_prefix="Review updates to",
                 )
-                already_has_review = any(
-                    task.get_typed("description", str, None) in inbox_descriptions
-                    for task, _ in matching_tasks
-                )
+                already_has_review = review_description in task_descriptions
                 if not already_has_review:
                     blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
                     review_task, blocker_uuid = make_review_task(
@@ -203,6 +211,7 @@ if __name__ == "__main__":
                         ghmeta=report_entry,
                     )
                     new_tasks.append(review_task)
+                    task_descriptions.add(review_description)
 
                     for task, _entries in matching_tasks:
                         if add_blocking_dependency(task, blocker_uuid):
@@ -215,6 +224,13 @@ if __name__ == "__main__":
         if url in report_urls:
             continue
 
+        review_description = review_task_description(
+            report_url=url,
+            description_prefix="Review the closed/missing",
+        )
+        if review_description in task_descriptions:
+            continue
+
         blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
         review_task, blocker_uuid = make_review_task(
             report_url=url,
@@ -223,6 +239,7 @@ if __name__ == "__main__":
             ghmeta=None,
         )
         new_tasks.append(review_task)
+        task_descriptions.add(review_description)
 
         for task, _entries in matching_tasks:
             if add_blocking_dependency(task, blocker_uuid):
