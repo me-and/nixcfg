@@ -44,6 +44,13 @@
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    npc = {
+      url = "github:samestep/npc";
+      inputs.nixpkgs.follows = "nixpkgs";
+      # I want to see how badly things go wrong when using a regular git build.
+      # https://github.com/NixOS/nixpkgs/pull/543008#discussion_r3605174005
+      inputs.nixpkgs-git.follows = "nixpkgs";
+    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -66,6 +73,7 @@
       octogram,
       llm-agents,
       private,
+      npc,
       ...
     }@inputs:
     let
@@ -120,6 +128,7 @@
         self
         private
         sops-nix
+        npc
       ];
 
       makeNixpkgs =
