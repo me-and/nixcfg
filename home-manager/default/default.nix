@@ -33,6 +33,7 @@
         nixfmt-tree
         nixos-generators
         nix-output-monitor
+        npc
         psmisc
         pv
         ripgrep
