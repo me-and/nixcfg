@@ -1,5 +1,4 @@
 # shellcheck disable=SC2034 # Referenced indirectly
-set -x
 expiration_days=365
 ca_cert_path=ca.cert.pem
 ca_key_path=ca.key.pem

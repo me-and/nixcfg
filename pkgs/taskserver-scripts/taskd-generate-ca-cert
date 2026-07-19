@@ -58,8 +58,9 @@ fi
 # shellcheck disable=SC2034 # Referenced indirectly
 organization="$1"
 
-template_file="$(mktemp taskd-generate-ca-cert."$$".XXXXX)"
-trap 'rm -rf "$template_file"' EXIT
+template_dir="$(mktemp -d taskd-generate-ca-cert."$$".XXXXX)"
+template_file="$template_dir"/template
+trap 'rm -rf "$template_dir"' EXIT
 {
     for arg in organization cn country expiration_days; do
         if [[ "${!arg}" ]]; then
