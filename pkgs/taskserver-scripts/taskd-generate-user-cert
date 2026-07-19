@@ -59,8 +59,9 @@ name="$1"
 
 [[ "$cn" ]] || cn="$name"
 
-template_file="$(mktemp taskd-generate-user-cert."$$".XXXXX)"
-trap 'rm -rf "$template_file"' EXIT
+template_dir="$(mktemp -d taskd-generate-user-cert."$$".XXXXX)"
+template_file="$template_dir"/template
+trap 'rm -rf "$template_dir"' EXIT
 {
     for arg in cn country expiration_days; do
         if [[ "${!arg}" ]]; then
