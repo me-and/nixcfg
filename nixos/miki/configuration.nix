@@ -1,7 +1,14 @@
-{ config, nixos-hardware, ... }:
+{
+  config,
+  nixos-hardware,
+  personalCfg,
+  ...
+}:
 {
   imports = [
     nixos-hardware.nixosModules.framework-12-13th-gen-intel
+    personalCfg.nixosModules.pd
+    personalCfg.nixosModules.printing
   ];
 
   # TODO Fix this.
