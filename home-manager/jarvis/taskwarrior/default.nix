@@ -95,6 +95,7 @@
       # more often than the default.
       "offlineimap-full@taskwarrior".Timer = lib.mkForce {
         AccuracySec = "15min";
+        OnActiveSec = "0s";
         OnUnitInactiveSec = "15min";
         RandomizedDelaySec = "15min";
       };
