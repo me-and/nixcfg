@@ -30,10 +30,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Switch to update branch
-        run: git switch -c flake-update
-
-      - name: Merge any existing update branch
-        run: "git merge --no-edit origin/flake-update || :"
+        run: |
+          if git fetch origin flake-update; then
+            git switch flake-update
+          else
+            git switch -c flake-update
+          fi
 
       - name: Update flake inputs
         id: update
@@ -51,16 +53,24 @@ jobs:
         if: steps.update.outputs.changed == 'true'
         run: git push --force-with-lease origin flake-update
 
-      # If there's an existing branch and pull request, this should
-      # update that rather than creating a new PR.
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          gh pr create \
-            --title 'flake: update flake inputs' \
-            --body 'Automated weekly update of flake inputs via `nix flake update --commit-lock-file`.' \
-            --base "$TARGET_BRANCH" \
-            --head flake-update
+          mapfile -t open_prs < <(gh pr list --head flake-update --json number --jq '.[].number')
+          wait "$!"
+
+          if (( ${#open_prs[*]} == 0 )); then
+            gh pr create \
+              --title 'flake: update flake inputs' \
+              --body 'Automated weekly update of flake inputs via `nix flake update --commit-lock-file`.' \
+              --base "$TARGET_BRANCH" \
+              --head flake-update
+          elif (( ${#open_prs[*]} == 1 )); then
+            echo "::warning title=PR already exists::No new PR created as $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/${open_prs[0]} already exists"
+          else
+            echo "::error title=Multiple conflicting PRs exist::Multiple pull requests seem to exist for the flake-update branch: ${open_prs[*]}"
+            exit 76
+          fi
