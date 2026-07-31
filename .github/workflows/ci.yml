@@ -99,15 +99,11 @@ jobs:
           # change the key owner to the current user.
           sudo chown --changes "$USER" /etc/ssh/id_ed25519
 
-          case "$HOSTTYPE" in
-            aarch64)
-              nix copy --to 'ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK' "${build_results[@]}"
-              ;;
-            x86_64)
-              nix copy --to 'ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=' "${build_results[@]}"
-              ;;
-            *)
-              echo "::error title=Unexpected host type::Deploy step failed due to unexpected host type $HOSTTYPE"
-              exit 1
-              ;;
-          esac
+          # Copy build results to jarvis so it can act as a cache both for
+          # future GitHub Actions runs and for my other boxen.
+          nix copy --to 'ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK' "${build_results[@]}"
+
+          if [[ "$HOSTTYPE" = x86_64 ]]; then
+            # Also copy x86_64-linux builds to marvin, so I have them handy on my home network.
+            nix copy --to 'ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=' "${build_results[@]}"
+          fi
