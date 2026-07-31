@@ -47,9 +47,6 @@
     npc = {
       url = "github:samestep/npc";
       inputs.nixpkgs.follows = "nixpkgs";
-      # I want to see how badly things go wrong when using a regular git build.
-      # https://github.com/NixOS/nixpkgs/pull/543008#discussion_r3605174005
-      inputs.nixpkgs-git.follows = "nixpkgs";
     };
 
     private = {
