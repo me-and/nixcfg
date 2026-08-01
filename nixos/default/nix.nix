@@ -101,6 +101,27 @@
 
       # Using flakes so have no need for channels.
       nix.channel.enable = false;
+
+      systemd.services.nix-verify = {
+        description = "Nix store verification";
+        after = [ "nix-gc.service" ];
+        serviceConfig = {
+          Nice = 19;
+          IOSchedulingClass = "idle";
+          ExecStart = "nix store verify --all";
+        };
+        path = [ config.nix.package.out ];
+      };
+      systemd.timers.nix-verify = {
+        description = "Regular Nix store verification";
+        timerConfig = {
+          Persistent = true;
+          OnCalendar = "weekly";
+          AccuracySec = "12h";
+          RandomizedOffsetSec = "7d";
+        };
+        wantedBy = [ "timers.target" ];
+      };
     }
   ];
 }
