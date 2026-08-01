@@ -233,11 +233,10 @@ in
         systemd.timers.nix-gc = {
           description = "Regular Nix garbage collection";
           timerConfig = {
-            Persistent = true;
-            OnCalendar = "daily";
             AccuracySec = "1h";
             RandomizedDelaySec = "1h";
-            RandomizedOffsetSec = "24h";
+            OnActiveSec = "0s";
+            OnUniteInactiveSec = "1h";
           };
           wantedBy = [ "timers.target" ];
         };
