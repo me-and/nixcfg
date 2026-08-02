@@ -108,9 +108,8 @@
         serviceConfig = {
           Nice = 19;
           IOSchedulingClass = "idle";
-          ExecStart = "nix store verify --all";
+          ExecStart = "${lib.getExe' config.nix.package "nix"} store verify --all";
         };
-        path = [ config.nix.package.out ];
       };
       systemd.timers.nix-verify = {
         description = "Regular Nix store verification";
