@@ -86,7 +86,7 @@ jobs:
           ls -l results
 
       - name: Deploy build results
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
+        if: always()
         run: |
           mapfile -d '' -t build_results < <(find results -type l -printf '%l\0')
           wait "$!" # Check return code from find
@@ -103,8 +103,3 @@ jobs:
           # Copy build results to jarvis so it can act as a cache both for
           # future GitHub Actions runs and for my other boxen.
           nix copy --to 'ssh-ng://nix-ssh@jarvis.dinwoodie.org?ssh-key=/etc/ssh/id_ed25519&priority=200&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUJqVk1ER3pZeDFXVFh6MlMwTk9PRzd0M2pXaCt6VTRHZVJCdlhGendXSzYgcm9vdEBqYXJ2aXMK' "${build_results[@]}"
-
-          if [[ "$HOSTTYPE" = x86_64 ]]; then
-            # Also copy x86_64-linux builds to marvin, so I have them handy on my home network.
-            nix copy --to 'ssh-ng://nix-ssh@marvin.dinwoodie.org:52906?ssh-key=/etc/ssh/id_ed25519&priority=300&base64-ssh-public-host-key=c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1EclhXQ1ZXMWY5bXpRcTdsdGQrcmk2Y3krcC9jL25INlJHcVFzTDdndUYgcm9vdEBtYXJ2aW4uZGlud29vZGllLm9yZwo=' "${build_results[@]}"
-          fi
