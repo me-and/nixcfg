@@ -236,7 +236,7 @@ in
             AccuracySec = "1h";
             RandomizedDelaySec = "1h";
             OnActiveSec = "0s";
-            OnUniteInactiveSec = "1h";
+            OnUnitInactiveSec = "1h";
           };
           wantedBy = [ "timers.target" ];
         };
