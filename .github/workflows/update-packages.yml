@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@v35
+        uses: cachix/install-nix-action@v31.11.0
         with:
           # TODO Remove the need for package updates to need access to my
           # private repositories.

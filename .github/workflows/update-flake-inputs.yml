@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@v35
+        uses: cachix/install-nix-action@v31.11.0
         with:
           github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
       - name: Configure git
