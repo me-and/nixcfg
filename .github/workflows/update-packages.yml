@@ -18,13 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v22
+        uses: nixbuild/nix-quick-install-action@v35
         with:
           # TODO Remove the need for package updates to need access to my
           # private repositories.
-          github-token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
-      - name: Set up Nix caching
-        uses: DeterminateSystems/magic-nix-cache-action@v14
+          github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
       - name: Configure git
         run: |
           git config user.name 'github-actions[bot]'
