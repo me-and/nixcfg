@@ -83,6 +83,7 @@
 
     {
       nix.settings = {
+        builders-use-substitutes = true;
         trusted-users = [ "@wheel" ];
         experimental-features = [
           "nix-command"
