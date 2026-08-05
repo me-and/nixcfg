@@ -12,6 +12,8 @@
     # there's now a well-defined location within each package where the skills
     # should live.
     skills.gh-stack = "${pkgs.gh-stack}/share/skills/gh-stack/gh-stack";
+
+    context = ./copilot-instructions.md;
   };
 
   nixpkgs.config.allowUnfreePackages = [ "github-copilot-cli" ];
