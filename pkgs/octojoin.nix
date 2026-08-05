@@ -2,6 +2,7 @@
   lib,
   buildGoModule,
   fetchFromGitHub,
+  nix-update-script,
 }:
 buildGoModule (finalAttrs: {
   pname = "octojoin";
@@ -21,6 +22,8 @@ buildGoModule (finalAttrs: {
     HOME="$(mktemp --directory --tmpdir)"
     export HOME
   '';
+
+  passthru.updateScript = nix-update-script { extraArgs = [ "--flake" ]; };
 
   meta = {
     description = "Utility for monitoring Octopus Energy UK accounts";
