@@ -1,6 +1,5 @@
 {
   lib,
-  utils,
   config,
   pkgs,
   ...
@@ -36,6 +35,11 @@ in
       wants = [ "network-online.service" ];
       after = [ "network-online.service" ];
       serviceConfig = {
+        ExecStartPre = lib.concatStringsSep " " [
+          (lib.getExe pkgs.mypkgs.octojoin)
+          "-test"
+          "-config=\${CREDENTIALS_DIRECTORY}/octojoin.yaml"
+        ];
         ExecStart = lib.concatStringsSep " " (
           [
             (lib.getExe pkgs.mypkgs.octojoin)
