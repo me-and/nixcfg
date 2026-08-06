@@ -50,8 +50,23 @@ let
       balanceScript = pkgs.mypkgs.writeCheckedShellScript {
         name = "btrfs-balance-${fs'}";
         runtimeInputs = [ pkgs.btrfs-progs ];
+        # Emulate the default balance behaviour from
+        # https://github.com/kdave/btrfsmaintenance
         text = ''
-          btrfs balance start -dusage=10 -musage=10 ${lib.escapeShellArg fs}
+          target=${lib.escapeShellArg fs}
+
+          btrfs filesystem df "$target"
+          df -h "$target"
+
+          for n in 0 5 10; do
+              btrfs balance start -dusage="$n" "$target"
+          done
+          for n in 0 5; do
+              btrfs balance start -musage="$n" "$target"
+          done
+
+          btrfs filesystem df "$target"
+          df -h "$target"
         '';
       };
     in
