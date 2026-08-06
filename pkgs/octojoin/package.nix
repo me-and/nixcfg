@@ -17,6 +17,12 @@ buildGoModule (finalAttrs: {
 
   vendorHash = "sha256-g+yaVIx4jxpAQ/+WrGKxhVeliYx7nLQe/zsGpxV4Fn4=";
 
+  # https://github.com/matthewgall/octojoin/issues/13
+  # This patch doesn't make the improvements I've suggested in that issue, but
+  # it does at least prevent the logs being actively incorrect and therefore
+  # confusing me when I've forgotten what the problem is...
+  patches = [ ./check-interval-log.patch ];
+
   # Tests require a writable home directory.
   preCheck = ''
     HOME="$(mktemp --directory --tmpdir)"
