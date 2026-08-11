@@ -6,6 +6,7 @@ export NIXPKGS_ALLOW_BROKEN=1
 
 push=
 create_prs=
+use_local=
 while (( $# > 0 )); do
 	case "$1" in
 	--push)
@@ -14,6 +15,10 @@ while (( $# > 0 )); do
 		;;
 	--pr)
 		create_prs=YesPlease
+		shift
+		;;
+	--use-local)
+		use_local=YesPlease
 		shift
 		;;
 	*)
@@ -27,6 +32,14 @@ get_updateable_packages() {
 	nix eval --impure --json --apply 'import ./updateable-packages.nix' .#packages.x86_64-linux |
 		jq --raw-output0 '.[]'
 }
+
+if [[ -z "$use_local" ]]; then
+	start_dir="$PWD"
+	workdir="$(mktemp --directory --tmpdir "nix-update-packages.$$.XXXXX")"
+	git worktree add --detach "$workdir"
+	trap 'cd -- "$start_dir" && git worktree remove --force "$workdir"' EXIT
+	cd -- "$workdir"
+fi
 
 start_ref="$(git rev-parse HEAD)"
 
@@ -81,6 +94,10 @@ while read -d '' -r -u "$pkgs_fd" pkg; do
 		elif [[ "$is_broken" ]]; then
 			echo "::warning::Not pushing broken version of $pkg" >&2
 		fi
+	else
+		# No changes, so clean up the branch we created.
+		git switch --detach
+		git branch --delete pkg-updates/"$pkg"
 	fi
 done
 wait "$pkgs_pid"
