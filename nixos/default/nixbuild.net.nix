@@ -103,9 +103,6 @@ in
             publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPIQCZc54poJ8vqawd8TraNryQeJnvH1eLpIDgbiqymM";
           };
         };
-        nix.settings.trusted-public-keys = [
-          "nixbuild.net/3V9K4V-1:zLEau7IqIsmK/NP/pp8pUDJ+tQiD77AxRapkORQXpio="
-        ];
       };
 
       builderConfig = lib.mkIf cfg.builds.enable {
