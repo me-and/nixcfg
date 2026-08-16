@@ -1,0 +1,31 @@
+From 769918a522a2c4a3609a5152efea28186679fa76 Mon Sep 17 00:00:00 2001
+From: Adam Dinwoodie <adam@dinwoodie.org>
+Date: Sun, 16 Aug 2026 21:23:55 +0100
+Subject: [PATCH] processor: quit when atLogEnd is reached
+
+In --pickup mode, if all pending core files have already been rotated
+away by systemd, every journal entry is skipped without emitting
+finished(). The processor would then watch for new journal entries
+indefinitely, only terminating when the RuntimeMaxSec limit kills it.
+
+BUG: TODO
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+---
+ src/coredump/processor/main.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/coredump/processor/main.cpp b/src/coredump/processor/main.cpp
+index 66fdd3ba5..6004b7da1 100644
+--- a/src/coredump/processor/main.cpp
++++ b/src/coredump/processor/main.cpp
+@@ -145,6 +145,7 @@ int main(int argc, char **argv)
+     });
+ 
+     QObject::connect(&watcher, &CoredumpWatcher::finished, &app, &QCoreApplication::quit, Qt::QueuedConnection);
++    QObject::connect(&watcher, &CoredumpWatcher::atLogEnd, &app, &QCoreApplication::quit, Qt::QueuedConnection);
+     QObject::connect(
+         &watcher,
+         &CoredumpWatcher::error,
+-- 
+2.55.0
+
