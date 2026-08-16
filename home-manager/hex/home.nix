@@ -6,6 +6,7 @@
 }:
 {
   imports = [
+    personalCfg.homeModules.discord
     personalCfg.homeModules.latex
     personalCfg.homeModules.mypy
 
@@ -58,7 +59,6 @@
   nixpkgs.config.allowUnfreePackages = [
     "azuredatastudio"
     "castlabs-electron" # For tidal-hifi
-    "discord"
     "makemkv"
     "zoom"
   ];
