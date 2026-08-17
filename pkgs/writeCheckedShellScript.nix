@@ -39,6 +39,7 @@ in
   derivationArgs ? { },
   destination ? "",
   purePath ? false,
+  passthru ? { },
 }:
 let
   setArgs = lib.concatMap (opt: [
@@ -52,6 +53,7 @@ writeTextFile {
     meta
     destination
     derivationArgs
+    passthru
     ;
   executable = true;
 
