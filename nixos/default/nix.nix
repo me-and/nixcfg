@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   options.nix = {
     githubTokenFromSops =
@@ -109,7 +114,11 @@
         serviceConfig = {
           Nice = 19;
           IOSchedulingClass = "idle";
-          ExecStart = "${lib.getExe' config.nix.package "nix"} store verify --all";
+          # `nix store verify` doesn't get the garbage collector lock itself,
+          # which means a simultaneous garbage collection can cause paths to
+          # appear corrupt.  Avoid that by getting Nix's big garbage collection
+          # lock before running the verification.
+          ExecStart = "${lib.getExe pkgs.flock} -s /nix/var/nix/gc.lock ${lib.getExe' config.nix.package "nix"} store verify --all";
         };
       };
       systemd.timers.nix-verify = {
