@@ -60,6 +60,12 @@ lib.makeOverridable (
     // {
       inherit name;
 
+      pos =
+        if args.meta.description or null != null then
+          builtins.unsafeGetAttrPos "description" args.meta
+        else
+          builtins.unsafeGetAttrPos "name" args;
+
       executable = true;
 
       text =
