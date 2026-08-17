@@ -11,9 +11,6 @@
     personalCfg.nixosModules.printing
   ];
 
-  # TODO Fix this.
-  nix.nixBuildDotNet.substituter.enable = false;
-
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
