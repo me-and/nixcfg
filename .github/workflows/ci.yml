@@ -89,13 +89,22 @@ jobs:
           mkdir -p results
           nix build --out-link results/nix-run-available-checks .#nix-run-available-checks
           nix run .#nix-run-available-checks -- --github --add-root results/result
-          ls -l results
 
       - name: Deploy build results
         if: always()
         env:
           DEPLOY_TARGETS: ${{ vars.NIX_DEPLOY_TARGETS }}
         run: |
+          if [[ ! -e results ]]; then
+            # Results directory wasn't even created, so quit now
+            exit 0
+          elif ! command -v nix >/dev/null; then
+            # Nix failed to install, so quit now
+            exit 0
+          fi
+
+          ls -Al results
+
           mapfile -d '' -t build_results < <(find results -type l -printf '%l\0')
           wait "$!" # Check return code from find
 
