@@ -17,13 +17,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Set up keys
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          sudo mkdir -p /root/.ssh
+          printf '%s\n' "$SSH_KEY" | sudo sh -c 'umask 0077 && tee /root/.ssh/id_ed25519' >/dev/null
+
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.11.0
+        uses: cachix/install-nix-action@v31.11.1
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           # TODO Remove the need for package updates to need access to my
           # private repositories.
           github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
+          extra_nix_config: |
+            extra-substituters = ${{ vars.NIX_EXTRA_SUBSTITUTERS }}
+            extra-trusted-public-keys = ${{ vars.NIX_EXTRA_TRUSTED_PUBLIC_KEYS }}
+
       - name: Configure git
         run: |
           git config user.name 'github-actions[bot]'
@@ -32,4 +44,4 @@ jobs:
       - name: Update packages
         env:
           GH_TOKEN: ${{ github.token }}
-        run: nix run .#nix-update-packages -- --push --pr
+        run: nix run .#nix-update-packages -- --push --pr --use-local

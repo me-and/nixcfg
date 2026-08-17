@@ -1,10 +1,11 @@
-{ pkgs, ... }:
+{ pkgs, personalCfg, ... }:
 {
+  imports = [ personalCfg.homeModules.discord ];
+
   home.stateVersion = "25.11";
 
   home.packages = with pkgs; [
     azuredatastudio
-    discord
     gnucash
     hunspell
     hunspellDicts.en-gb-ise
@@ -22,7 +23,6 @@
   nixpkgs.config.allowUnfreePackages = [
     "azuredatastudio"
     "castlabs-electron" # For tidal-hifi
-    "discord"
     "zoom"
   ];
 

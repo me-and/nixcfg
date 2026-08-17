@@ -5,7 +5,10 @@
   ...
 }:
 lib.mkMerge [
-  { programs.nix-index.enable = lib.mkDefault true; }
+  {
+    programs.nix-index.enable = lib.mkDefault true;
+    programs.command-not-found.enable = lib.mkDefault false;
+  }
 
   (lib.mkIf config.programs.nix-index.enable {
     environment.variables.NIX_INDEX_DATABASE = "/var/cache/nix-index";
