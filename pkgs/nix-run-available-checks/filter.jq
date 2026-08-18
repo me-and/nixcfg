@@ -1,6 +1,9 @@
-if .isCached
-then "skipping .#checks.\($system).\(.attr) = \(.drvPath) as already built\n" | stderr | empty
+if .error
+then "error on .#checks.\($system).\(.attr):\n\(.error)\n" | halt_error(65)
 end
+| if .isCached
+  then "skipping .#checks.\($system).\(.attr) = \(.drvPath) as already built\n" | stderr | empty
+  end
 | .requiredSystemFeatures - ($features_str / " ") as $missing_features
 | if $missing_features != []
   then "skipping .#checks.\($system).\(.attr) = \(.drvPath) as missing features \($missing_features | join(", "))\n" | stderr | empty
