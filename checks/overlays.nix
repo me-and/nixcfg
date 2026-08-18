@@ -10,9 +10,8 @@ let
   inherit (builtins) attrNames getAttr;
   inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
-  inherit (lib.lists) remove;
   inherit (lib.meta) availableOn;
-  inherit (mylib) unionOfDisjointAttrsList;
+  inherit (mylib) removeAll unionOfDisjointAttrsList;
   inherit (pkgs.stdenv) hostPlatform;
 
   # Work out the set of attribute names that exist when applying all the
@@ -26,28 +25,55 @@ let
   # but that would (a) require *a lot* of computing, since comparing results
   # would require working out all the derivations, and (b) handling the many
   # derivations that don't successfully evaluate at all.
-  start = final: { };
+  #
+  # kdePackages gets special attention because it's a package set that doesn't
+  # have any handy overlay function built in (unlike Python).  There may be
+  # others like it, but I've not yet needed to deal with them...
+  #
+  # TODO Add tests for Python overlays.
+  start = final: { kdePackages = { }; };
   extensions = composeManyExtensions overlays;
   fixedpoint = fix (extends extensions start);
   newOrChanged =
     let
       packageNames = attrNames fixedpoint;
     in
-    remove "mypkgs" packageNames;
+    removeAll [ "kdePackages" "mypkgs" ] packageNames;
+
+  baseChecks = recurseIntoAttrs (
+    unionOfDisjointAttrsList (
+      map (
+        p:
+        let
+          pkg = getAttr p pkgs;
+        in
+        optionalAttrs (availableOn hostPlatform pkg) {
+          "${p}" = recurseIntoAttrs {
+            package = pkg;
+            tests = recurseIntoAttrs (pkg.passthru.tests or { });
+          };
+        }
+      ) newOrChanged
+    )
+  );
+
+  # TODO Remove the repetition between these definitions and the base cases.
+  kdeNewOrChanged = attrNames (fixedpoint.kdePackages or { });
+  kdeChecks = recurseIntoAttrs (
+    unionOfDisjointAttrsList (
+      map (
+        p:
+        let
+          pkg = getAttr p pkgs.kdePackages;
+        in
+        optionalAttrs (availableOn hostPlatform pkg) {
+          "${p}" = recurseIntoAttrs {
+            package = pkg;
+            tests = recurseIntoAttrs (pkg.passthru.tests or { });
+          };
+        }
+      ) kdeNewOrChanged
+    )
+  );
 in
-recurseIntoAttrs (
-  unionOfDisjointAttrsList (
-    map (
-      p:
-      let
-        pkg = getAttr p pkgs;
-      in
-      optionalAttrs (availableOn hostPlatform pkg) {
-        "${p}" = recurseIntoAttrs {
-          package = pkg;
-          tests = recurseIntoAttrs (pkg.passthru.tests or { });
-        };
-      }
-    ) newOrChanged
-  )
-)
+baseChecks // { kdePackages = kdeChecks; }
