@@ -9,7 +9,6 @@
     nixos-hardware.nixosModules.framework-16-7040-amd
     personalCfg.nixosModules.winapps
     personalCfg.nixosModules.nix-builder
-    personalCfg.nixosModules.pd
     personalCfg.nixosModules.postfix-mythic
     personalCfg.nixosModules.printing
   ];
