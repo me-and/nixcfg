@@ -534,6 +534,7 @@ in
 
     home.packages = with pkgs.mypkgs; [
       task-project-report
+      taskwarrior-ghmeta-web
       tmux-taskloop
     ];
     home.shellAliases = {
