@@ -1,0 +1,44 @@
+From 8728da9677f39f6318dc6e2ef29f1a857994e3a3 Mon Sep 17 00:00:00 2001
+From: Adam Dinwoodie <adam@dinwoodie.org>
+Date: Sat, 22 Aug 2026 20:02:55 +0100
+Subject: [PATCH 1/2] Fix misleading interval logs
+
+---
+ monitor.go | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/monitor.go b/monitor.go
+index c5c71a2..0d09dbd 100644
+--- a/monitor.go
++++ b/monitor.go
+@@ -221,16 +221,12 @@ func (m *SavingSessionMonitor) checkForNewSessions() {
+ 	if foundNewSessions {
+ 		m.lastNewSessionTime = time.Now()
+ 		m.consecutiveEmptyChecks = 0
+-		if m.useSmartIntervals {
+-			m.logger.Info("New sessions found - will check more frequently for potential batches")
+-		}
++		m.logger.Info("New sessions found")
+ 	} else {
+ 		m.consecutiveEmptyChecks++
+-		if m.useSmartIntervals && m.consecutiveEmptyChecks > 1 {
+-			m.logger.Info("No new sessions found - extending next interval",
+-				"consecutive_empty_checks", m.consecutiveEmptyChecks,
+-			)
+-		}
++		m.logger.Info("No new sessions found",
++			"consecutive_empty_checks", m.consecutiveEmptyChecks,
++		)
+ 	}
+ 
+ 	// Save state after checks
+@@ -638,4 +634,4 @@ func (m *SavingSessionMonitor) shouldAlert(session FreeElectricitySession, timeU
+ 	}
+ 	
+ 	return false, ""
+-}
+\ No newline at end of file
++}
+-- 
+2.55.0
+

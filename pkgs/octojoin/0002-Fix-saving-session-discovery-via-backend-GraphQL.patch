@@ -1,0 +1,1044 @@
+From ea927dcf598b9494d0f7c552f56691616332337e Mon Sep 17 00:00:00 2001
+From: Adam Dinwoodie <adam@dinwoodie.org>
+Date: Sat, 22 Aug 2026 17:51:46 +0100
+Subject: [PATCH 2/2] Fix saving session discovery via backend GraphQL
+
+Use backend GraphQL savingSessions data instead of decoding /accounts payload, add strict response-shape validation, and drive monitoring/UI from available events so upcoming sessions are detected before join.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+---
+ client.go     | 262 +++++++++++++++++++++++++++++---------------------
+ monitor.go    |  91 ++++++++----------
+ state_test.go |  18 +---
+ web.go        |  98 +++++++++----------
+ 4 files changed, 247 insertions(+), 222 deletions(-)
+
+diff --git a/client.go b/client.go
+index 3e6a9ac..b23e4d6 100644
+--- a/client.go
++++ b/client.go
+@@ -62,19 +62,19 @@ func NewAPIMetrics() *APIMetrics {
+ }
+ 
+ type OctopusClient struct {
+-	AccountID      string
+-	APIKey         string
+-	BaseURL        string
+-	client         *http.Client
++	AccountID       string
++	APIKey          string
++	BaseURL         string
++	client          *http.Client
+ 	lastRequestTime time.Time
+ 	minInterval     time.Duration
+ 	maxRetries      int
+-	jwtToken       string
+-	jwtExpiry      time.Time
+-	debug          bool
+-	state          *AppState
+-	logger         *Logger
+-	metrics        *APIMetrics
++	jwtToken        string
++	jwtExpiry       time.Time
++	debug           bool
++	state           *AppState
++	logger          *Logger
++	metrics         *APIMetrics
+ }
+ 
+ type SavingSession struct {
+@@ -96,7 +96,7 @@ type FreeElectricitySessionsResponse struct {
+ 
+ type WheelOfFortuneSpins struct {
+ 	ElectricitySpins int `json:"electricity_spins"`
+-	GasSpins        int `json:"gas_spins"`
++	GasSpins         int `json:"gas_spins"`
+ }
+ 
+ type WheelSpinResult struct {
+@@ -117,6 +117,7 @@ type WheelSpinResponse struct {
+ type SavingSessionsResponse struct {
+ 	Data struct {
+ 		SavingSessions struct {
++			Events  []SavingSession `json:"events"`
+ 			Account struct {
+ 				HasJoinedCampaign bool            `json:"hasJoinedCampaign"`
+ 				JoinedEvents      []SavingSession `json:"joinedEvents"`
+@@ -143,9 +144,9 @@ type MeterEligibilityResponse struct {
+ 	Data struct {
+ 		Account struct {
+ 			Properties []struct {
+-				ID                    string               `json:"id"`
+-				Address               string               `json:"address"`
+-				SmartDeviceNetworks   []SmartDeviceNetwork `json:"smartDeviceNetworks"`
++				ID                  string               `json:"id"`
++				Address             string               `json:"address"`
++				SmartDeviceNetworks []SmartDeviceNetwork `json:"smartDeviceNetworks"`
+ 			} `json:"properties"`
+ 		} `json:"account"`
+ 	} `json:"data"`
+@@ -170,7 +171,7 @@ type UsageMeasurement struct {
+ 				EstimatedAmount string `json:"estimatedAmount"` // API returns as string
+ 				CostCurrency    string `json:"costCurrency"`
+ 			} `json:"costExclTax"`
+-			Value       string `json:"value"`       // API returns as string
++			Value       string `json:"value"` // API returns as string
+ 			Description string `json:"description"`
+ 			Label       string `json:"label"`
+ 			Type        string `json:"type"`
+@@ -304,7 +305,7 @@ func (c *OctopusClient) makeGraphQLRequestWithEndpoint(endpoint, query string, v
+ 		resp.Body.Close()
+ 		c.debugLog("Got %d response, JWT token may be expired. Invalidating and retrying...", resp.StatusCode)
+ 		c.invalidateJWTToken()
+-		
++
+ 		// Retry once with fresh token
+ 		return c.makeGraphQLRequestWithEndpoint(endpoint, query, variables, false, operationName)
+ 	}
+@@ -321,15 +322,15 @@ func (c *OctopusClient) makeGraphQLRequestWithEndpoint(endpoint, query string, v
+ 		// Check if the response contains JWT expiration error
+ 		bodyStr := string(bodyBytes)
+ 		if strings.Contains(bodyStr, "Signature of the JWT has expired") ||
+-		   strings.Contains(bodyStr, "JWT has expired") ||
+-		   strings.Contains(bodyStr, "Token has expired") ||
+-		   strings.Contains(bodyStr, OctopusErrorCodeJWTExpired) || // Octopus specific auth error code
+-		   strings.Contains(bodyStr, OctopusErrorCodeInvalidAuth) || // Invalid authorization header error
+-		   strings.Contains(bodyStr, "Authentication failed") {
++			strings.Contains(bodyStr, "JWT has expired") ||
++			strings.Contains(bodyStr, "Token has expired") ||
++			strings.Contains(bodyStr, OctopusErrorCodeJWTExpired) || // Octopus specific auth error code
++			strings.Contains(bodyStr, OctopusErrorCodeInvalidAuth) || // Invalid authorization header error
++			strings.Contains(bodyStr, "Authentication failed") {
+ 			c.debugLog("GraphQL response contains JWT expiration/auth error. Invalidating token and retrying...")
+ 			c.debugLog("Error details: %s", bodyStr)
+ 			c.invalidateJWTToken()
+-			
++
+ 			// Retry once with fresh token
+ 			return c.makeGraphQLRequestWithEndpoint(endpoint, query, variables, false, operationName)
+ 		}
+@@ -655,8 +656,8 @@ func (c *OctopusClient) GetSavingSessionsWithCache(state *AppState) (*SavingSess
+ 		}
+ 	}
+ 
+-	// Get saving sessions from REST API
+-	savingSessions, err := c.getSavingSessionsREST()
++	// Get saving sessions from backend GraphQL API
++	hasJoinedCampaign, joinedEvents, availableEvents, err := c.getSavingSessionsGraphQL()
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -670,90 +671,135 @@ func (c *OctopusClient) GetSavingSessionsWithCache(state *AppState) (*SavingSess
+ 	}
+ 	c.debugLog("getOctoPointsGraphQLWithCache() returned %d points", points)
+ 
+-	// Get campaign enrollment status via GraphQL (with caching)
+-	campaigns, err := c.getCampaignStatusWithCache(state)
+-	var hasJoinedCampaign bool
+-	if err != nil {
+-		c.logger.Warn("Failed to get campaign status", "error", err)
+-		hasJoinedCampaign = false // Default to false if GraphQL fails
+-	} else {
+-		hasJoinedCampaign = campaigns["octoplus-saving-sessions"]
+-	}
+-	c.debugLog("Campaign enrollment status: %v", hasJoinedCampaign)
++	c.debugLog("Campaign enrollment status from saving sessions API: %v", hasJoinedCampaign)
+ 
+ 	// Combine the data
+-	result := &SavingSessionsResponse{
+-		Data: struct {
+-			SavingSessions struct {
+-				Account struct {
+-					HasJoinedCampaign bool             `json:"hasJoinedCampaign"`
+-					JoinedEvents      []SavingSession  `json:"joinedEvents"`
+-				} `json:"account"`
+-			} `json:"savingSessions"`
+-			OctoPoints struct {
+-				Account struct {
+-					CurrentPointsInWallet int `json:"currentPointsInWallet"`
+-				} `json:"account"`
+-			} `json:"octoPoints"`
+-		}{
+-			SavingSessions: struct {
+-				Account struct {
+-					HasJoinedCampaign bool             `json:"hasJoinedCampaign"`
+-					JoinedEvents      []SavingSession  `json:"joinedEvents"`
+-				} `json:"account"`
+-			}{
+-				Account: struct {
+-					HasJoinedCampaign bool             `json:"hasJoinedCampaign"`
+-					JoinedEvents      []SavingSession  `json:"joinedEvents"`
+-				}{
+-					HasJoinedCampaign: hasJoinedCampaign,
+-					JoinedEvents:      savingSessions.Data.SavingSessions.Account.JoinedEvents,
+-				},
+-			},
+-			OctoPoints: struct {
+-				Account struct {
+-					CurrentPointsInWallet int `json:"currentPointsInWallet"`
+-				} `json:"account"`
+-			}{
+-				Account: struct {
+-					CurrentPointsInWallet int `json:"currentPointsInWallet"`
+-				}{
+-					CurrentPointsInWallet: points,
+-				},
+-			},
+-		},
+-	}
++	result := &SavingSessionsResponse{}
++	result.Data.SavingSessions.Events = availableEvents
++	result.Data.SavingSessions.Account.HasJoinedCampaign = hasJoinedCampaign
++	result.Data.SavingSessions.Account.JoinedEvents = joinedEvents
++	result.Data.OctoPoints.Account.CurrentPointsInWallet = points
+ 
+ 	// Update cache if state is provided
+ 	if state != nil {
+ 		state.CachedSavingSessions = &CachedSavingSessions{
+ 			Data:      result,
+ 			Timestamp: time.Now(),
+ 		}
+ 	}
+ 
+ 	return result, nil
+ }
+ 
+-func (c *OctopusClient) getSavingSessionsREST() (*SavingSessionsResponse, error) {
+-	endpoint := fmt.Sprintf("/accounts/%s/", c.AccountID)
+-	
+-	resp, err := c.makeRequest("GET", endpoint, nil)
++func (c *OctopusClient) getSavingSessionsGraphQL() (bool, []SavingSession, []SavingSession, error) {
++	query := `query getSavingSessions($accountNumber: String!) {
++		savingSessions {
++			events(includeDev: false) {
++				id
++				startAt
++				endAt
++				rewardPerKwhInOctoPoints
++				eventType
++			}
++			account(accountNumber: $accountNumber) {
++				hasJoinedCampaign
++				joinedEvents {
++					eventId
++					startAt
++					endAt
++					rewardGivenInOctoPoints
++					eventType
++				}
++			}
++		}
++	}`
++
++	variables := map[string]interface{}{
++		"accountNumber": c.AccountID,
++	}
++
++	resp, err := c.makeGraphQLRequestWithEndpoint(getEndpoint("backend-graphql"), query, variables, true, "getSavingSessions")
+ 	if err != nil {
+-		return nil, fmt.Errorf("failed to make request: %w", err)
++		return false, nil, nil, fmt.Errorf("failed to execute saving sessions request: %w", err)
+ 	}
+ 	defer resp.Body.Close()
+ 
+ 	if resp.StatusCode != http.StatusOK {
+-		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
++		return false, nil, nil, fmt.Errorf("saving sessions request failed with status %d", resp.StatusCode)
++	}
++
++	var result struct {
++		Data *struct {
++			SavingSessions *struct {
++				Events []struct {
++					ID                       int       `json:"id"`
++					StartAt                  time.Time `json:"startAt"`
++					EndAt                    time.Time `json:"endAt"`
++					RewardPerKwhInOctoPoints int       `json:"rewardPerKwhInOctoPoints"`
++					EventType                string    `json:"eventType"`
++				} `json:"events"`
++				Account *struct {
++					HasJoinedCampaign bool `json:"hasJoinedCampaign"`
++					JoinedEvents      []struct {
++						EventID                 int       `json:"eventId"`
++						StartAt                 time.Time `json:"startAt"`
++						EndAt                   time.Time `json:"endAt"`
++						RewardGivenInOctoPoints int       `json:"rewardGivenInOctoPoints"`
++						EventType               string    `json:"eventType"`
++					} `json:"joinedEvents"`
++				} `json:"account"`
++			} `json:"savingSessions"`
++		} `json:"data"`
++		Errors []struct {
++			Message string `json:"message"`
++		} `json:"errors"`
+ 	}
+ 
+-	var result SavingSessionsResponse
+ 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+-		return nil, fmt.Errorf("failed to decode response: %w", err)
++		return false, nil, nil, fmt.Errorf("failed to decode saving sessions response: %w", err)
+ 	}
+ 
+-	return &result, nil
++	if len(result.Errors) > 0 {
++		errorMessages := make([]string, len(result.Errors))
++		for i, err := range result.Errors {
++			errorMessages[i] = err.Message
++		}
++		return false, nil, nil, fmt.Errorf("saving sessions GraphQL errors: %s", strings.Join(errorMessages, ", "))
++	}
++
++	if result.Data == nil || result.Data.SavingSessions == nil || result.Data.SavingSessions.Account == nil {
++		return false, nil, nil, fmt.Errorf("saving sessions response missing required fields")
++	}
++
++	now := time.Now()
++	joinedEvents := make([]SavingSession, 0, len(result.Data.SavingSessions.Account.JoinedEvents))
++	for _, event := range result.Data.SavingSessions.Account.JoinedEvents {
++		joinedEvents = append(joinedEvents, SavingSession{
++			EventID:    event.EventID,
++			StartAt:    event.StartAt,
++			EndAt:      event.EndAt,
++			OctoPoints: event.RewardGivenInOctoPoints,
++		})
++	}
++
++	availableEvents := make([]SavingSession, 0, len(result.Data.SavingSessions.Events))
++	for _, event := range result.Data.SavingSessions.Events {
++		if event.EndAt.Before(now) {
++			continue
++		}
++		if event.EventType != "" && event.EventType != "TURN_DOWN" {
++			continue
++		}
++
++		availableEvents = append(availableEvents, SavingSession{
++			EventID:    event.ID,
++			StartAt:    event.StartAt,
++			EndAt:      event.EndAt,
++			OctoPoints: event.RewardPerKwhInOctoPoints,
++		})
++	}
++
++	return result.Data.SavingSessions.Account.HasJoinedCampaign, joinedEvents, availableEvents, nil
+ }
+ 
+ func (c *OctopusClient) refreshJWTToken() error {
+@@ -767,7 +813,7 @@ func (c *OctopusClient) refreshJWTToken() error {
+ 
+ 	// JWT token request endpoint
+ 	tokenURL := "https://api.octopus.energy/v1/graphql/"
+-	
++
+ 	// Query to get JWT token using API key
+ 	query := `mutation obtainKrakenToken($input: ObtainJSONWebTokenInput!) {
+ 		obtainKrakenToken(input: $input) {
+@@ -846,7 +892,7 @@ func (c *OctopusClient) refreshJWTToken() error {
+ 	c.jwtExpiry = time.Now().Add(time.Duration(tokenResult.Data.ObtainKrakenToken.RefreshExpiresIn) * time.Second)
+ 
+ 	c.debugLog("JWT token obtained successfully, expires: %v", c.jwtExpiry)
+-	
++
+ 	// Save token to persistent state
+ 	c.saveJWTToState()
+ 
+@@ -980,21 +1026,21 @@ func (c *OctopusClient) GetFreeElectricitySessionsWithCache(state *AppState) (*F
+ 	}
+ 	// Free electricity sessions with fallback endpoints for reliability
+ 	urls := []string{
+-		"https://matthewgall.github.io/octoevents/free_electricity.json",           // Primary: GitHub Pages (fastest)
++		"https://matthewgall.github.io/octoevents/free_electricity.json",                                 // Primary: GitHub Pages (fastest)
+ 		"https://raw.githubusercontent.com/matthewgall/octoevents/refs/heads/main/free_electricity.json", // Fallback 1: GitHub Raw
+-		"https://oe-api.davidskendall.co.uk/free_electricity.json",                // Fallback 2: David's API
++		"https://oe-api.davidskendall.co.uk/free_electricity.json",                                       // Fallback 2: David's API
+ 	}
+-	
++
+ 	var lastErr error
+ 	for i, url := range urls {
+ 		c.debugLog("Trying free electricity endpoint %d: %s", i+1, url)
+-		
++
+ 		req, err := http.NewRequest("GET", url, nil)
+ 		if err != nil {
+ 			lastErr = fmt.Errorf("failed to create request for %s: %w", url, err)
+ 			continue
+ 		}
+-		
++
+ 		req.Header.Set("User-Agent", GetUserAgent())
+ 
+ 		resp, err := c.client.Do(req)
+@@ -1014,27 +1060,27 @@ func (c *OctopusClient) GetFreeElectricitySessionsWithCache(state *AppState) (*F
+ 			lastErr = fmt.Errorf("failed to decode response from %s: %w", url, err)
+ 			continue
+ 		}
+-		
++
+ 		c.debugLog("Successfully retrieved free electricity sessions from endpoint %d", i+1)
+-		
++
+ 		// Update cache if state is provided
+ 		if state != nil {
+ 			state.CachedFreeElectricity = &CachedFreeElectricitySessions{
+ 				Data:      &result,
+ 				Timestamp: time.Now(),
+ 			}
+ 		}
+ 
+ 		return &result, nil
+ 	}
+-	
++
+ 	// If all endpoints failed, return the last error
+ 	return nil, fmt.Errorf("all free electricity endpoints failed, last error: %w", lastErr)
+ }
+ 
+ func (c *OctopusClient) JoinSavingSession(eventID int) error {
+ 	endpoint := fmt.Sprintf("/accounts/%s/saving-sessions/%d/join", c.AccountID, eventID)
+-	
++
+ 	resp, err := c.makeRequest("POST", endpoint, nil)
+ 	if err != nil {
+ 		return fmt.Errorf("failed to join saving session: %w", err)
+@@ -1145,7 +1191,7 @@ func (c *OctopusClient) getWheelOfFortuneSpins() (*WheelOfFortuneSpins, error) {
+ 
+ 	spins := &WheelOfFortuneSpins{
+ 		ElectricitySpins: result.Data.ElectricitySpins.SpinsAllowed,
+-		GasSpins:        result.Data.GasSpins.SpinsAllowed,
++		GasSpins:         result.Data.GasSpins.SpinsAllowed,
+ 	}
+ 
+ 	c.debugLog("Wheel of Fortune spins: Electricity=%d, Gas=%d", spins.ElectricitySpins, spins.GasSpins)
+@@ -1208,7 +1254,7 @@ func (c *OctopusClient) spinWheelOfFortune(fuelType string) (*WheelSpinResult, e
+ func (c *OctopusClient) spinAllAvailableWheels(spins *WheelOfFortuneSpins) ([]WheelSpinResult, error) {
+ 	var results []WheelSpinResult
+ 	c.debugLog("Starting to spin wheels: Electricity=%d, Gas=%d", spins.ElectricitySpins, spins.GasSpins)
+-	
++
+ 	// Spin electricity wheels
+ 	for i := 0; i < spins.ElectricitySpins; i++ {
+ 		c.debugLog("Spinning electricity wheel %d of %d", i+1, spins.ElectricitySpins)
+@@ -1244,7 +1290,7 @@ func (c *OctopusClient) spinAllAvailableWheels(spins *WheelOfFortuneSpins) ([]Wh
+ 		// Small delay between spins to be respectful to the API
+ 		time.Sleep(WheelSpinDelay)
+ 	}
+-	
++
+ 	c.debugLog("Finished spinning wheels. Total results: %d", len(results))
+ 	return results, nil
+ }
+@@ -1411,11 +1457,11 @@ func (c *OctopusClient) getUsageMeasurements(deviceIDs []string, days int) ([]Us
+ 
+ 	// Use first device ID for now (most users have one electricity meter)
+ 	deviceID := deviceIDs[0]
+-	
++
+ 	// Calculate time range
+ 	endTime := time.Now()
+ 	startTime := endTime.AddDate(0, 0, -days)
+-	
++
+ 	c.debugLog("Fetching usage measurements: %d days from %s to %s", days, startTime.Format("2006-01-02 15:04"), endTime.Format("2006-01-02 15:04"))
+ 
+ 	query := `query getMeasurements($accountNumber: String!, $first: Int!, $utilityFilters: [UtilityFiltersInput!], $startAt: DateTime, $endAt: DateTime, $timezone: String) {
+@@ -1518,7 +1564,7 @@ func (c *OctopusClient) getUsageMeasurements(deviceIDs []string, days int) ([]Us
+ 	}
+ 
+ 	c.debugLog("Retrieved %d usage measurements for device %s", len(measurements), deviceID)
+-	
++
+ 	// Debug: Show first few measurements to understand data structure
+ 	if len(measurements) > 0 && c.debug {
+ 		c.debugLog("Sample measurements:")
+@@ -1534,7 +1580,7 @@ func (c *OctopusClient) getUsageMeasurements(deviceIDs []string, days int) ([]Us
+ 			c.debugLog("  %d. %s: %s %s (Cost: %s)", i+1, m.StartAt.Format("2006-01-02 15:04"), m.Value, m.Unit, costStr)
+ 		}
+ 	}
+-	
++
+ 	return measurements, nil
+ }
+ 
+@@ -1575,12 +1621,12 @@ func (c *OctopusClient) getSmartMeterDevicesWithCache(state *AppState) ([]string
+ func (c *OctopusClient) getUsageMeasurementsWithCache(state *AppState, days int) ([]UsageMeasurement, error) {
+ 	if state != nil && state.CachedUsageMeasurements != nil {
+ 		// Cache is valid if it's less than duration old and covers the same or more days
+-		if state.IsCacheValid(state.CachedUsageMeasurements.Timestamp, CacheDurationUsageMeasurements) && 
+-		   state.CachedUsageMeasurements.Days >= days {
+-			c.debugLog("Using cached usage measurements (%d measurements, %d days, age: %v)", 
+-				len(state.CachedUsageMeasurements.Data), state.CachedUsageMeasurements.Days, 
++		if state.IsCacheValid(state.CachedUsageMeasurements.Timestamp, CacheDurationUsageMeasurements) &&
++			state.CachedUsageMeasurements.Days >= days {
++			c.debugLog("Using cached usage measurements (%d measurements, %d days, age: %v)",
++				len(state.CachedUsageMeasurements.Data), state.CachedUsageMeasurements.Days,
+ 				time.Since(state.CachedUsageMeasurements.Timestamp))
+-			
++
+ 			// Filter cached data to only include the requested number of days
+ 			cutoffTime := time.Now().AddDate(0, 0, -days)
+ 			var filteredData []UsageMeasurement
+@@ -1619,4 +1665,4 @@ func (c *OctopusClient) getUsageMeasurementsWithCache(state *AppState, days int)
+ 	}
+ 
+ 	return measurements, nil
+-}
+\ No newline at end of file
++}
+diff --git a/monitor.go b/monitor.go
+index 0d09dbd..3b97b21 100644
+--- a/monitor.go
++++ b/monitor.go
+@@ -21,27 +21,27 @@ import (
+ )
+ 
+ type FreeElectricityAlertState struct {
+-	Code          string
+-	InitialAlert  bool
+-	DayOfAlert    bool
++	Code            string
++	InitialAlert    bool
++	DayOfAlert      bool
+ 	TwelveHourAlert bool
+-	SixHourAlert  bool
+-	FinalAlert    bool
++	SixHourAlert    bool
++	FinalAlert      bool
+ }
+ 
+ type SavingSessionMonitor struct {
+-	client               *OctopusClient
+-	state                *AppState
+-	accountID            string
+-	checkInterval        time.Duration
+-	stopCh               chan struct{}
+-	minPointsThreshold   int
+-	webServer            *WebServer
+-	useSmartIntervals    bool
++	client                 *OctopusClient
++	state                  *AppState
++	accountID              string
++	checkInterval          time.Duration
++	stopCh                 chan struct{}
++	minPointsThreshold     int
++	webServer              *WebServer
++	useSmartIntervals      bool
+ 	consecutiveEmptyChecks int
+-	lastNewSessionTime   time.Time
+-	logger               *Logger
+-	daemonMode           bool // true if running with web UI
++	lastNewSessionTime     time.Time
++	logger                 *Logger
++	daemonMode             bool // true if running with web UI
+ }
+ 
+ func NewSavingSessionMonitor(client *OctopusClient, accountID string) *SavingSessionMonitor {
+@@ -62,7 +62,7 @@ func NewSavingSessionMonitor(client *OctopusClient, accountID string) *SavingSes
+ 
+ 	// Set state on client for JWT token caching
+ 	client.SetState(state)
+-	
++
+ 	return &SavingSessionMonitor{
+ 		client:             client,
+ 		state:              state,
+@@ -98,14 +98,14 @@ func (m *SavingSessionMonitor) getSmartInterval() time.Duration {
+ 	if !m.useSmartIntervals {
+ 		return m.checkInterval
+ 	}
+-	
++
+ 	// Load UK timezone
+ 	ukLocation, err := time.LoadLocation("Europe/London")
+ 	if err != nil {
+ 		// Fallback to UTC if timezone loading fails
+ 		ukLocation = time.UTC
+ 	}
+-	
++
+ 	now := time.Now().In(ukLocation)
+ 	hour := now.Hour()
+ 	weekday := now.Weekday()
+@@ -280,25 +280,26 @@ func (m *SavingSessionMonitor) checkSavingSessions() bool {
+ 					}
+ 				}
+ 
+-				m.logger.Info("Auto-spin complete",
++			m.logger.Info("Auto-spin complete",
+ 					"total_points", totalPoints,
+ 					"electricity_points", electricityPoints,
+ 					"gas_points", gasPoints,
+ 				)
+-				
++
++
+ 				// Clear the cached spins so we check for new ones on next run
+ 				if m.state != nil {
+ 					m.state.CachedWheelOfFortuneSpins = nil
+ 				}
+ 			} else {
+ 				m.logger.Warn("No wheels were successfully spun")
+ 			}
+ 		} else {
+ 			m.logger.Debug("No Wheel of Fortune spins available")
+ 		}
+ 	}
+ 
+-	for _, session := range response.Data.SavingSessions.Account.JoinedEvents {
++	for _, session := range response.Data.SavingSessions.Events {
+ 		if !m.state.KnownSessions[session.EventID] {
+ 			foundNewSessions = true
+ 			now := time.Now()
+@@ -361,10 +362,10 @@ func (m *SavingSessionMonitor) checkSavingSessions() bool {
+ 		}
+ 	}
+ 
+-	if len(response.Data.SavingSessions.Account.JoinedEvents) == 0 {
++	if len(response.Data.SavingSessions.Events) == 0 {
+ 		m.logger.Debug("No saving sessions found")
+ 	}
+-	
++
+ 	return foundNewSessions
+ }
+ 
+@@ -379,37 +380,37 @@ func (m *SavingSessionMonitor) checkFreeElectricitySessions() bool {
+ 	foundNewSessions := false
+ 	for _, session := range response.Data {
+ 		now := time.Now()
+-		
++
+ 		// Skip sessions that have already ended
+ 		if session.EndAt.Before(now) {
+ 			continue
+ 		}
+-		
++
+ 		// Check if this is a new session
+ 		if !m.state.KnownFreeElectricitySessions[session.Code] {
+ 			foundNewSessions = true
+ 		}
+-		
++
+ 		// Track that we've seen this session
+ 		m.state.KnownFreeElectricitySessions[session.Code] = true
+ 		currentSessionsFound++
+-		
++
+ 		// Check if we should alert
+ 		var timeUntil time.Duration
+ 		if session.StartAt.After(now) {
+ 			timeUntil = session.StartAt.Sub(now)
+ 		} else {
+ 			timeUntil = 0 // Currently active
+ 		}
+-		
++
+ 		shouldAlert, alertType := m.shouldAlert(session, timeUntil)
+ 		if !shouldAlert {
+ 			continue
+ 		}
+-		
++
+ 		// Display the appropriate alert
+ 		duration := session.EndAt.Sub(session.StartAt)
+-		
++
+ 		if session.StartAt.Before(now) && session.EndAt.After(now) {
+ 			// Currently active
+ 			timeLeft := session.EndAt.Sub(now)
+@@ -453,7 +454,7 @@ func (m *SavingSessionMonitor) checkFreeElectricitySessions() bool {
+ 	if currentSessionsFound == 0 {
+ 		m.logger.Debug("No current or upcoming free electricity sessions found")
+ 	}
+-	
++
+ 	return foundNewSessions
+ }
+ 
+@@ -495,14 +496,6 @@ func (m *SavingSessionMonitor) displayCampaignStatus() {
+ 			}
+ 			m.logger.Info("Saving Sessions: DISABLED", "missing_campaigns", missingCampaigns)
+ 		}
+-
+-		if freeElectricityOK {
+-			m.logger.Info("Free Electricity: ENABLED", "campaign", "free_electricity")
+-		} else {
+-			m.logger.Info("Free Electricity: DISABLED", "missing_campaign", "free_electricity")
+-		}
+-	} else {
+-		// User-friendly output for standalone mode
+ 		m.logger.UserMessage("Feature Status:")
+ 
+ 		if octoplusOK && savingSessionsOK {
+@@ -541,20 +534,20 @@ func (m *SavingSessionMonitor) joinSession(eventID int) error {
+ func (m *SavingSessionMonitor) formatDuration(d time.Duration) string {
+ 	hours := int(d.Hours())
+ 	minutes := int(d.Minutes()) % 60
+-	
++
+ 	if hours > 0 && minutes > 0 {
+ 		return fmt.Sprintf("%dh %dm", hours, minutes)
+ 	} else if hours > 0 {
+ 		return fmt.Sprintf("%dh", hours)
+ 	} else {
+ 		return fmt.Sprintf("%dm", minutes)
+ 	}
+ }
+ 
+ func (m *SavingSessionMonitor) formatTimeUntil(d time.Duration) string {
+ 	hours := int(d.Hours())
+ 	minutes := int(d.Minutes()) % 60
+-	
++
+ 	if hours > 0 && minutes > 0 {
+ 		return fmt.Sprintf("%dh %dm", hours, minutes)
+ 	} else if hours > 0 {
+@@ -569,7 +562,7 @@ func (m *SavingSessionMonitor) formatTimeUntil(d time.Duration) string {
+ func (m *SavingSessionMonitor) formatDaysUntil(d time.Duration) string {
+ 	days := int(d.Hours() / 24)
+ 	hours := int(d.Hours()) % 24
+-	
++
+ 	if days > 1 {
+ 		if hours > 0 {
+ 			return fmt.Sprintf("in %d days %dh", days, hours)
+@@ -590,31 +583,31 @@ func (m *SavingSessionMonitor) formatDaysUntil(d time.Duration) string {
+ func (m *SavingSessionMonitor) shouldAlert(session FreeElectricitySession, timeUntil time.Duration) (bool, string) {
+ 	code := session.Code
+ 	now := time.Now()
+-	
++
+ 	// Initialize alert state if not exists
+ 	if _, exists := m.state.AlertStates[code]; !exists {
+ 		m.state.AlertStates[code] = &FreeElectricityAlertState{
+ 			Code: code,
+ 		}
+ 	}
+-	
++
+ 	alert := m.state.AlertStates[code]
+-	
++
+ 	// Check if session has ended - cleanup alert state
+ 	if session.EndAt.Before(now) {
+ 		delete(m.state.AlertStates, code)
+ 		return false, ""
+ 	}
+-	
++
+ 	// Currently active - only alert once
+ 	if session.StartAt.Before(now) && session.EndAt.After(now) {
+ 		if !alert.FinalAlert {
+ 			alert.FinalAlert = true
+ 			return true, "ACTIVE NOW"
+ 		}
+ 		return false, ""
+ 	}
+-	
++
+ 	// Upcoming session - check intervals
+ 	if timeUntil <= AlertIntervalFinal && !alert.FinalAlert {
+ 		alert.FinalAlert = true
+@@ -632,6 +625,6 @@ func (m *SavingSessionMonitor) shouldAlert(session FreeElectricitySession, timeU
+ 		alert.InitialAlert = true
+ 		return true, "INITIAL ALERT"
+ 	}
+-	
++
+ 	return false, ""
+ }
+diff --git a/state_test.go b/state_test.go
+index 3e984bf..e8b3c0c 100644
+--- a/state_test.go
++++ b/state_test.go
+@@ -126,21 +126,7 @@ func TestAppStateSave(t *testing.T) {
+ 
+ func TestCachedSavingSessionsStruct(t *testing.T) {
+ 	now := time.Now()
+-	testResponse := &SavingSessionsResponse{
+-		Data: struct {
+-			SavingSessions struct {
+-				Account struct {
+-					HasJoinedCampaign bool            `json:"hasJoinedCampaign"`
+-					JoinedEvents      []SavingSession `json:"joinedEvents"`
+-				} `json:"account"`
+-			} `json:"savingSessions"`
+-			OctoPoints struct {
+-				Account struct {
+-					CurrentPointsInWallet int `json:"currentPointsInWallet"`
+-				} `json:"account"`
+-			} `json:"octoPoints"`
+-		}{},
+-	}
++	testResponse := &SavingSessionsResponse{}
+ 
+ 	cached := CachedSavingSessions{
+ 		Data:      testResponse,
+@@ -154,4 +140,4 @@ func TestCachedSavingSessionsStruct(t *testing.T) {
+ 	if cached.Timestamp != now {
+ 		t.Errorf("Expected timestamp %v, got %v", now, cached.Timestamp)
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/web.go b/web.go
+index 103eec2..67b5a14 100644
+--- a/web.go
++++ b/web.go
+@@ -25,21 +25,21 @@ import (
+ )
+ 
+ type CampaignStatus struct {
+-	SavingSessionsEnabled    bool `json:"saving_sessions_enabled"`
+-	FreeElectricityEnabled   bool `json:"free_electricity_enabled"`
+-	HasOctoplus             bool `json:"has_octoplus"`
+-	HasSavingSessions       bool `json:"has_saving_sessions"`
+-	HasFreeElectricity      bool `json:"has_free_electricity"`
++	SavingSessionsEnabled  bool `json:"saving_sessions_enabled"`
++	FreeElectricityEnabled bool `json:"free_electricity_enabled"`
++	HasOctoplus            bool `json:"has_octoplus"`
++	HasSavingSessions      bool `json:"has_saving_sessions"`
++	HasFreeElectricity     bool `json:"has_free_electricity"`
+ }
+ 
+ type SessionData struct {
+-	CurrentPoints       int                      `json:"current_points"`
+-	AccountBalance      float64                  `json:"account_balance"`
+-	WheelOfFortuneSpins *WheelOfFortuneSpins     `json:"wheel_of_fortune_spins"`
+-	SavingSessions      []SavingSession          `json:"saving_sessions"`
++	CurrentPoints           int                      `json:"current_points"`
++	AccountBalance          float64                  `json:"account_balance"`
++	WheelOfFortuneSpins     *WheelOfFortuneSpins     `json:"wheel_of_fortune_spins"`
++	SavingSessions          []SavingSession          `json:"saving_sessions"`
+ 	FreeElectricitySessions []FreeElectricitySession `json:"free_electricity_sessions"`
+-	CampaignStatus      CampaignStatus           `json:"campaign_status"`
+-	LastUpdated         time.Time                `json:"last_updated"`
++	CampaignStatus          CampaignStatus           `json:"campaign_status"`
++	LastUpdated             time.Time                `json:"last_updated"`
+ }
+ 
+ type WebServer struct {
+@@ -60,16 +60,16 @@ func NewWebServer(monitor *SavingSessionMonitor, port int) *WebServer {
+ 		},
+ 		logger: logger,
+ 	}
+-	
++
+ 	mux.HandleFunc("/", ws.handleDashboard)
+ 	mux.HandleFunc("/api/sessions", ws.handleSessionsAPI)
+ 	mux.HandleFunc("/api/usage", ws.handleUsageAPI)
+ 	mux.HandleFunc("/api/usage/refresh", ws.handleUsageRefreshAPI)
+-	
++
+ 	// Add Prometheus metrics endpoint
+ 	metricsCollector := NewMetricsCollector(monitor.client, monitor)
+ 	mux.Handle("/metrics", metricsCollector)
+-	
++
+ 	return ws
+ }
+ 
+@@ -129,30 +129,30 @@ func (ws *WebServer) handleSessionsAPI(w http.ResponseWriter, r *http.Request) {
+ 		ws.logger.Warn("Failed to get free electricity sessions", "error", err)
+ 		freeElectricity = &FreeElectricitySessionsResponse{} // Empty response
+ 	}
+-	
++
+ 	// Filter upcoming sessions
+ 	now := time.Now()
+ 	var upcomingSavingSessions []SavingSession
+ 	var upcomingFreeElectricitySessions []FreeElectricitySession
+-	
++
+ 	// Filter saving sessions
+-	if sessions != nil && sessions.Data.SavingSessions.Account.JoinedEvents != nil {
+-		for _, session := range sessions.Data.SavingSessions.Account.JoinedEvents {
++	if sessions != nil && sessions.Data.SavingSessions.Events != nil {
++		for _, session := range sessions.Data.SavingSessions.Events {
+ 			if session.EndAt.After(now) {
+ 				upcomingSavingSessions = append(upcomingSavingSessions, session)
+ 			}
+ 		}
+ 	}
+-	
+-	// Filter free electricity sessions  
++
++	// Filter free electricity sessions
+ 	if freeElectricity != nil {
+ 		for _, session := range freeElectricity.Data {
+ 			if session.EndAt.After(now) {
+ 				upcomingFreeElectricitySessions = append(upcomingFreeElectricitySessions, session)
+ 			}
+ 		}
+ 	}
+-	
++
+ 	// Get current points
+ 	currentPoints := 0
+ 	if sessions != nil {
+@@ -180,38 +180,38 @@ func (ws *WebServer) handleSessionsAPI(w http.ResponseWriter, r *http.Request) {
+ 	if err != nil {
+ 		ws.logger.Warn("Could not get campaign status", "error", err)
+ 		campaigns = map[string]bool{
+-			"octoplus": false,
++			"octoplus":                 false,
+ 			"octoplus-saving-sessions": false,
+-			"free_electricity": false,
++			"free_electricity":         false,
+ 		}
+ 	}
+ 
+ 	campaignStatus := CampaignStatus{
+-		HasOctoplus:             campaigns["octoplus"],
+-		HasSavingSessions:       campaigns["octoplus-saving-sessions"],
+-		HasFreeElectricity:      campaigns["free_electricity"],
+-		SavingSessionsEnabled:   campaigns["octoplus"] && campaigns["octoplus-saving-sessions"],
+-		FreeElectricityEnabled:  campaigns["free_electricity"],
++		HasOctoplus:            campaigns["octoplus"],
++		HasSavingSessions:      campaigns["octoplus-saving-sessions"],
++		HasFreeElectricity:     campaigns["free_electricity"],
++		SavingSessionsEnabled:  campaigns["octoplus"] && campaigns["octoplus-saving-sessions"],
++		FreeElectricityEnabled: campaigns["free_electricity"],
+ 	}
+-	
++
+ 	// Ensure arrays are never nil
+ 	if upcomingSavingSessions == nil {
+ 		upcomingSavingSessions = []SavingSession{}
+ 	}
+ 	if upcomingFreeElectricitySessions == nil {
+ 		upcomingFreeElectricitySessions = []FreeElectricitySession{}
+ 	}
+-	
++
+ 	data := SessionData{
+-		CurrentPoints:               currentPoints,
+-		AccountBalance:              accountBalance,
+-		WheelOfFortuneSpins:        wheelSpins,
+-		SavingSessions:             upcomingSavingSessions,
+-		FreeElectricitySessions:    upcomingFreeElectricitySessions,
+-		CampaignStatus:             campaignStatus,
+-		LastUpdated:                time.Now(),
++		CurrentPoints:           currentPoints,
++		AccountBalance:          accountBalance,
++		WheelOfFortuneSpins:     wheelSpins,
++		SavingSessions:          upcomingSavingSessions,
++		FreeElectricitySessions: upcomingFreeElectricitySessions,
++		CampaignStatus:          campaignStatus,
++		LastUpdated:             time.Now(),
+ 	}
+-	
++
+ 	w.Header().Set("Content-Type", "application/json")
+ 	w.Header().Set("Access-Control-Allow-Origin", "*")
+ 	json.NewEncoder(w).Encode(data)
+@@ -228,43 +228,43 @@ func (ws *WebServer) handleUsageAPI(w http.ResponseWriter, r *http.Request) {
+ 			}
+ 		}
+ 	}
+-	
++
+ 	// Get usage measurements with caching
+ 	measurements, err := ws.monitor.client.getUsageMeasurementsWithCache(ws.monitor.state, days)
+ 	if err != nil {
+ 		ws.logger.Error("Error getting usage measurements", "error", err)
+ 		http.Error(w, "Failed to get usage data", http.StatusInternalServerError)
+ 		return
+ 	}
+-	
++
+ 	// Transform measurements for Chart.js
+ 	var chartData []map[string]interface{}
+ 	for _, m := range measurements {
+ 		costEstimate := 0.0
+ 		if len(m.MetaData.Statistics) > 0 {
+ 			if val, err := strconv.ParseFloat(m.MetaData.Statistics[0].CostInclTax.EstimatedAmount, 64); err == nil {
+ 				costEstimate = val
+ 			}
+ 		}
+-		
++
+ 		chartData = append(chartData, map[string]interface{}{
+ 			"timestamp": m.StartAt.Unix() * 1000, // JavaScript timestamp
+ 			"datetime":  m.StartAt.Format("2006-01-02T15:04:05Z07:00"),
+ 			"value":     m.GetValueAsFloat64(),
+ 			"unit":      m.Unit,
+ 			"cost":      costEstimate,
+ 			"duration":  m.Duration,
+ 		})
+ 	}
+-	
++
+ 	response := map[string]interface{}{
+ 		"success":      true,
+ 		"days":         days,
+ 		"measurements": len(measurements),
+ 		"data":         chartData,
+ 		"cache_age":    getCacheAge(ws.monitor.state.CachedUsageMeasurements),
+ 	}
+-	
++
+ 	w.Header().Set("Content-Type", "application/json")
+ 	w.Header().Set("Access-Control-Allow-Origin", "*")
+ 	json.NewEncoder(w).Encode(response)
+@@ -287,7 +287,7 @@ func (ws *WebServer) handleUsageRefreshAPI(w http.ResponseWriter, r *http.Reques
+ 			}
+ 		}
+ 	}
+-	
++
+ 	// Get fresh usage measurements (bypassing cache)
+ 	measurements, err := ws.monitor.client.getUsageMeasurements([]string{}, days)
+ 	if err != nil {
+@@ -311,36 +311,36 @@ func (ws *WebServer) handleUsageRefreshAPI(w http.ResponseWriter, r *http.Reques
+ 			return
+ 		}
+ 	}
+-	
++
+ 	// Transform measurements for Chart.js
+ 	var chartData []map[string]interface{}
+ 	for _, m := range measurements {
+ 		costEstimate := 0.0
+ 		if len(m.MetaData.Statistics) > 0 {
+ 			if val, err := strconv.ParseFloat(m.MetaData.Statistics[0].CostInclTax.EstimatedAmount, 64); err == nil {
+ 				costEstimate = val
+ 			}
+ 		}
+-		
++
+ 		chartData = append(chartData, map[string]interface{}{
+ 			"timestamp": m.StartAt.Unix() * 1000, // JavaScript timestamp
+ 			"datetime":  m.StartAt.Format("2006-01-02T15:04:05Z07:00"),
+ 			"value":     m.GetValueAsFloat64(),
+ 			"unit":      m.Unit,
+ 			"cost":      costEstimate,
+ 			"duration":  m.Duration,
+ 		})
+ 	}
+-	
++
+ 	response := map[string]interface{}{
+ 		"success":      true,
+ 		"days":         days,
+ 		"measurements": len(measurements),
+ 		"data":         chartData,
+ 		"cache_age":    0, // Fresh data
+ 		"refreshed":    true,
+ 	}
+-	
++
+ 	w.Header().Set("Content-Type", "application/json")
+ 	w.Header().Set("Access-Control-Allow-Origin", "*")
+ 	json.NewEncoder(w).Encode(response)
+@@ -1066,4 +1066,4 @@ func (ws *WebServer) handleDashboard(w http.ResponseWriter, r *http.Request) {
+ 	tmpl := template.Must(template.New("dashboard").Parse(dashboardHTML))
+ 	w.Header().Set("Content-Type", "text/html")
+ 	tmpl.Execute(w, nil)
+-}
+\ No newline at end of file
++}
+-- 
+2.55.0
+
