@@ -25,6 +25,9 @@ jobs:
           sudo mkdir -p /root/.ssh
           printf '%s\n' "$SSH_KEY" | sudo sh -c 'umask 0077 && tee /root/.ssh/id_ed25519' >/dev/null
 
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" | sh -c 'umask 0077 && tee ~/.ssh/id_ed25519' >/dev/null
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31.11.1
         with:
@@ -33,8 +36,29 @@ jobs:
           # private repositories.
           github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
           extra_nix_config: |
-            extra-substituters = ${{ vars.NIX_EXTRA_SUBSTITUTERS }}
             extra-trusted-public-keys = ${{ vars.NIX_EXTRA_TRUSTED_PUBLIC_KEYS }}
+
+      # Sometimes a substituter is offline.  That shouldn't cause the builds to
+      # fail.
+      - name: Set substituters
+        env:
+          NIX_EXTRA_SUBSTITUTERS: ${{ vars.NIX_EXTRA_SUBSTITUTERS }}
+        run: |
+          available_substituters=()
+          for s in $NIX_EXTRA_SUBSTITUTERS; do
+              if nix store info --store "$s"; then
+                  available_substituters+=("$s")
+              fi
+          done
+
+          if (( "${#available_substituters[*]}" > 0 )); then
+              NIX_CONFIG="${NIX_CONFIG:+"$NIX_CONFIG"$'\n'}extra-substituters = ${available_substituters[*]}"
+              {
+                  echo 'NIX_CONFIG<<EOF'
+                  printf '%s\n' "$NIX_CONFIG"
+                  echo EOF
+              } >>"$GITHUB_ENV"
+          fi
 
       - name: Configure git
         run: |
