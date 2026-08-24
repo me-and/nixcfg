@@ -19,7 +19,7 @@ lib.mkMerge [
       after = [ "network-online.target" ];
       path = [
         config.programs.nix-index.package
-        pkgs.jq
+        config.nix.package
       ];
       serviceConfig.Type = "oneshot";
       serviceConfig.Nice = 19;
@@ -35,17 +35,18 @@ lib.mkMerge [
           store_cache="$NIX_INDEX_DATABASE"/nixpkgs_path
 
           populate_nixpkgs_path () {
-              # This assumes using flakes, nixpkgs' path being set in the default
-              # flake registry location, and the flake registry being in the
-              # format I expect.  That's good enough for me for now, but
-              # decidedly fragile.  Although using `nix eval` to get the path
-              # seemed even more fragile!
-              nixpkgs_path="$(jq -r </etc/nix/registry.json '.flakes[] | select(.exact and .from == {id: "nixpkgs", type: "indirect"} and .to.type == "path") | .to.path')"
-              if [[ -z "$nixpkgs_path" ]]; then
-                  echo 'could not find nixpkgs path in /etc/nix/registry.json' >&2
-                  exit "$EX_OSFILE"
-              elif [[ ! -e "$nixpkgs_path" ]]; then
-                  echo "nixpkgs path $nixpkgs_path does not exist" >&2
+              # This assumes using flakes and nixpkgs registry flake being a
+              # path.  That's good enough for me for now, but decidedly
+              # fragile.
+              nixpkgs_path="$(nix registry resolve nixpkgs)"
+              if [[ "$nixpkgs_path" = path:/nix/store/* ]]; then
+                  nixpkgs_path="''${nixpkgs_path#path:}"
+                  if [[ ! -e "$nixpkgs_path" ]]; then
+                      echo "nixpkgs path $nixpkgs_path not found" >&2
+                      exit "$EX_OSFILE"
+                  fi
+              else
+                  echo "Could not parse nixpkgs registry result $nixpkgs_path" >&2
                   exit "$EX_OSFILE"
               fi
           }
