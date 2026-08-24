@@ -16,9 +16,19 @@ let
           config_file="$HOME"/.config/task/taskrc
       fi
 
-      if grep -qEv -e '^include ' -e '^context=' -e '^news\.version=' "$config_file"; then
+      if grep -Ev -e '^include ' -e '^context=' -e '^news\.version=' "$config_file"; then
           echo "Unexpected content in $config_file" >&2
           exit 1
+      else
+          rc="$?"
+          if (( rc == 1 )); then
+              # Expected return code if nothing was found, which is what we're
+              # hoping for.
+              exit 0
+          else
+              echo "Unexpected error from grep (exit $rc)" >&2
+              exit "$rc"
+          fi
       fi
     '';
   };
