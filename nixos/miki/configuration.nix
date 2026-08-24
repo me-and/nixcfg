@@ -7,7 +7,6 @@
 {
   imports = [
     nixos-hardware.nixosModules.framework-12-13th-gen-intel
-    personalCfg.nixosModules.pd
     personalCfg.nixosModules.printing
   ];
 
