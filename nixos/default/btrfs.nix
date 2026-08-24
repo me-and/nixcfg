@@ -83,7 +83,6 @@ let
         "sleep.target"
       ];
       serviceConfig = {
-        Type = "oneshot";
         ExecStart = balanceScript;
         CPUSchedulingPolicy = "idle";
         IOSchedulingClass = "idle";
@@ -126,7 +125,6 @@ let
       after = [ "local-fs.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        Type = "oneshot";
         ExecStart = resumeScript;
         CPUSchedulingPolicy = "idle";
         IOSchedulingClass = "idle";
