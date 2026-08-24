@@ -69,6 +69,19 @@ let
           df -h "$target"
         '';
       };
+      stopScript = pkgs.mypkgs.writeCheckedShellScript {
+        name = "btrfs-pause-balance-${fs'}";
+        runtimeInputs = [ pkgs.btrfs-progs ];
+        text = ''
+          if [[ ! -v MAINPID ]]; then
+              # Service has already stopped, so we don't need to do anything to
+              # stop it.
+              exit 0
+          fi
+
+          btrfs balance pause ${lib.escapeShellArg fs}
+        '';
+      };
     in
     lib.nameValuePair "btrfs-balance-${fs'}" {
       description = "btrfs balance on ${fs}";
@@ -84,6 +97,7 @@ let
       ];
       serviceConfig = {
         ExecStart = balanceScript;
+        ExecStop = stopScript;
         CPUSchedulingPolicy = "idle";
         IOSchedulingClass = "idle";
         Nice = 19;
@@ -94,6 +108,10 @@ let
     fs:
     let
       fs' = mylib.escapeSystemdPath fs;
+      # TODO Better handling of the balance case, where a full run of the
+      # balance unit will involve several balance operations, but this will
+      # only resume the specific balance that was in progress when the job was
+      # cancelled.
       resumeScript = pkgs.mypkgs.writeCheckedShellScript {
         name = "btrfs-maintenance-resume-${fs'}";
         runtimeInputs = [ pkgs.btrfs-progs ];
@@ -119,6 +137,36 @@ let
           resume_or_ignore_not_running balance btrfs balance resume ${lib.escapeShellArg fs}
         '';
       };
+      stopScript = pkgs.mypkgs.writeCheckedShellScript {
+        name = "btrfs-maintenance-cancel-resume-${fs'}";
+        runtimeInputs = [ pkgs.btrfs-progs ];
+        text = ''
+          if [[ ! -v MAINPID ]]; then
+              # Service has already stopped, so we don't need to do anything to stop it.
+              exit 0
+          fi
+
+          # `btrfs scrub cancel` saves the current state for a future resume.
+          if btrfs scrub cancel ${lib.escapeShellArg fs}; then
+              printf 'cancelled running scrub on %s\n' ${lib.escapeShellArg fs} >&2
+          else
+              rc="$?"
+              printf 'failed to cancel scrub on %s (exit %s)\n' ${lib.escapeShellArg fs} "$rc" >&2
+              printf 'probably no scrub was running\n' >&2
+          fi
+
+          # `btrfs balance cancel` doesn't save the current state, and instead
+          # just cancels the entire operation.  `btrfs balance pause`, however,
+          # does save the current state.
+          if btrfs balance pause ${lib.escapeShellArg fs}; then
+              printf 'paused running balance on %s\n' ${lib.escapeShellArg fs} >&2
+          else
+              rc="$?"
+              printf 'failed to pause balance on %s (exit %s)\n' ${lib.escapeShellArg fs} "$rc" >&2
+              printf 'probably no balance was running\n' >&2
+          fi
+        '';
+      };
     in
     lib.nameValuePair "btrfs-maintenance-resume-${fs'}" {
       description = "Resume interrupted btrfs scrub/balance on ${fs}";
@@ -126,6 +174,7 @@ let
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         ExecStart = resumeScript;
+        ExecStop = stopScript;
         CPUSchedulingPolicy = "idle";
         IOSchedulingClass = "idle";
         Nice = 19;
