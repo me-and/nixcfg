@@ -18,6 +18,9 @@
   networking.networkmanager.enable = true;
   users.groups.networkmanager.members = [ config.users.me ];
 
+  networking.pd.vpn = true;
+  networking.pd.gonzo = true;
+
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
