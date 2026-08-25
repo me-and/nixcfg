@@ -50,9 +50,7 @@ show_count=
 positional_args=()
 while (( $# > 0 )); do
 	case "$1" in
-		-d)	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
-			set -x
-			debug=Yes
+		-d)	debug=Yes
 			shift
 			;;
 		-c)	show_count=Yes
@@ -111,6 +109,10 @@ done
 [[ "$report" ]] || report=next
 tmpdir="$TMUX_TASKLOOP_TMPDIR/$report.$$"
 mkdir -p "$tmpdir"
+if [[ "$debug" ]]; then
+	exec {BASH_XTRACEFD}>"$tmpdir"/outertrace
+	set -x
+fi
 [[ "$have_reserved_lines" ]] || config+=(reserved.lines=0)
 [[ "$have_verbose" ]] || config+=('verbose=blank,header,footnote,label,affected,context')
 [[ "$have_gc" ]] || config+=(gc=0)
