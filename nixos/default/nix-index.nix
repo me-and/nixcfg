@@ -21,7 +21,6 @@ lib.mkMerge [
         config.programs.nix-index.package
         config.nix.package
       ];
-      serviceConfig.Type = "oneshot";
       serviceConfig.Nice = 19;
       serviceConfig.IOSchedulingClass = "idle";
       serviceConfig.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
