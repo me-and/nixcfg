@@ -4,33 +4,49 @@ let
     systemd.package = pkgs.systemd.overrideAttrs (
       prevAttrs:
       let
-        escapePatchOne = pkgs.mypkgs.fetchGitHubPatch {
-          owner = "systemd";
-          repo = "systemd";
+        fetchSystemdPatch =
+          args:
+          pkgs.mypkgs.fetchGitHubPatch (
+            {
+              owner = "systemd";
+              repo = "systemd";
+            }
+            // args
+          );
+
+        # Handle RuntimeDirectory values with specifiers that resolve to
+        # contain backslashes.
+        #
+        # https://github.com/systemd/systemd/issues/41853
+        # https://github.com/systemd/systemd/pull/42686
+        escapePatchOne = fetchSystemdPatch {
           commit = "e82f85ea3428bae471abd55b8a70ac97306926ef";
           hash = "sha256-Nhld7+XXRdrfj17tOKPha1Avz9ULjv65xdOfLeSKSgY=";
         };
-        escapePatchTwo = pkgs.mypkgs.fetchGitHubPatch {
-          owner = "systemd";
-          repo = "systemd";
+        escapePatchTwo = fetchSystemdPatch {
           commit = "385ba9f766d50027dcf1e0114e12da5f6fd17b97";
           hash = "sha256-hQstQmCHR1u0OQ4FfBg9BE9Lns+ueD//4O+EWfoZENM=";
         };
 
-        # Two versions of this patch depending on the systemd version being
-        # patched.  Both were in
-        # https://github.com/systemd/systemd/pull/42826
-        oldTimerPatch = pkgs.mypkgs.fetchGitHubPatch {
-          owner = "systemd";
-          repo = "systemd";
-          commit = "1f90b6f429dca7704d5e78b15833747515f92940";
-          hash = "sha256-Nh/8GrLI1x/ruiFUR3C6iVao4tD+iCl+YOiZrEDCNVg=";
+        # Handle timers jumping backwards more sensibly.  Not a fix I'm
+        # particularly interested in for myself, but it introduces changes that
+        # are necessary for timerOffsetPatch to apply.
+        #
+        # https://github.com/systemd/systemd/issues/6036
+        # https://github.com/systemd/systemd/pull/43116
+        timerClampPatch = fetchSystemdPatch {
+          commit = "34c60f113e78db7554c5521e856265feb53f1096";
+          hash = "sha256-yYP4lUE0fAXoxWjGErGRhMDtAbVT0MSmJonNnD9clCI=";
         };
-        newTimerPatch = pkgs.mypkgs.fetchGitHubPatch {
-          owner = "systemd";
-          repo = "systemd";
-          commit = "174054d4a1e29eb9ff965849aca7557f4185e9e3";
-          hash = "sha256-jWbTXqrKiX+9KGcAjiwGNSYzNtppN6eHO7ybzFrHuOI=";
+
+        # Avoid unexpected timer delays with RandomizedOffsetSec + Persistent
+        # timers.
+        #
+        # https://github.com/systemd/systemd/issues/42337
+        # https://github.com/systemd/systemd/pull/42826
+        timerOffsetPatch = fetchSystemdPatch {
+          commit = "7b761dba0f5848cf7097804235750764d42dfcf1";
+          hash = "sha256-Nh/8GrLI1x/ruiFUR3C6iVao4tD+iCl+YOiZrEDCNVg=";
         };
       in
 
@@ -38,16 +54,9 @@ let
         patches = prevAttrs.patches or [ ] ++ [
           escapePatchOne
           escapePatchTwo
+          timerClampPatch
+          timerOffsetPatch
         ];
-
-        # One or the other of the timer patches should apply depending on the
-        # version.  Unless we're running on a version where the patch is
-        # unnecessary, in which case I want the build to fail so I know I can
-        # remove my patches.
-        postPatch = ''
-          patch -p1 <${newTimerPatch} || patch -p1 <${oldTimerPatch}
-        ''
-        + prevAttrs.postPatch or "";
 
         # Expose the patches so I can more easily check them.
         passthru =
@@ -58,8 +67,8 @@ let
               inherit
                 escapePatchOne
                 escapePatchTwo
-                oldTimerPatch
-                newTimerPatch
+                timerClampPatch
+                timerOffsetPatch
                 ;
             };
           };
