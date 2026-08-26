@@ -33,8 +33,8 @@ writeCheckedShellApplication {
 
     if [[ -v GH_RANDOM_PR_CACHE ]]; then
         cache_file="$GH_RANDOM_PR_CACHE"
-    elif [[ -v XDG_CACHE_DIR ]]; then
-        cache_file="$XDG_CACHE_DIR/gh-random-pr-cache"
+    elif [[ -v XDG_CACHE_HOME ]]; then
+        cache_file="$XDG_CACHE_HOME/gh-random-pr-cache"
     else
         cache_file="$HOME"/.cache/gh-random-pr-cache
     fi
