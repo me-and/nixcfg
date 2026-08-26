@@ -18,14 +18,10 @@ let
         # contain backslashes.
         #
         # https://github.com/systemd/systemd/issues/41853
-        # https://github.com/systemd/systemd/pull/42686
-        escapePatchOne = fetchSystemdPatch {
-          commit = "e82f85ea3428bae471abd55b8a70ac97306926ef";
-          hash = "sha256-Nhld7+XXRdrfj17tOKPha1Avz9ULjv65xdOfLeSKSgY=";
-        };
-        escapePatchTwo = fetchSystemdPatch {
-          commit = "385ba9f766d50027dcf1e0114e12da5f6fd17b97";
-          hash = "sha256-hQstQmCHR1u0OQ4FfBg9BE9Lns+ueD//4O+EWfoZENM=";
+        # https://github.com/systemd/systemd/pull/43207
+        escapePatch = fetchSystemdPatch {
+          commit = "74a284b4be99b7a265c550e72fe0b8b22aae3bf1";
+          hash = "sha256-maqsPBLx/IJvlFJYIhBYvfz246qV1nY4lWVP8OHNejw=";
         };
 
         # Handle timers jumping backwards more sensibly.  Not a fix I'm
@@ -52,8 +48,7 @@ let
 
       {
         patches = prevAttrs.patches or [ ] ++ [
-          escapePatchOne
-          escapePatchTwo
+          escapePatch
           timerClampPatch
           timerOffsetPatch
         ];
@@ -65,8 +60,7 @@ let
           // {
             myPatches = {
               inherit
-                escapePatchOne
-                escapePatchTwo
+                escapePatch
                 timerClampPatch
                 timerOffsetPatch
                 ;
