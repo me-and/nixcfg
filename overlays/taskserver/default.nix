@@ -34,55 +34,52 @@ in
         gitConfigFile = toFile "gitconfig" (toGitINI gitConfig);
       };
 
-    # Permit removing the due date from recurring tasks.
-    patches = [ ./permit-undue-recurring-tasks.diff ];
+    patches = [
+      # Permit removing the due date from recurring tasks.
+      ./permit-undue-recurring-tasks.diff
 
-    # Revert the patch that requires a config file, because Nix's approach is
-    # to set all the config on the command line.
-    #
-    # TODO Work out a better way to apply this patch; I think the original
-    # patch phase is a bit shonky too, as it doesn't seem to have the hooks
-    # I'd expect.  I suspect I want to delete the patchPhase attr (is that
-    # possible in an override?) and put their patchPhase code in a
-    # post-patch hook.
-    patchPhase =
-      let
-        patchFile = fetchGitHubPatch {
-          owner = "GothenburgBitFactory";
-          repo = "taskserver";
-          commit = "bbd42468d284a3a954bdb233211a17b598036e98";
-          hash = "sha256-518qF8ui5GMmsdQRTm75zrBgMhlhB7ffi3B+plzlWKQ=";
-        };
-      in
-      ''
-        # Run the regular patch phase function.  Ideally this wouldn't be
-        # necessary, but the original code doesn't actually apply patches
-        # defined in the patches attribute.
-        patchPhase
-
+      # Revert the patch that requires a config file, because Nix's approach is
+      # to set all the config on the command line.
+      (fetchGitHubPatch {
+        owner = "GothenburgBitFactory";
+        repo = "taskserver";
+        commit = "bbd42468d284a3a954bdb233211a17b598036e98";
         # Don't patch the changelog, partly because we don't need to, and
         # partly because the patch doesn't apply.
-        ${patchutils}/bin/filterdiff -x '*/ChangeLog' ${patchFile} |
-            ${patch}/bin/patch -R -p1
+        excludes = [ "ChangeLog" ];
+        revert = true;
+        hash = "sha256-8ZGxyJLh1KuWZtWtF4iuBgSUm7P0GsojlJKEmXhUP0k=";
+      })
+    ];
 
-        # Run the Nixpkgs taskserver patchPhase with the substituteInPlace
-        # parts disabled, as they assume the 1.1.0 code layout.
-        (
-            substituteInPlace () {
-                nixNoticeLog "Skipping substituteInPlace ''${*@Q}"
-            }
+    # TODO Work out a better way to handle this; I think the original patch
+    # phase is a bit shonky too, as it doesn't seem to have the hooks I'd
+    # expect.  I suspect I want to delete the patchPhase attr (is that possible
+    # in an override?) and put their patchPhase code in a post-patch hook.
+    patchPhase = ''
+      # Run the regular patch phase function.  Ideally this wouldn't be
+      # necessary, but the original code doesn't actually apply patches
+      # defined in the patches attribute.
+      patchPhase
 
-            ${oldAttrs.patchPhase}
-        )
+      # Run the Nixpkgs taskserver patchPhase with the substituteInPlace
+      # parts disabled, as they assume the 1.1.0 code layout.
+      (
+          substituteInPlace () {
+              nixNoticeLog "Skipping substituteInPlace ''${*@Q}"
+          }
 
-        # 6442144f0a4c (taskserver: fix build with cmake4, 2025-10-25), but with
-        # some modifications for the fact that I'm using a release part-way to
-        # v1.2.0.
-        substituteInPlace {.,doc,src,src/libshared,src/libshared/src,src/libshared/test,test}/CMakeLists.txt \
-            --replace-fail "cmake_minimum_required (VERSION 2.8)" "cmake_minimum_required(VERSION 3.10)"
-        substituteInPlace {.,src/libshared}/test/CMakeLists.txt \
-            --replace-fail "cmake_policy(SET CMP0037 OLD)" ""
-      '';
+          ${oldAttrs.patchPhase}
+      )
+
+      # 6442144f0a4c (taskserver: fix build with cmake4, 2025-10-25), but with
+      # some modifications for the fact that I'm using a release part-way to
+      # v1.2.0.
+      substituteInPlace {.,doc,src,src/libshared,src/libshared/src,src/libshared/test,test}/CMakeLists.txt \
+          --replace-fail "cmake_minimum_required (VERSION 2.8)" "cmake_minimum_required(VERSION 3.10)"
+      substituteInPlace {.,src/libshared}/test/CMakeLists.txt \
+          --replace-fail "cmake_policy(SET CMP0037 OLD)" ""
+    '';
 
     # TODO work out why the test in passthru.tests isn't working.
     passthru =
