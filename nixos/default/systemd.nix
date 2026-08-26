@@ -1,28 +1,70 @@
 { lib, pkgs, ... }:
 let
   packageConfig = {
-    systemd.package =
+    systemd.package = pkgs.systemd.overrideAttrs (
+      prevAttrs:
       let
-        fetchSystemdPR =
-          { pr, hash }:
-          pkgs.mypkgs.fetchGitHubPR {
-            inherit pr hash;
-            owner = "systemd";
-            repo = "systemd";
-          };
+        escapePatchOne = pkgs.mypkgs.fetchGitHubPatch {
+          owner = "systemd";
+          repo = "systemd";
+          commit = "e82f85ea3428bae471abd55b8a70ac97306926ef";
+          hash = "sha256-Nhld7+XXRdrfj17tOKPha1Avz9ULjv65xdOfLeSKSgY=";
+        };
+        escapePatchTwo = pkgs.mypkgs.fetchGitHubPatch {
+          owner = "systemd";
+          repo = "systemd";
+          commit = "385ba9f766d50027dcf1e0114e12da5f6fd17b97";
+          hash = "sha256-hQstQmCHR1u0OQ4FfBg9BE9Lns+ueD//4O+EWfoZENM=";
+        };
+
+        # Two versions of this patch depending on the systemd version being
+        # patched.  Both were in
+        # https://github.com/systemd/systemd/pull/42826
+        oldTimerPatch = pkgs.mypkgs.fetchGitHubPatch {
+          owner = "systemd";
+          repo = "systemd";
+          commit = "1f90b6f429dca7704d5e78b15833747515f92940";
+          hash = "sha256-Nh/8GrLI1x/ruiFUR3C6iVao4tD+iCl+YOiZrEDCNVg=";
+        };
+        newTimerPatch = pkgs.mypkgs.fetchGitHubPatch {
+          owner = "systemd";
+          repo = "systemd";
+          commit = "174054d4a1e29eb9ff965849aca7557f4185e9e3";
+          hash = "sha256-jWbTXqrKiX+9KGcAjiwGNSYzNtppN6eHO7ybzFrHuOI=";
+        };
       in
-      pkgs.systemd.overrideAttrs (prevAttrs: {
+
+      {
         patches = prevAttrs.patches or [ ] ++ [
-          (fetchSystemdPR {
-            pr = "42826";
-            hash = "sha256-jWbTXqrKiX+9KGcAjiwGNSYzNtppN6eHO7ybzFrHuOI=";
-          })
-          (fetchSystemdPR {
-            pr = "42686";
-            hash = "sha256-dr76x8k4YC5Gxmv60kWa8ONVmW4Bye0cKoFBN/pta24=";
-          })
+          escapePatchOne
+          escapePatchTwo
         ];
-      });
+
+        # One or the other of the timer patches should apply depending on the
+        # version.  Unless we're running on a version where the patch is
+        # unnecessary, in which case I want the build to fail so I know I can
+        # remove my patches.
+        postPatch = ''
+          patch -p1 <${newTimerPatch} || patch -p1 <${oldTimerPatch}
+        ''
+        + prevAttrs.postPatch or "";
+
+        # Expose the patches so I can more easily check them.
+        passthru =
+          assert !(prevAttrs.passthru ? myPatches);
+          prevAttrs.passthru
+          // {
+            myPatches = {
+              inherit
+                escapePatchOne
+                escapePatchTwo
+                oldTimerPatch
+                newTimerPatch
+                ;
+            };
+          };
+      }
+    );
   };
 
   # Units for setting up loopback devices.
