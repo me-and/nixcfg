@@ -7,7 +7,7 @@
 }@args:
 fetchpatch (
   {
-    url = "https://github.com/${owner}/${repo}/pull/${pr}.patch";
+    url = "https://github.com/${owner}/${repo}/pull/${toString pr}.patch";
   }
   // removeAttrs args [
     "owner"
