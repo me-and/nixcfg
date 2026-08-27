@@ -106,6 +106,7 @@ bashwrap task '
 
 bashwrap task '
 	local arg command_is_projects= list_all_projects_set=
+	local -a filter_args=() config_args=()
 	for arg; do
 		case "$arg" in
 			projects)
@@ -113,11 +114,21 @@ bashwrap task '
 				;;
 			rc.list.all.projects[:=]*)
 				list_all_projects_set=Yes
+				config_args+=("$arg")
+				;;
+			rc.*[:=]*)
+				config_args+=("$arg")
+				;;
+			*)
+				filter_args+=("$arg")
 				;;
 		esac
 	done
 	if [[ "$command_is_projects" && -z "$list_all_projects_set" ]]; then
-		set -- rc.list.all.projects=1 -COMPLETED -DELETED \( "$@" \)
+		if (( ${#filter_args[*]} > 0 )); then
+			filter_args=(\( "${filter_args[@]}" \))
+		fi
+		set -- rc.list.all.projects=1 "${config_args[@]}" -COMPLETED -DELETED "${filter_args[@]}" projects
 	fi
 	'
 
