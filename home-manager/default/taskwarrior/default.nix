@@ -534,6 +534,7 @@ in
 
     home.packages = with pkgs.mypkgs; [
       task-project-report
+      taskwarrior-ghmeta-merge
       taskwarrior-ghmeta-web
       tmux-taskloop
     ];
