@@ -125,7 +125,7 @@ def make_review_task(
 
 def review_task_description(*, report_url: str, description_prefix: str) -> str:
     kind = issue_kind_for_url(report_url)
-    return f"{description_prefix} the GitHub {kind} at {report_url}"
+    return f"{description_prefix} GitHub {kind} at {report_url}"
 
 
 if __name__ == "__main__":
@@ -199,14 +199,14 @@ if __name__ == "__main__":
             if all_tasks_older_or_equal:
                 review_description = review_task_description(
                     report_url=report_url,
-                    description_prefix="Review updates to",
+                    description_prefix="Review updates to the",
                 )
                 already_has_review = review_description in task_descriptions
                 if not already_has_review:
                     blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
                     review_task, blocker_uuid = make_review_task(
                         report_url=report_url,
-                        description_prefix="Review updates to",
+                        description_prefix="Review updates to the",
                         project=blocker_project,
                         ghmeta=report_entry,
                     )
