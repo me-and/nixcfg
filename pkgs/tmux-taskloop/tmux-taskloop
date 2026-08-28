@@ -58,7 +58,7 @@ trap cleanup EXIT
 TMUX_TASKLOOP_TMPDIR="$(@@MKTEMP@@ -dt "taskloop.$EPOCHSECONDS.$$.XXXXX")"
 export TMUX_TASKLOOP_TMPDIR
 
-exec @@TMUX@@ \
+@@TMUX@@ \
 	-L tmux-taskloop-$$ \
 	"${tmux_control_mode_args[@]}" \
 	start-server \; \
