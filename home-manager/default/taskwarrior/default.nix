@@ -579,7 +579,7 @@ in
           Unit.Description = "Wait until Taskwarrior files haven't changed for a while";
           Service = {
             Type = "oneshot";
-            ExecStart = "${pkgs.mypkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data";
+            ExecStart = "${pkgs.mypkgs.mtimewait}/bin/mtimewait -f 180 ${config.xdg.dataHome}/task/undo.data ${config.xdg.dataHome}/task/taskchampion.sqlite3";
           };
         };
 
@@ -593,7 +593,7 @@ in
 
         taskwarrior-gc-stable = {
           Unit = {
-            Description = "Perform Taskwarrior garbage collection once the undo file is stable";
+            Description = "Perform Taskwarrior garbage collection once the task files are stable";
             Wants = [ "taskwarrior-wait-for-stability.service" ];
             After = [ "taskwarrior-wait-for-stability.service" ];
           };
