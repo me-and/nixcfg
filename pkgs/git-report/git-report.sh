@@ -90,11 +90,10 @@ full_report () {
 				full_report "$subdir" | head_and_indent "${subdir#./}"
 				found_subdir=Yes
 			fi
-			if [[ -z "$found_subdir" ]]; then
-				echo 'No Git directory found'
-				rc=1
-			fi
 		done
+		if [[ -z "$found_subdir" ]]; then
+			echo "No Git repositories found here"
+		fi
 	else
 		rc=1
 	fi
