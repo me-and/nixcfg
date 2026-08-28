@@ -169,7 +169,7 @@ if [[ "$show_count" ]]; then
 fi
 
 immediate_update_files=("$task_config_file" "$task_filter_file" "$config_path")
-delay_update_files=("$data_path"/{completed,pending}.data)
+delay_update_files=("$data_path"/{completed,pending}.data "$data_path"/taskchampion.sqlite3)
 
 printf '%s\n' "${filter[@]}" >"$task_filter_file"
 printf '%s\n' "${config[@]}" >"$task_config_file"
@@ -278,8 +278,8 @@ while :; do
 	# everything else for a second just to be sure toil isn't about to exit
 	# and cause an extra unnecessary loop.
 	echo -n Updating...
-	mtimewait 3 "${delay_update_files[@]}"
-	mtimewait 1 "${immediate_update_files[@]}"
+	mtimewait -f 3 "${delay_update_files[@]}"
+	mtimewait -f 1 "${immediate_update_files[@]}"
 done
 
 # vim: ft=bash noet ts=8
