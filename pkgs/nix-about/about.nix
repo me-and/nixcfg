@@ -1,6 +1,7 @@
 let
   config = {
     allowUnfree = true;
+    allowInsecurePredicate = _: true;
   };
 in
 {
