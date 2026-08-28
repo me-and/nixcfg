@@ -9,10 +9,12 @@ toil_pid=
 sleep_pid=
 read_pid=
 
+debug="${TMUX_TASKLOOP_DEBUG:-}"
+
 cleanup () {
 	local exit_code="$?"
 	local rc=0
-	[[ -v tmpdir ]] && rm -rf "$tmpdir"
+	[[ -v tmpdir && ! "$debug" ]] && rm -rf "$tmpdir"
 	local -a kill=()
 	[[ "$toil_pid" ]] && kill+=("$toil_pid")
 	[[ "$sleep_pid" ]] && kill+=("$sleep_pid")
@@ -45,7 +47,6 @@ if ! command -v toil >/dev/null; then
 	exit 69 # EX_UNAVAILABLE
 fi
 
-debug=
 show_count=
 positional_args=()
 while (( $# > 0 )); do

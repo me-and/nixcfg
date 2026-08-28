@@ -49,7 +49,7 @@ done
 export TMUX_TASKLOOP_FILTER="${filter[*]}"
 
 cleanup () {
-	if [[ -v TMUX_TASKLOOP_TMPDIR ]]; then
+	if [[ -v TMUX_TASKLOOP_TMPDIR && ! -v TMUX_TASKLOOP_DEBUG ]]; then
 		@@RM@@ -rf "$TMUX_TASKLOOP_TMPDIR"
 	fi
 }
