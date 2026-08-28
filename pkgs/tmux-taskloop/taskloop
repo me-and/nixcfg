@@ -159,13 +159,14 @@ if [[ "$show_count" ]]; then
 	filter_names=(all wf act T H M - L)
 	declare -A filters=(
 		[all]='-COMPLETED -DELETED'
-		[wf]='+READY +waitingfor'
-		[act]='+READY -waitingfor'
-		[T]="+READY -waitingfor urgency>=${urgency_coefficients[T]}"
-		[H]="+READY -waitingfor urgency<${urgency_coefficients[T]} urgency>=${urgency_coefficients[H]}"
-		[M]="+READY -waitingfor urgency<${urgency_coefficients[H]} urgency>=${urgency_coefficients[M]}"
-		[-]="+READY -waitingfor urgency<${urgency_coefficients[M]} urgency>=0"
-		[L]="+READY -waitingfor urgency<0"
+		[in]='-COMPLETED -DELETED +inbox'
+		[wf]='+READY +waitingfor -inbox'
+		[act]='+READY -waitingfor -inbox'
+		[T]="+READY -waitingfor -inbox urgency>=${urgency_coefficients[T]}"
+		[H]="+READY -waitingfor -inbox urgency<${urgency_coefficients[T]} urgency>=${urgency_coefficients[H]}"
+		[M]="+READY -waitingfor -inbox urgency<${urgency_coefficients[H]} urgency>=${urgency_coefficients[M]}"
+		[-]="+READY -waitingfor -inbox urgency<${urgency_coefficients[M]} urgency>=0"
+		[L]="+READY -waitingfor -inbox urgency<0"
 	)
 fi
 
