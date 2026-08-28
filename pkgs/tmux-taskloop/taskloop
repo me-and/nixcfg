@@ -150,10 +150,14 @@ else
 	exit 66  # EX_NOINPUT
 fi
 
+task_quick_quiet () {
+	task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 "$@"
+}
+
 if [[ "$show_count" ]]; then
 	declare -A urgency_coefficients
 	for urgency in T H M; do
-		urgency_coefficients["$urgency"]="$(task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 rc.context= _get rc.urgency.uda.priority."$urgency".coefficient)"
+		urgency_coefficients["$urgency"]="$(task_quick_quiet rc.context= _get rc.urgency.uda.priority."$urgency".coefficient)"
 	done
 
 	filter_names=(all in wf act T H M - L)
@@ -217,7 +221,7 @@ while :; do
 				break
 			fi
 
-			n="$(task rc.color=0 rc.detection=0 rc.gc=0 rc.hooks=0 rc.recurrence=0 rc.verbose=0 rc.context= ${filters["$filter"]} count)"
+			n="$(task_quick_quiet ${filters["$filter"]} "${count_command[@]}")"
 
 			if [[ "$first" ]]; then
 				first=
