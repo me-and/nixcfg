@@ -8,13 +8,13 @@ let
 in
 buildPythonPackage {
   name = "asmodeus";
-  version = "0-unstable-2026-07-29";
+  version = "0-unstable-2026-08-28";
 
   src = fetchFromGitHub {
     owner = "me-and";
     repo = "asmodeus";
-    rev = "5f18b4abcdc763060e83a99ae946afeaf5962601";
-    hash = "sha256-UuGte0bZZGxw/SFgwa/xLqLAAmok/fbqJZtbVdgQEm0=";
+    rev = "87563088282f15e3affe4f8548cdf5d45357840b";
+    hash = "sha256-F7K6KpLH8Dzv97eZT5IwdsIw8p/TDB0Awj8pNnjkd1M=";
   };
 
   pyproject = true;
