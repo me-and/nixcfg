@@ -11,7 +11,6 @@
   nix-output-monitor,
   versionCheckHook,
   nix-update-script,
-  fetchGitHubPR,
 }:
 let
   # Use the version of nix that came with nix-eval-jobs per the upstream npb
@@ -27,7 +26,7 @@ let
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "npb";
-  version = "1.0.0";
+  version = "1.1.0";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -36,19 +35,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
     owner = "samestep";
     repo = "npb";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-pXatlxVJnrt8JFf+TPcUAL1U5mz4kWn8qfRtVHekYjA=";
+    hash = "sha256-CL8jRHuJtXFcSh+r8DBtSz9s5xZzU4jwlZygGHeBR6I=";
   };
 
-  cargoHash = "sha256-pZAaTweVR/JkTdtB4/FtXfSDPFTl1+cEdqx5finWMBk=";
-
-  patches = [
-    (fetchGitHubPR {
-      owner = "samestep";
-      repo = "npb";
-      pr = 3;
-      hash = "sha256-7M6aiRiOoI2EZ22x1Z/vJzvGvzFI4JsRSAYGDvk6yUY=";
-    })
-  ];
+  cargoHash = "sha256-LxWhP6NM+lUsUf13x5troFx0k5QHDz2tHOs/3vLGY48=";
 
   nativeBuildInputs = lib.optional buildCanExecuteHost installShellFiles;
 
