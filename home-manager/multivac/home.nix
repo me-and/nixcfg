@@ -6,7 +6,6 @@
 
   home.packages = with pkgs; [
     poppler-utils
-    mypkgs.pd-sync-with-fileserver
     mypkgs.unison-nox
   ];
 
