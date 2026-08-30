@@ -55,7 +55,6 @@ jobs:
         env:
           NIX_EXTRA_SUBSTITUTERS: ${{ vars.NIX_EXTRA_SUBSTITUTERS }}
         run: |
-          set -x
           available_substituters=()
           for s in $NIX_EXTRA_SUBSTITUTERS; do
               if nix store info --store "$s"; then
