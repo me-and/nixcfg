@@ -52,6 +52,7 @@ in
         "*.crdownload" # Google Chrome / Chromium
         ".partial-*" # Unsure, maybe Firefox
         "*.partial" # rclone
+        "*.part" # Firefox
 
         # Deleted files.
         ".Trash-*" # Dolphin and possibly other Linux utils

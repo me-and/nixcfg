@@ -36,16 +36,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
-    nix-output-monitor = {
-      url = "github:maralorn/nix-output-monitor";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     npc = {
       url = "github:samestep/npc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-diff-rs = {
+      url = "github:Mic92/nix-diff-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -71,6 +71,7 @@
       llm-agents,
       private,
       npc,
+      nix-diff-rs,
       ...
     }@inputs:
     let
@@ -193,7 +194,12 @@
         nameValuePair "${me}@${name}" (homeManagerConfiguration {
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
-            inherit llm-agents plasma-manager sops-nix;
+            inherit
+              llm-agents
+              plasma-manager
+              sops-nix
+              nix-diff-rs
+              ;
             mylib = self.lib;
             personalCfg = self;
             osConfig = self.nixosConfigurations."${name}".config;
