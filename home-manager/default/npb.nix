@@ -1,12 +1,12 @@
 { lib, pkgs, ... }:
 {
-  home.packages = [ pkgs.mypkgs.npb ];
+  home.packages = [ pkgs.npb ];
 
   systemd.user = {
     services.npb-tidy = {
       Unit.Description = "Clean up old npb cache content";
       Service.Type = "oneshot";
-      Service.ExecStart = "${lib.getExe pkgs.mypkgs.npb} --clean 90d";
+      Service.ExecStart = "${lib.getExe pkgs.npb} --clean 90d";
     };
 
     timers.npb-tidy = {

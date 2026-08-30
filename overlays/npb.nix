@@ -1,11 +1,22 @@
 final: prev:
-# Overlay may be used in contexts where `prev` is essentially an empty set as
-# part of my overlay checks, so only attempt to warn if we're in an environment
-# where that's possible.
-if prev ? lib.warnIf then
-  prev.lib.warnIf (prev ? npb) ''
-    npb now exists in Nixpkgs, so no longer belongs as a custom package in this
-    repository
-  '' { }
-else
-  { }
+let
+  inherit (final) lib;
+
+  npb = prev.npb.overrideAttrs (
+    finalAttrs: prevAttrs: {
+      version = "1.1.0";
+      src = prevAttrs.src.overrideAttrs {
+        hash = "sha256-CL8jRHuJtXFcSh+r8DBtSz9s5xZzU4jwlZygGHeBR6I=";
+      };
+      cargoDeps = final.rustPlatform.fetchCargoVendor {
+        inherit (finalAttrs) pname version src;
+        hash = "sha256-LxWhP6NM+lUsUf13x5troFx0k5QHDz2tHOs/3vLGY48=";
+      };
+    }
+  );
+in
+{
+  npb =
+    lib.warnIf (lib.versionAtLeast prev.npb.version npb.version) "possibly unnecessary npb overlay"
+      npb;
+}
