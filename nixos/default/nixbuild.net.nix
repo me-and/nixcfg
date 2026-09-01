@@ -44,8 +44,9 @@ in
 
     sshKey = lib.mkOption {
       description = "Path to the SSH key to connect to nixbuild.net.";
-      type = lib.types.path;
-      default = "/etc/ssh/ssh_host_ed25519_key";
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      example = "/etc/ssh/ssh_host_ed25519_key";
     };
   };
 
@@ -133,10 +134,15 @@ in
       substituterConfig =
         let
           storeUrl =
-            if cfg.substituter.priority == null then
-              "ssh-ng://eu.nixbuild.net?ssh-key=${cfg.sshKey}"
+            let
+              params =
+                lib.optional (cfg.sshKey != null) "ssh-key=${cfg.sshKey}"
+                ++ lib.optional (cfg.substituter.priority != null) "priority=${toString cfg.substituter.priority}";
+            in
+            if builtins.length params > 0 then
+              "ssh-ng://eu.nixbuild.net?${lib.concatStringsSep "&" params}"
             else
-              "ssh-ng://eu.nixbuild.net?ssh-key=${cfg.sshKey}&priority=${toString cfg.substituter.priority}";
+              "ssh-ng://eu.nixbuild.net";
         in
         lib.mkIf cfg.substituter.enable {
           nix.settings.substituters = [ storeUrl ];
