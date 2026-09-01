@@ -5,7 +5,7 @@
   ...
 }:
 {
-  imports = [ personalCfg.nixosModules.steeplechase ];
+  imports = [ personalCfg.nixosModules.tether ];
 
   networking.pd.vpn = lib.mkForce false;
   networking.hosts."10.0.0.5" = [
