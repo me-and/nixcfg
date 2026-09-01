@@ -91,11 +91,11 @@ in
       # present, and makes it easier to do things like using nixbuild.net for a
       # single build without enabling it generally.
       sharedConfig = {
+        # https://docs.nixbuild.net/getting-started/
         programs.ssh.extraConfig = ''
           Host eu.nixbuild.net
               PubkeyAcceptedKeyTypes ssh-ed25519
               ServerAliveInterval 60
-              IPQoS throughput
         '';
         programs.ssh.knownHosts = {
           nixbuild = {
