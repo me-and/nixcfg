@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  options,
   ...
 }:
 {
@@ -88,15 +87,6 @@
     })
 
     {
-      # Nix v2.35 adds partial copies of flake directories into the Nix store.
-      # I want that feature, so make sure I'm using at least that version of
-      # Nix.
-      nix.package =
-        let
-          defaultNix = options.nix.package.default;
-        in
-        if lib.versionAtLeast defaultNix.version "2.35" then defaultNix else pkgs.nixVersions.nix_2_35;
-
       nix.settings = {
         builders-use-substitutes = true;
         trusted-users = [ "@wheel" ];
