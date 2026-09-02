@@ -25,6 +25,7 @@
     # TODO Extend the screen module to provide Nix-native configuration?
     screenrc = ''
       truecolor on
+      defscrollback 10000
     '';
   };
 
