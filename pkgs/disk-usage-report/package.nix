@@ -3,6 +3,7 @@
   nix-dangling-roots,
   flock,
   python3,
+  bash,
 }:
 writeCheckedShellApplication {
   name = "disk-usage-report";
@@ -10,6 +11,7 @@ writeCheckedShellApplication {
     nix-dangling-roots
     flock
     python3
+    bash
   ];
   text = ''
     rc=0
@@ -41,7 +43,39 @@ writeCheckedShellApplication {
     if [[ -e /nix/store ]]; then
         echo
 
-        nix_store_size="$(find /nix/store -maxdepth 1 -mindepth 1 \! \( -type d -name .links \) \! \( -type d -name '*.chroot' \) \! \( -type f -name '*.lock' -empty \) -print0 | du --total --summarize --block-size=1 --files0-from=- | sed -n 's/\ttotal$//p')"
+        # Holding the GC lock stops real store paths vanishing under us, but
+        # Nix creates and deletes lock files and chroot directories without
+        # it, so an entry can disappear between find reading the directory
+        # and find inspecting it.  Every exclusion below is a negated test,
+        # and a test that can't stat() its target is false, so a vanished
+        # entry escapes its exclusion and gets handed to du, which then fails
+        # on the dead path.  `-links +0` guards against that: it needs a
+        # successful stat(), it's true for anything that really exists, and
+        # being a plain conjunct it makes the whole expression false when the
+        # stat() fails.  Don't be tempted to use a `-type` test for this --
+        # find can answer those from readdir's d_type without stat()ing at
+        # all, and whether it does depends on the filesystem.  find still
+        # warns and exits 1 for a vanished entry, which isn't fatal here.
+        #
+        # Suffixes alone can't identify Nix's temporary files, because the
+        # store legitimately holds paths whose names end the same way, so
+        # both exclusions below also check a property Nix gives its own
+        # temporary files:
+        #
+        #   - a chroot directory is a derivation path plus `.chroot`, so
+        #     stripping the suffix names an existing derivation, which isn't
+        #     true of, say, a `test.drv.chroot` built by runCommand;
+        #   - a lock file is mode 0600, whereas store paths are canonicalised
+        #     to 0444 or 0555, which distinguishes one from a stored
+        #     `Cargo.lock` or `Gemfile.lock`.
+        nix_store_size="$({
+            find /nix/store -maxdepth 1 -mindepth 1 -links +0 \
+                \! \( -name .links -type d \) \
+                \! \( -name '*.lock' -type f -empty -perm -u+w \) \
+                \! \( -name '*.drv.chroot' -type d \
+                      -exec bash -c '[[ -e "''${1%.chroot}" ]]' _ {} \; \) \
+                -print0 || :
+            } | du --total --summarize --block-size=1 --files0-from=- | sed -n 's/\ttotal$//p')"
         nix_store_size_h="$(numfmt --suffix=B --to=iec-i <<<"$nix_store_size")"
         echo "Nix store size: $nix_store_size_h"
 
