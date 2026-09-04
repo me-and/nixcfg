@@ -33,14 +33,37 @@ writeCheckedShellApplication {
     df -h -xtmpfs -xdevtmpfs -xfuse.portal |
         grep -Fv ' /snap/'
 
-    if [[ "$EUID" = 0 ]]; then
-        # If we're root, get the big garbage collector lock to avoid things
-        # changing under our feet.
-        exec {gc_lock_fd}>/nix/var/nix/gc.lock
-        flock -s "$gc_lock_fd"
-    fi
 
     if [[ -e /nix/store ]]; then
+        keep_outputs="$(nix config show keep-outputs)"
+        keep_derivations="$(nix config show keep-derivations)"
+
+        if [[ "$keep_outputs" = 'false' ]]; then
+            keep_outputs=
+        fi
+        if [[ "$keep_derivations" = 'false' ]]; then
+            keep_derivations=
+        fi
+
+        nix_closure () {
+            if [[ "$keep_outputs" ]]; then
+                nix-store --query --requisites --include-outputs "$@"
+            else
+                nix-store --query --requisites "$@"
+            fi
+            if [[ "$keep_derivations" ]]; then
+                nix-store --query --valid-derivers "$@" |
+                    xargs -r nix-store --query --requisites
+            fi
+        }
+
+        if [[ "$EUID" = 0 ]]; then
+            # If we're root, get the big garbage collector lock to avoid things
+            # changing under our feet.
+            exec {gc_lock_fd}>/nix/var/nix/gc.lock
+            flock -s "$gc_lock_fd"
+        fi
+
         echo
 
         # Holding the GC lock stops real store paths vanishing under us, but
@@ -105,7 +128,7 @@ writeCheckedShellApplication {
         fi
 
         nix_store_refd_size="$(
-            nix-store -q -R "''${accessible_roots[@]}" |
+            nix_closure "''${accessible_roots[@]}" |
                 tr '\n' '\0' |
                 sort -zu |
                 du --total --summarize --block-size=1 --files0-from=- |
@@ -138,7 +161,7 @@ writeCheckedShellApplication {
                 if [[ -r "$target" ]]; then
                     roots+=("$root")
                     printf '%s\t' "$target"
-                    nix-store -q -R "''${roots[@]}" |
+                    nix_closure "''${roots[@]}" |
                         tr '\n' '\0' |
                         du --total --summarize --block-size=1 --files0-from=- |
                         sed -n 's/\ttotal$//p'
