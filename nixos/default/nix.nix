@@ -4,6 +4,9 @@
   pkgs,
   ...
 }:
+let
+  cfg = config.nix;
+in
 {
   options.nix = {
     githubTokenFromSops =
@@ -18,7 +21,7 @@
   };
 
   config = lib.mkMerge [
-    (lib.mkIf config.nix.githubTokenFromSops {
+    (lib.mkIf cfg.githubTokenFromSops {
       sops = {
         secrets.github-token = { };
         templates.nix-daemon-environment.content = ''
@@ -37,7 +40,7 @@
       '';
     })
 
-    (lib.mkIf config.nix.signBuilds {
+    (lib.mkIf cfg.signBuilds {
       sops = {
         # Use templates to provide a degree of redirection, otherwise the
         # attempt to access sops.secrets.nix-cache-key.path will fail due to
@@ -49,7 +52,7 @@
       nix.settings.secret-key-files = config.sops.templates.nix-cache-key.path;
     })
 
-    (lib.mkIf config.nix.buildOnMarvin {
+    (lib.mkIf cfg.buildOnMarvin {
       nix.distributedBuilds = true;
       nix.buildMachines = [
         {
@@ -68,7 +71,7 @@
       ];
     })
 
-    (lib.mkIf config.nix.buildOnJarvis {
+    (lib.mkIf cfg.buildOnJarvis {
       nix.distributedBuilds = true;
       nix.buildMachines = [
         {
@@ -119,7 +122,7 @@
           # which means a simultaneous garbage collection can cause paths to
           # appear corrupt.  Avoid that by getting Nix's big garbage collection
           # lock before running the verification.
-          ExecStart = "${lib.getExe pkgs.flock} -s /nix/var/nix/gc.lock ${lib.getExe' config.nix.package "nix"} store verify --all";
+          ExecStart = "${lib.getExe pkgs.flock} -s /nix/var/nix/gc.lock ${lib.getExe' cfg.package "nix"} store verify --all";
         };
       };
       systemd.timers.nix-verify = {
