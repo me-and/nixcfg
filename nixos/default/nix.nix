@@ -6,18 +6,20 @@
 }:
 let
   cfg = config.nix;
+
+  mkDisableOption = args: (lib.mkEnableOption args) // { default = true; };
 in
 {
   options.nix = {
-    githubTokenFromSops =
-      lib.mkEnableOption "getting the GitHub authentication token for Nix from SOPS"
-      // {
-        default = true;
-      };
+    githubTokenFromSops = mkDisableOption "getting the GitHub authentication token for Nix from SOPS";
     signBuilds = lib.mkEnableOption "automatically signing local builds using the key from SOPS";
 
     buildOnMarvin = lib.mkEnableOption "using marvin as a remote build machine";
     buildOnJarvis = lib.mkEnableOption "using jarvis as a remote build machine";
+
+    # Group the config options for this together.  Seems slightly tedious that
+    # this isn't automatic...
+    autoAllocateUids = mkDisableOption "the auto-allocate-uids experimental feature with its associated toggles";
   };
 
   config = lib.mkMerge [
@@ -87,6 +89,17 @@ in
           system = "aarch64-linux";
         }
       ];
+    })
+
+    (lib.mkIf cfg.autoAllocateUids {
+      nix.settings = {
+        experimental-features = [
+          "auto-allocate-uids"
+          "cgroups"
+        ];
+        system-features = [ "uid-range" ];
+        auto-allocate-uids = true;
+      };
     })
 
     {
