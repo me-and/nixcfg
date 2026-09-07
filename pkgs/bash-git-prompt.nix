@@ -2,6 +2,7 @@
   fetchFromGitHub,
   stdenvNoCC,
   python3,
+  nix-update-script,
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "bash-git-prompt";
@@ -19,4 +20,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     cp --reflink=auto -pr ./ $out
     runHook postInstall
   '';
+
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--flake"
+      "--version"
+      "branch"
+    ];
+  };
 })
