@@ -236,7 +236,7 @@ if __name__ == "__main__":
             report_url=url,
             description_prefix="Review the closed/missing",
             project=blocker_project,
-            ghmeta=[{"url": url}],
+            ghmeta={"url": url},
         )
         new_tasks.append(review_task)
         task_descriptions.add(review_description)
