@@ -6,193 +6,11 @@
   ...
 }:
 let
-  inherit (builtins) listToAttrs;
-
   fsList = builtins.attrValues config.fileSystems;
   fsIsBtrfs = fs: fs.fsType == "btrfs";
   hasBtrfs = lib.any fsIsBtrfs fsList;
   cfgScrub = config.services.btrfs.autoScrub;
   scrubFileSystems = cfgScrub.fileSystems;
-
-  mkBalanceService =
-    fs:
-    let
-      fs' = mylib.escapeSystemdPath fs;
-      balanceScript = pkgs.mypkgs.writeCheckedShellScript {
-        name = "btrfs-balance-${fs'}";
-        runtimeInputs = [ pkgs.btrfs-progs ];
-        # Emulate the default balance behaviour from
-        # https://github.com/kdave/btrfsmaintenance
-        text = ''
-          target=${lib.escapeShellArg fs}
-
-          btrfs filesystem df "$target"
-          df -h "$target"
-
-          for n in 0 5 10; do
-              btrfs balance start -dusage="$n" "$target"
-          done
-          for n in 0 5; do
-              btrfs balance start -musage="$n" "$target"
-          done
-
-          btrfs filesystem df "$target"
-          df -h "$target"
-        '';
-      };
-      stopScript = pkgs.mypkgs.writeCheckedShellScript {
-        name = "btrfs-pause-balance-${fs'}";
-        runtimeInputs = [ pkgs.btrfs-progs ];
-        text = ''
-          if [[ ! -v MAINPID ]]; then
-              # Service has already stopped, so we don't need to do anything to
-              # stop it.
-              exit 0
-          fi
-
-          btrfs balance pause ${lib.escapeShellArg fs}
-        '';
-      };
-    in
-    lib.nameValuePair "btrfs-balance-${fs'}" {
-      description = "btrfs balance on ${fs}";
-      documentation = [ "man:btrfs-balance(8)" ];
-      # Like scrub, balance can block suspend/shutdown for a long time.
-      conflicts = [
-        "shutdown.target"
-        "sleep.target"
-      ];
-      before = [
-        "shutdown.target"
-        "sleep.target"
-      ];
-      serviceConfig = {
-        ExecStart = balanceScript;
-        ExecStop = stopScript;
-        CPUSchedulingPolicy = "idle";
-        IOSchedulingClass = "idle";
-        Nice = 19;
-      };
-    };
-
-  mkResumeService =
-    fs:
-    let
-      fs' = mylib.escapeSystemdPath fs;
-      # TODO Better handling of the balance case, where a full run of the
-      # balance unit will involve several balance operations, but this will
-      # only resume the specific balance that was in progress when the job was
-      # cancelled.
-      resumeScript = pkgs.mypkgs.writeCheckedShellScript {
-        name = "btrfs-maintenance-resume-${fs'}";
-        runtimeInputs = [ pkgs.btrfs-progs ];
-        text = ''
-          resume_or_ignore_not_running() {
-            local op="$1"
-            shift
-
-            if "$@"; then
-              return 0
-            fi
-
-            local rc="$?"
-            if [[ "$rc" -eq 2 ]]; then
-              return 0
-            fi
-
-            printf 'failed to resume %s on %s (exit %s)\n' "$op" ${lib.escapeShellArg fs} "$rc" >&2
-            return "$rc"
-          }
-
-          resume_or_ignore_not_running scrub btrfs scrub resume -B ${lib.escapeShellArg fs}
-          resume_or_ignore_not_running balance btrfs balance resume ${lib.escapeShellArg fs}
-        '';
-      };
-      stopScript = pkgs.mypkgs.writeCheckedShellScript {
-        name = "btrfs-maintenance-cancel-resume-${fs'}";
-        runtimeInputs = [ pkgs.btrfs-progs ];
-        text = ''
-          if [[ ! -v MAINPID ]]; then
-              # Service has already stopped, so we don't need to do anything to stop it.
-              exit 0
-          fi
-
-          # `btrfs scrub cancel` saves the current state for a future resume.
-          if btrfs scrub cancel ${lib.escapeShellArg fs}; then
-              printf 'cancelled running scrub on %s\n' ${lib.escapeShellArg fs} >&2
-          else
-              rc="$?"
-              printf 'failed to cancel scrub on %s (exit %s)\n' ${lib.escapeShellArg fs} "$rc" >&2
-              printf 'probably no scrub was running\n' >&2
-          fi
-
-          # `btrfs balance cancel` doesn't save the current state, and instead
-          # just cancels the entire operation.  `btrfs balance pause`, however,
-          # does save the current state.
-          if btrfs balance pause ${lib.escapeShellArg fs}; then
-              printf 'paused running balance on %s\n' ${lib.escapeShellArg fs} >&2
-          else
-              rc="$?"
-              printf 'failed to pause balance on %s (exit %s)\n' ${lib.escapeShellArg fs} "$rc" >&2
-              printf 'probably no balance was running\n' >&2
-          fi
-        '';
-      };
-    in
-    lib.nameValuePair "btrfs-maintenance-resume-${fs'}" {
-      description = "Resume interrupted btrfs scrub/balance on ${fs}";
-      after = [ "local-fs.target" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        ExecStart = resumeScript;
-        ExecStop = stopScript;
-        CPUSchedulingPolicy = "idle";
-        IOSchedulingClass = "idle";
-        Nice = 19;
-      };
-    };
-
-  mkResumeAfterSleepService =
-    fs:
-    let
-      fs' = mylib.escapeSystemdPath fs;
-    in
-    lib.nameValuePair "btrfs-maintenance-resume-after-sleep-${fs'}" {
-      description = "Trigger btrfs maintenance resume after waking from sleep for ${fs}";
-      wantedBy = [ "sleep.target" ];
-      before = [ "sleep.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStop = "${pkgs.systemd}/bin/systemctl start btrfs-maintenance-resume-${fs'}.service";
-      };
-      unitConfig.StopWhenUnneeded = true;
-    };
-
-  mkBalanceTimer =
-    fs:
-    let
-      fs' = mylib.escapeSystemdPath fs;
-    in
-    lib.nameValuePair "btrfs-balance-${fs'}" {
-      description = "Monthly BTRFS balance timer on ${fs}";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = "monthly";
-        RandomizedOffsetSec = "30d";
-        RandomizedDelaySec = "10min";
-        AccuracySec = "1h";
-        Persistent = true;
-      };
-    };
-
-  scrubTimerOverride = {
-    "btrfs-scrub@".timerConfig.RandomizedOffsetSec = "30d";
-  };
-  balanceServices = listToAttrs (map mkBalanceService scrubFileSystems);
-  balanceTimers = listToAttrs (map mkBalanceTimer scrubFileSystems);
-  resumeServices = listToAttrs (map mkResumeService scrubFileSystems);
-  resumeAfterSleepServices = listToAttrs (map mkResumeAfterSleepService scrubFileSystems);
 in
 lib.mkIf hasBtrfs {
   environment.systemPackages = [ pkgs.btdu ];
@@ -204,11 +22,188 @@ lib.mkIf hasBtrfs {
     interval = "monthly";
   };
 
-  # Deviation from upstream defaults: spread scrub timers across the month and
-  # add startup jitter.
-  systemd.timers = scrubTimerOverride // balanceTimers;
+  systemd.timers = {
+    # Deviation from upstream defaults: spread scrub timers across the month.
+    "btrfs-scrub@".timerConfig.RandomizedOffsetSec = "30d";
+
+    "btrfs-balance@" = {
+      description = "Regular btrfs balance on %f";
+      documentation = [ "man:btrfs-balance(8)" ];
+      timerConfig = {
+        OnCalendar = "monthly";
+        RandomizedOffsetSec = "30d";
+        AccuracySec = "1d";
+        Persistent = true;
+      };
+    };
+  };
 
   # Deviations from upstream: add a periodic low-usage balance pass and resume
   # interrupted scrub/balance operations after reboot and after waking.
-  systemd.services = balanceServices // resumeServices // resumeAfterSleepServices;
+  systemd.services = {
+    "btrfs-balance@" = {
+      description = "btrfs balance on %f";
+      documentation = [ "man:btrfs-balance(8)" ];
+      # Like scrub, balance can block suspend/shutdown for a long time.
+      conflicts = [
+        "shutdown.target"
+        "sleep.target"
+      ];
+      before = [
+        "shutdown.target"
+        "sleep.target"
+      ];
+      unitConfig.RequiresMountsFor = [ "%f" ];
+      serviceConfig = {
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
+        Nice = 19;
+        ExecStart =
+          let
+            script = pkgs.mypkgs.writeCheckedShellScript {
+              name = "btrfs-balance.sh";
+              runtimeInputs = [ pkgs.btrfs-progs ];
+              # Emulate the default balance behaviour from
+              # https://github.com/kdave/btrfsmaintenance
+              text = ''
+                target="$1"
+
+                btrfs filesystem df "$target"
+                df -h "$target"
+
+                for n in 0 5 10; do
+                    btrfs balance start -dusage="$n" "$target"
+                done
+                for n in 0 5; do
+                    btrfs balance start -musage="$n" "$target"
+                done
+
+                btrfs filesystem df "$target"
+                df -h "$target"
+              '';
+            };
+          in
+          "${script} %f";
+        ExecStop =
+          let
+            script = pkgs.mypkgs.writeCheckedShellScript {
+              name = "btrfs-pause-balance.sh";
+              runtimeInputs = [ pkgs.btrfs-progs ];
+              text = ''
+                target="$1"
+
+                if [[ ! -v MAINPID ]]; then
+                    # Service has already stopped, so we don't need to do anything
+                    # to stop it.
+                    exit 0
+                fi
+
+                btrfs balance pause "$target"
+              '';
+            };
+          in
+          "${script} %f";
+      };
+    };
+
+    "btrfs-maintenance-resume@" = {
+      description = "Resume interrupted btrfs scrub/balance on %f";
+      after = [ "local-fs.target" ];
+      unitConfig.RequiresMountsFor = [ "%f" ];
+      serviceConfig = {
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
+        Nice = 19;
+        ExecStart =
+          let
+            script = pkgs.mypkgs.writeCheckedShellScript {
+              name = "btrfs-maintenance-resume.sh";
+              runtimeInputs = [ pkgs.btrfs-progs ];
+              text = ''
+                target="$1"
+
+                resume_or_ignore_not_running () {
+                    local op="$1"
+                    shift
+
+                    if "$@"; then
+                        return 0
+                    fi
+
+                    local rc="$?"
+                    if (( rc == 2 )); then
+                        return 0
+                    fi
+
+                    printf 'failed to resume %s on %s (exit %s)\n' "$op" "$target" "$rc" >&2
+                    return "$rc"
+                }
+
+                resume_or_ignore_not_running scrub btrfs scrub resume -B "$target"
+                resume_or_ignore_not_running balance btrfs balance resume "$target"
+              '';
+            };
+          in
+          "${script} %f";
+        ExecStop =
+          let
+            script = pkgs.mypkgs.writeCheckedShellScript {
+              name = "btrfs-maintenance-cancel-resume.sh";
+              runtimeInputs = [ pkgs.btrfs-progs ];
+              text = ''
+                target="$1"
+
+                if [[ ! -v MAINPID ]]; then
+                    # Service is already stopped so we don't need to do anything to
+                    # stop it.
+                    exit 0
+                fi
+
+                # `btrfs scrub cancel` saves the current state for a future resume.
+                if btrfs scrub cancel "$target"; then
+                    printf 'cancelled running scrub on %s\n' "$target" >&2
+                else
+                    rc="$?"
+                    printf 'failed to cancel scrub on %s (exit %s)\n' "$target" "$rc" >&2
+                    printf 'probably no scrub was running\n' >&2
+                fi
+
+                # `btrfs balance cancel` doesn't save the current state, and
+                # instead just cancels the entire operation.  `btrfs balance
+                # pause`, however, does save the current state.
+                if btrfs balance pause "$target"; then
+                    printf 'paused running balance on %s\n' "$target" >&2
+                else
+                    rc="$?"
+                    printf 'failed to pause balance on %s (exit %s)\n' "$target" "$rc" >&2
+                    printf 'probably no balance was running\n' >&2
+                fi
+              '';
+            };
+          in
+          "${script} %f";
+      };
+    };
+
+    "btrfs-maintenance-resume-after-sleep@" = {
+      description = "Resume btrfs scrub/balance interrupted by sleep on %f";
+      before = [ "sleep.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStop = "${pkgs.systemd}/bin/systemctl start btrfs-maintenance-resume@%i";
+      };
+      unitConfig.StopWhenUnneeded = true;
+    };
+  };
+
+  systemd.targets = {
+    multi-user.wants = map (
+      fs: "btrfs-maintenance-resume@${mylib.escapeSystemdPath fs}.service"
+    ) scrubFileSystems;
+    sleep.wants = map (
+      fs: "btrfs-maintenance-resume-after-sleep@${mylib.escapeSystemdPath fs}.service"
+    ) scrubFileSystems;
+    timers.wants = map (fs: "btrfs-balance@${mylib.escapeSystemdPath fs}.timer") scrubFileSystems;
+  };
 }
