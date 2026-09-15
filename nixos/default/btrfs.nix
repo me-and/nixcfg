@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  utils,
   mylib,
   ...
 }:
@@ -14,34 +13,6 @@ let
   hasBtrfs = lib.any fsIsBtrfs fsList;
   cfgScrub = config.services.btrfs.autoScrub;
   scrubFileSystems = cfgScrub.fileSystems;
-
-  mkScrubTimerOverrides =
-    fs:
-    let
-      fs' = mylib.escapeSystemdPath fs;
-    in
-    lib.nameValuePair "btrfs-scrub-${fs'}" {
-      timerConfig = {
-        RandomizedOffsetSec = "30d";
-        RandomizedDelaySec = "10min";
-      };
-    };
-
-  # https://github.com/NixOS/nixpkgs/pull/537569
-  mkScrubServiceOverrides =
-    fs:
-    let
-      fs' = mylib.escapeSystemdPath fs;
-    in
-    lib.nameValuePair "btrfs-scrub-${fs'}" {
-      serviceConfig.ExecStart = lib.mkForce "${pkgs.btrfs-progs}/bin/btrfs scrub start -B ${utils.escapeSystemdExecArg fs}";
-      serviceConfig.ExecStop = lib.mkForce (
-        pkgs.writeShellScript "btrfs-scrub-maybe-cancel" ''
-          fs=${lib.escapeShellArg fs}
-          (${pkgs.btrfs-progs}/bin/btrfs scrub status "$fs" | ${pkgs.gnugrep}/bin/grep finished) || ${pkgs.btrfs-progs}/bin/btrfs scrub cancel "$fs"
-        ''
-      );
-    };
 
   mkBalanceService =
     fs:
@@ -215,8 +186,9 @@ let
       };
     };
 
-  scrubTimerOverrides = listToAttrs (map mkScrubTimerOverrides scrubFileSystems);
-  scrubServiceOverrides = listToAttrs (map mkScrubServiceOverrides scrubFileSystems);
+  scrubTimerOverride = {
+    "btrfs-scrub@".timerConfig.RandomizedOffsetSec = "30d";
+  };
   balanceServices = listToAttrs (map mkBalanceService scrubFileSystems);
   balanceTimers = listToAttrs (map mkBalanceTimer scrubFileSystems);
   resumeServices = listToAttrs (map mkResumeService scrubFileSystems);
@@ -234,10 +206,9 @@ lib.mkIf hasBtrfs {
 
   # Deviation from upstream defaults: spread scrub timers across the month and
   # add startup jitter.
-  systemd.timers = scrubTimerOverrides // balanceTimers;
+  systemd.timers = scrubTimerOverride // balanceTimers;
 
   # Deviations from upstream: add a periodic low-usage balance pass and resume
   # interrupted scrub/balance operations after reboot and after waking.
-  systemd.services =
-    scrubServiceOverrides // balanceServices // resumeServices // resumeAfterSleepServices;
+  systemd.services = balanceServices // resumeServices // resumeAfterSleepServices;
 }
