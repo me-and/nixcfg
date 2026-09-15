@@ -43,6 +43,7 @@
         unzip
       ]
       ++ (with pkgs.mypkgs; [
+        a5toa4
         aaisp-quota
         coldiff
         dirup
