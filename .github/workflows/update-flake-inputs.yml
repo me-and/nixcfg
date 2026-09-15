@@ -15,6 +15,11 @@ jobs:
   update:
     name: Update flake.lock
     runs-on: ubuntu-latest
+    outputs:
+      nixpkgs_before_rev: ${{ steps.update.outputs.nixpkgs_before_rev }}
+      nixpkgs_before_time: ${{ steps.update.outputs.nixpkgs_before_time }}
+      nixpkgs_after_rev: ${{ steps.update.outputs.nixpkgs_after_rev }}
+      pr_url: ${{ steps.create-pr.outputs.pr_url }}
 
     steps:
       - name: Checkout
@@ -77,10 +82,16 @@ jobs:
         id: update
         run: |
           before="$(git rev-parse HEAD)"
+          nixpkgs_before_rev="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.rev')"
+          nixpkgs_before_time="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.lastModified')"
           nix flake update --commit-lock-file
           after="$(git rev-parse HEAD)"
+          nixpkgs_after_rev="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.rev')"
           if [[ "$before" != "$after" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "nixpkgs_before_rev=$nixpkgs_before_rev" >>"$GITHUB_OUTPUT"
+            echo "nixpkgs_before_time=$nixpkgs_before_time" >>"$GITHUB_OUTPUT"
+            echo "nixpkgs_after_rev=$nixpkgs_after_rev" >>"$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
@@ -90,6 +101,7 @@ jobs:
         run: git push --force-with-lease origin flake-update
 
       - name: Create pull request
+        id: create-pr
         if: steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -99,14 +111,66 @@ jobs:
           wait "$!"
 
           if (( ${#open_prs[*]} == 0 )); then
-            gh pr create \
+            pr_url="$(gh pr create \
               --title 'flake: update flake inputs' \
               --body 'Automated weekly update of flake inputs via `nix flake update --commit-lock-file`.' \
               --base "$TARGET_BRANCH" \
-              --head flake-update
+              --head flake-update)"
+            echo "pr_url=$pr_url" >>"$GITHUB_OUTPUT"
+            echo "::notice title=PR created::$pr_url"
           elif (( ${#open_prs[*]} == 1 )); then
             echo "::warning title=PR already exists::No new PR created as $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/${open_prs[0]} already exists"
+            echo "pr_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/${open_prs[0]}" >>"$GITHUB_OUTPUT"
           else
             echo "::error title=Multiple conflicting PRs exist::Multiple pull requests seem to exist for the flake-update branch: ${open_prs[*]}"
             exit 76
+          fi
+
+  add-nixpkgs-relnotes:
+    name: Add Nixpkgs release notes
+    runs-on: ubuntu-latest
+    needs: update
+    if: needs.update.outputs.nixpkgs_before_rev != needs.update.outputs.nixpkgs_after_rev
+
+    steps:
+      - name: Check out nixpkgs
+        env:
+          NIXPKGS_BEFORE_TIME: ${{ needs.update.outputs.nixpkgs_before_time }}
+          NIXPKGS_AFTER_REV: ${{ needs.update.outputs.nixpkgs_after_rev }}
+        run: git clone https://github.com/NixOS/nixpkgs . --bare --revision "$NIXPKGS_AFTER_REV" --shallow-since "$NIXPKGS_BEFORE_TIME"
+
+      - name: Get diffs
+        env:
+          NIXPKGS_BEFORE_REV: ${{ needs.update.outputs.nixpkgs_before_rev }}
+          NIXPKGS_AFTER_REV: ${{ needs.update.outputs.nixpkgs_after_rev }}
+        run: |
+          git diff "$NIXPKGS_BEFORE_REV" "$NIXPKGS_AFTER_REV" -- doc/release-notes >nixpkgs-relnotes.diff
+          git diff "$NIXPKGS_BEFORE_REV" "$NIXPKGS_AFTER_REV" -- nixos/doc/manual/release-notes >nixos-relnotes.diff
+
+      - name: Update PR
+        env:
+          NIXPKGS_BEFORE_REV: ${{ needs.update.outputs.nixpkgs_before_rev }}
+          NIXPKGS_AFTER_REV: ${{ needs.update.outputs.nixpkgs_after_rev }}
+          PR_URL: ${{ needs.update.outputs.pr_url }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ -s nixpkgs-relnotes.diff ]]; then
+            echo '## Nixpkgs release notes diff'
+            echo
+            echo '```diff'
+            cat nixpkgs-relnotes.diff
+            echo '```'
+          fi >>pr-comment.md
+
+          if [[ -s nixos-relnotes.diff ]]; then
+            [[ -s pr-comment.md ]] && echo
+            echo '## NixOS release notes diff'
+            echo
+            echo '```diff'
+            cat nixos-relnotes.diff
+            echo '```'
+          fi >>pr-comment.md
+
+          if [[ -s pr-comment.md ]]; then
+            gh pr comment "$PR_URL" --body-file pr-comment.md
           fi
