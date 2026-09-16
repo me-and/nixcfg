@@ -229,7 +229,7 @@ while :; do
 				fi
 			done
 
-			n="$(task_quick_quiet ${filters["$filter"]} "${count_command[@]}")"
+			n="$(task_quick_quiet ${filters["$filter"]} rc.context= count)"
 
 			if [[ "$first" ]]; then
 				first=
