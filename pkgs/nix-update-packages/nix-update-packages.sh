@@ -4,11 +4,23 @@ set -euo pipefail
 export PATH
 export NIXPKGS_ALLOW_BROKEN=1
 
+declare -ir EX_USAGE=64
+declare -ir EX_SOFTWARE=70
+
+declare -r system=x86_64-linux
+
 push=
 create_prs=
 use_local=
+debug=
+package_list=()
+package_list_mode=
 while (( $# > 0 )); do
 	case "$1" in
+	--debug)
+		debug=YesPlease
+		shift
+		;;
 	--push)
 		push=YesPlease
 		shift
@@ -21,17 +33,42 @@ while (( $# > 0 )); do
 		use_local=YesPlease
 		shift
 		;;
+	-p)
+		if [[ -z "$package_list_mode" || "$package_list_mode" = include ]]; then
+			package_list+=("$2")
+			package_list_mode=include
+			shift 2
+		else
+			echo 'cannot use both -p and -P' >&2
+			exit "$EX_USAGE"
+		fi
+		;;
+	-P)
+		if [[ -z "$package_list_mode" || "$package_list_mode" = exclude ]]; then
+			package_list+=("$2")
+			package_list_mode=exclude
+			shift 2
+		else
+			echo 'cannot use both -p and -P' >&2
+			exit "$EX_USAGE"
+		fi
+		;;
+	-[pP]*)
+		set -- "-${1: 1:1}" "${1: 2}" "${@: 2}"
+		;;
 	*)
 		printf 'unexpected argument: %q\n' "$1" >&2
-		exit 64
+		exit "$EX_USAGE"
 		;;
 	esac
 done
 
-get_updateable_packages() {
-	nix eval --impure --json --apply 'import ./updateable-packages.nix' .#packages.x86_64-linux |
-		jq --raw-output0 '.[]'
-}
+updateable_packages_f="$(mktemp --tmpdir "nix-update-packages.$$.XXXXX")"
+if [[ "$debug" ]]; then
+	echo "will not delete package list file $updateable_packages_f" >&2
+else
+	trap 'rm -f "$updateable_packages_f"' EXIT
+fi
 
 if [[ -z "$use_local" ]]; then
 	start_dir="$PWD"
@@ -43,10 +80,49 @@ fi
 
 start_ref="$(git rev-parse HEAD)"
 
-exec {pkgs_fd}< <(get_updateable_packages)
-pkgs_pid="$!"
+nix eval --impure --json --apply 'import ./updateable-packages.nix' ".#packages.$system" |
+	jq --raw-output0 '.[]' >"$updateable_packages_f"
 
-while read -d '' -r -u "$pkgs_fd" pkg; do
+case "$package_list_mode" in
+	include)
+		# Make sure the packages specified are all included in the list
+		# of updateable packages.
+		for pkg in "${package_list[@]}"; do
+			if grep -qFzx -e "$pkg" -- "$updateable_packages_f"; then
+				echo "package $pkg not updateable" >&2
+				exit "$EX_USAGE"
+			fi
+		done
+
+		packages_to_update=("${package_list[@]}")
+		;;
+	exclude)
+		grep_args=()
+
+		# Make sure the packages specified are all included in the list
+		# of updateable packages.
+		for pkg in "${package_list[@]}"; do
+			if grep -qFzx -e "$pkg" -- "$updateable_packages_f"; then
+				echo "package $pkg not updateable" >&2
+				exit "$EX_USAGE"
+			fi
+			grep_args+=(-e "$pkg")
+		done
+
+		# shellcheck disable=SC2312 # Checked with `wait "$!"`
+		mapfile -d '' -t packages_to_update < <(grep -Fzxv "${grep_args[@]}")
+		wait "$!"
+		;;
+	'')
+		mapfile -d '' -t packages_to_update <"$updateable_packages_f"
+		;;
+	*)
+		echo "unexpected package list mode $package_list_mode" >&2
+		exit "$EX_SOFTWARE"
+		;;
+esac
+
+for pkg in "${packages_to_update[@]}"; do
 	if git fetch origin pkg-updates/"$pkg"; then
 		git switch pkg-updates/"$pkg"
 	else
@@ -64,8 +140,8 @@ while read -d '' -r -u "$pkgs_fd" pkg; do
 
 	if [[ "$pkg_start_ref" != "$new_ref" ]]; then
 		# Need `--impure` to pick up NIXPKGS_ALLOW_BROKEN.
-		was_broken="$(nix eval --impure .?rev="$pkg_start_ref"#packages.x86_64-linux."$pkg".meta.broken)"
-		is_broken="$(nix eval --impure .?rev="$new_ref"#packages.x86_64-linux."$pkg".meta.broken)"
+		was_broken="$(nix eval --impure ".?rev=$pkg_start_ref#packages.$system.$pkg.meta.broken")"
+		is_broken="$(nix eval --impure ".?rev=$new_ref#packages.$system.$pkg.meta.broken")"
 		if [[ "$was_broken" = "$is_broken" || "$is_broken" = 'false' ]]; then
 			# Either we're fixing something or it wasn't broken in the first place, so carry on.
 			if [[ "$push" ]]; then
@@ -74,6 +150,7 @@ while read -d '' -r -u "$pkgs_fd" pkg; do
 				echo "::notice title=Not pushing pkg-updates/$pkg::nix-update-packages called without \`--push\`, so updates to the pkg-updates/$pkg branch aren't being pushed"
 			fi
 
+			# shellcheck disable=SC2312 # Checked with `wait "$!"`
 			mapfile -t open_prs < <(gh pr list --head pkg-updates/"$pkg" --json number --jq '.[].number')
 			wait "$!"
 			if (( ${#open_prs[*]} == 0 )); then
@@ -100,4 +177,3 @@ while read -d '' -r -u "$pkgs_fd" pkg; do
 		git branch --delete pkg-updates/"$pkg"
 	fi
 done
-wait "$pkgs_pid"
