@@ -34,7 +34,6 @@
     octogram = {
       url = "github:me-and/octogram";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
     };
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
