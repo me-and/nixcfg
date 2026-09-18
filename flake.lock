@@ -348,19 +348,16 @@
     },
     "octogram": {
       "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1789144977,
-        "narHash": "sha256-7esGLR8gLaqn9zlNUnNyXGbvuYsb3ldAHPu6ba3N3H4=",
+        "lastModified": 1789760426,
+        "narHash": "sha256-IYJHAvnevabS5k/AquaGkCgM3/BEHfc9JNj5UloZXiI=",
         "owner": "me-and",
         "repo": "octogram",
-        "rev": "65af1fe2abbbd2dd638dbcd053774e45f77c05f1",
+        "rev": "c849c8e06244349ffbd76e9163362e79cca09fb5",
         "type": "github"
       },
       "original": {
