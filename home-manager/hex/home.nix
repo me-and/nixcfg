@@ -30,7 +30,7 @@
       discord
       gnucash
       gnome-calculator # Prefer this to the KDE options
-      # jellyfin-media-player # Insecure!?
+      jellyfin-desktop
       hunspell
       hunspellDicts.en-gb-ise
       inkscape

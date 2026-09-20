@@ -10,6 +10,7 @@
     hunspell
     hunspellDicts.en-gb-ise
     inkscape
+    jellyfin-desktop
     libreoffice
     openscad
     poppler-utils
