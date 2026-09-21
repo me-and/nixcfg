@@ -139,12 +139,16 @@ jobs:
               } >>"$GITHUB_ENV"
           fi
 
-      - name: Run checks
+      - name: Set up output directories
         run: |
-          mkdir -p results
-          mkdir -p derivations
-          nix build --out-link results/tools .#nix-run-available-checks .#nix-copy-drv-closure
-          nix run .#nix-run-available-checks -- --github --add-drv-root derivations/results --add-root results/result --keep-going
+          mkdir results
+          mkdir derivations
+
+      - name: Build tools
+        run: nix build --out-link results/tools .#nix-run-available-checks .#nix-copy-drv-closure
+
+      - name: Run checks
+        run: nix run .#nix-run-available-checks -- --github --add-drv-root derivations/results --add-root results/result --keep-going
 
       - name: Deploy build results
         if: always()
