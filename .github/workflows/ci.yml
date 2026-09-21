@@ -145,7 +145,15 @@ jobs:
           mkdir derivations
 
       - name: Build tools
-        run: nix build --out-link results/tools .#nix-run-available-checks .#nix-copy-drv-closure
+        run: |
+          tools=(.#nix-run-available-checks .#nix-copy-drv-closure .#nix-add-drv-root)
+
+          for tool in "${tools[@]}"; do
+              tool_drvs+=("$(nix eval --raw "$tool".drvPath)")
+          done
+
+          nix build --out-link results/tools "${tools[@]}"
+          nix run .#nix-add-drv-root -- --root derivations/tools "${tool_drvs[@]}"
 
       - name: Run checks
         run: nix run .#nix-run-available-checks -- --github --add-drv-root derivations/results --add-root results/result --keep-going
