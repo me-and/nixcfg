@@ -68,13 +68,14 @@ writeCheckedShellApplication {
         trap 'rm -rf -- "$workdir"' EXIT
     fi
 
-    cd "$workdir"
-
     # Add derivation roots to make sure the things we're copying don't get lost
     # thanks to a mistimed garbage collection.  Depending on what's being built
     # and copied, that might be impossible anyway, but this costs essentially
     # nothing and will be useful in at least some circumstances.
-    nix-add-drv-root "''${derivations[@]}"
+    #
+    # TODO Handle the case where `keep-derivations` and/or `keep-outputs` isn't
+    # true, as this code won't provide much protection in that circumstance.
+    nix-add-drv-root --root "$workdir"/result "''${derivations[@]}"
 
     # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
     mapfile -t output_paths < <(nix-store --query --outputs "''${derivations[@]}")
@@ -86,11 +87,11 @@ writeCheckedShellApplication {
     else
         t=1
         final_loop=
-        touch xfered
+        touch "$workdir"/xfered
         while :; do
             nix-store --query --requisites --include-outputs "''${derivations[@]}" |
-                combine - not xfered |
-                tee current-xfer |
+                combine - not "$workdir"/xfered |
+                tee "$workdir"/current-xfer |
                 xargs -r nix copy --to "$destination"
 
             if [[ "$final_loop" ]]; then
@@ -99,9 +100,9 @@ writeCheckedShellApplication {
                 exit 0
             fi
 
-            if [[ -s current-xfer ]]; then
+            if [[ -s "$workdir"/current-xfer ]]; then
                 t=1
-                cat current-xfer >>xfered
+                cat "$workdir"/current-xfer >>"$workdir"/xfered
 
                 missing_output=
                 for output in "''${output_paths[@]}"; do

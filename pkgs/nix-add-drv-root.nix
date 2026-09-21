@@ -43,6 +43,7 @@ writeCheckedShellApplication {
 
     n=0
     for target in "''${targets[@]}"; do
+        target="$(realpath "$target")"
         if [[ "$target" != /nix/store/*.drv || "$target" = /nix/store/*/* ]]; then
             echo "not a derivation: $target" >&2
             exit 64 # EX_USAGE
@@ -66,6 +67,10 @@ writeCheckedShellApplication {
             \! -name '*.lock' \
             -print -quit
         )"
+        if [[ -z "$temp_target" ]]; then
+            echo "no realisations in the Nix store" >&2
+            exit 72 # EX_OSFILE
+        fi
         nix-store --realise --add-root "$this_root" "$temp_target"
         ln -s --force --no-dereference -- "$target" "$this_root"
 
