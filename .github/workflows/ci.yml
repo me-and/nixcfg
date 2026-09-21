@@ -142,8 +142,9 @@ jobs:
       - name: Run checks
         run: |
           mkdir -p results
-          nix build --out-link results/nix-run-available-checks .#nix-run-available-checks
-          nix run .#nix-run-available-checks -- --github --add-root results/result
+          mkdir -p derivations
+          nix build --out-link results/tools .#nix-run-available-checks .#nix-copy-drv-closure
+          nix run .#nix-run-available-checks -- --github --add-drv-root derivations/results --add-root results/result
 
       - name: Deploy build results
         if: always()
@@ -159,15 +160,20 @@ jobs:
           fi
 
           ls -Al results
+          ls -Al derivations
 
+          mapfile -d '' -t derivation_results < <(find derivations -type l -printf '%l\0')
+          wait "$!" # Check return code from find
           mapfile -d '' -t build_results < <(find results -type l -printf '%l\0')
           wait "$!" # Check return code from find
 
-          if (( ${#build_results[*]} == 0 )); then
+          if (( ${#derivation_results[*]} == 0 && ${#build_results[*]} == 0 )); then
             # Nothing to upload
             exit 0
           fi
 
           for t in $DEPLOY_TARGETS; do
-            nix copy --to "$t" "${build_results[@]}"
+            for d in derivations/*; do
+              nix run .#nix-copy-drv-closure -- --once "$d" "$t"
+            done
           done

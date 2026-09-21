@@ -16,12 +16,32 @@ writeCheckedShellApplication {
     nix-add-drv-root
   ];
   text = ''
-    if (( $# != 2 )); then
+    once_only=
+    positional_args=()
+    while (( $# > 0 )); do
+        case "$1" in
+            -o|--once)
+                once_only=Yes
+                shift
+                ;;
+            --)
+                shift
+                positional_args+=("$@")
+                break
+                ;;
+            *)
+                positional_args+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if (( ''${#positional_args[*]} != 2 )); then
         exit 64 # EX_USAGE
     fi
 
-    derivation="$1"
-    destination="$2"
+    derivation="''${positional_args[0]}"
+    destination="''${positional_args[1]}"
 
     if [[ -v RUNTIME_DIRECTORY ]]; then
         workdir="$RUNTIME_DIRECTORY"
@@ -42,49 +62,54 @@ writeCheckedShellApplication {
     mapfile -t output_paths < <(nix-store --query --outputs "$derivation")
     wait "$!"
 
-    t=1
-    final_loop=
-    touch xfered
-    while :; do
+    if [[ "$once_only" ]]; then
         nix-store --query --requisites --include-outputs "$derivation" |
-            combine - not xfered |
-            tee current-xfer |
             xargs -r nix copy --to "$destination"
+    else
+        t=1
+        final_loop=
+        touch xfered
+        while :; do
+            nix-store --query --requisites --include-outputs "$derivation" |
+                combine - not xfered |
+                tee current-xfer |
+                xargs -r nix copy --to "$destination"
 
-        if [[ "$final_loop" ]]; then
-            # We just did the final copy after spotting all outputs were
-            # available, so there's no chance there's anything left to copy.
-            exit 0
-        fi
+            if [[ "$final_loop" ]]; then
+                # We just did the final copy after spotting all outputs were
+                # available, so there's no chance there's anything left to copy.
+                exit 0
+            fi
 
-        if [[ -s current-xfer ]]; then
-            t=1
-            cat current-xfer >>xfered
+            if [[ -s current-xfer ]]; then
+                t=1
+                cat current-xfer >>xfered
 
-            missing_output=
-            for output in "''${output_paths[@]}"; do
-                if [[ ! -e "$output" ]]; then
-                    missing_output=Yes
-                    break
+                missing_output=
+                for output in "''${output_paths[@]}"; do
+                    if [[ ! -e "$output" ]]; then
+                        missing_output=Yes
+                        break
+                    fi
+                done
+
+                if [[ -z "$missing_output" ]]; then
+                    # We can see all the output paths.  Don't exit just yet, on the
+                    # off-chance there was a timing window between the last copy
+                    # finishing and the output paths being available.  Quite
+                    # plausible, given the copy might have taken a while, but will
+                    # be using a list of paths from when it started, not when it
+                    # ended.
+                    final_loop=Yes
                 fi
-            done
-
-            if [[ -z "$missing_output" ]]; then
-                # We can see all the output paths.  Don't exit just yet, on the
-                # off-chance there was a timing window between the last copy
-                # finishing and the output paths being available.  Quite
-                # plausible, given the copy might have taken a while, but will
-                # be using a list of paths from when it started, not when it
-                # ended.
-                final_loop=Yes
+            else
+                t="$((t*2))"
+                if (( t > (60*5) )); then
+                    t="$((60*5))"
+                fi
+                sleep "$t" | pv -t
             fi
-        else
-            t="$((t*2))"
-            if (( t > (60*5) )); then
-                t="$((60*5))"
-            fi
-            sleep "$t" | pv -t
-        fi
-    done
+        done
+    fi
   '';
 }
