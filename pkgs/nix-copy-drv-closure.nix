@@ -17,7 +17,6 @@ writeCheckedShellApplication {
   ];
   text = ''
     once_only=
-    positional_args=()
     max_sleep=$((60*5))
     while (( $# > 0 )); do
         case "$1" in
@@ -47,12 +46,20 @@ writeCheckedShellApplication {
         esac
     done
 
-    if (( ''${#positional_args[*]} != 2 )); then
+    if (( ''${#positional_args[*]} == 0 )); then
         exit 64 # EX_USAGE
+    elif (( ''${#positional_args[*]} == 1 )); then
+        echo 'nothing to copy' >&2
+        exit 0
     fi
 
-    derivation="''${positional_args[0]}"
-    destination="''${positional_args[1]}"
+    process_positional_args () {
+        destination="$1"
+        shift
+        derivations=("$@")
+    }
+
+    process_positional_args "''${positional_args[@]}"
 
     if [[ -v RUNTIME_DIRECTORY ]]; then
         workdir="$RUNTIME_DIRECTORY"
@@ -63,25 +70,25 @@ writeCheckedShellApplication {
 
     cd "$workdir"
 
-    # Add a derivation root to make sure the things we're copying don't get
-    # lost thanks to a mistimed garbage collection.  Depending on what's being
-    # built and copied, that might be impossible anyway, but this costs
-    # essentially nothing and will be useful in at least some circumstances.
-    nix-add-drv-root "$derivation"
+    # Add derivation roots to make sure the things we're copying don't get lost
+    # thanks to a mistimed garbage collection.  Depending on what's being built
+    # and copied, that might be impossible anyway, but this costs essentially
+    # nothing and will be useful in at least some circumstances.
+    nix-add-drv-root "''${derivations[@]}"
 
     # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
-    mapfile -t output_paths < <(nix-store --query --outputs "$derivation")
+    mapfile -t output_paths < <(nix-store --query --outputs "''${derivations[@]}")
     wait "$!"
 
     if [[ "$once_only" ]]; then
-        nix-store --query --requisites --include-outputs "$derivation" |
+        nix-store --query --requisites --include-outputs "''${derivations[@]}" |
             xargs -r nix copy --to "$destination"
     else
         t=1
         final_loop=
         touch xfered
         while :; do
-            nix-store --query --requisites --include-outputs "$derivation" |
+            nix-store --query --requisites --include-outputs "''${derivations[@]}" |
                 combine - not xfered |
                 tee current-xfer |
                 xargs -r nix copy --to "$destination"

@@ -166,24 +166,16 @@ jobs:
           if [[ ! -e derivations ]]; then
             # Derivations directory wasn't even created, so quit now
             exit 0
+          elif rm --dir derivations; then
+            # Derivations directory was empty, so quit now
+            exit 0
           elif ! command -v nix >/dev/null; then
             # Nix failed to install, so quit now
             exit 0
           fi
 
-          ls -Al results
-          ls -Al derivations
-
-          mapfile -d '' -t derivation_results < <(find derivations -type l -printf '%l\0')
-          wait "$!" # Check return code from find
-
-          if (( ${#derivation_results[*]} == 0 )); then
-            # Nothing to upload
-            exit 0
-          fi
+          ls -Al derivations results
 
           for t in $DEPLOY_TARGETS; do
-            for d in "${derivation_results[@]}"; do
-              nix run .#nix-copy-drv-closure -- --once "$d" "$t"
-            done
+            nix run .#nix-copy-drv-closure -- --once "$t" derivations/*
           done
