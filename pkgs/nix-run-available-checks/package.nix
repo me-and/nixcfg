@@ -136,9 +136,6 @@ writeCheckedShellApplication {
           nix-store --realise "''${extra_realisation_args[@]}" "''${drvs_to_realise[@]}"
       fi
     else
-      if [[ "$drv_root" ]]; then
-          nix-add-drv-root --root "$drv_root" "''${drvs_to_realise[@]}"
-      fi
       printf '%s\n' "''${drvs_to_realise[@]}"
     fi
   '';
