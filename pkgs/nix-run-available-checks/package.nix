@@ -27,6 +27,7 @@ writeCheckedShellApplication {
     extra_eval_args=()
     build=Yes
     drv_root=
+    max_eval_memory=
     while (( $# > 0 )); do
         case "$1" in
         -a|--all)
@@ -61,6 +62,14 @@ writeCheckedShellApplication {
             extra_realisation_args+=(--add-root "''${1#--add-root=}")
             shift
             ;;
+        --max-memory-size)
+            max_eval_memory="$2"
+            shift 2
+            ;;
+        --max-memory-size=*)
+            max_eval_memory="''${1#--max-memory-size=}"
+            shift
+            ;;
         --override-input)
             extra_eval_args+=("$1" "$2" "$3")
             shift 3
@@ -76,6 +85,14 @@ writeCheckedShellApplication {
 
     if [[ "$exclude_cache" ]]; then
         extra_eval_args+=(--check-cache-status)
+    fi
+
+    if [[ "$max_eval_memory" ]]; then
+        extra_eval_args+=(--max-memory-size "$max_eval_memory")
+    else
+        # The 4GB default isn't sufficient for evaluating some of my
+        # configurations :(
+        extra_eval_args+=(--max-memory-size "$((8*1024))")
     fi
 
     # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
@@ -119,6 +136,9 @@ writeCheckedShellApplication {
           nix-store --realise "''${extra_realisation_args[@]}" "''${drvs_to_realise[@]}"
       fi
     else
+      if [[ "$drv_root" ]]; then
+          nix-add-drv-root --root "$drv_root" "''${drvs_to_realise[@]}"
+      fi
       printf '%s\n' "''${drvs_to_realise[@]}"
     fi
   '';
