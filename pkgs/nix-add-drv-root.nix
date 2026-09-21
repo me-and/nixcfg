@@ -67,8 +67,7 @@ writeCheckedShellApplication {
             -print -quit
         )"
         nix-store --realise --add-root "$this_root" "$temp_target"
-        rm -f -- "$this_root"
-        ln -s --force -- "$target" "$this_root"
+        ln -s --force --no-dereference -- "$target" "$this_root"
 
         real_target_path="$(realpath "$target")"
         real_root_path="$(realpath "$this_root")"
