@@ -171,7 +171,7 @@ jobs:
           fi
 
           for t in $DEPLOY_TARGETS; do
-            for d in derivations/*; do
+            for d in "${derivation_results[@]}"; do
               nix run .#nix-copy-drv-closure -- --once "$d" "$t"
             done
           done
