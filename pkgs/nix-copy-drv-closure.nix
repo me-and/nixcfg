@@ -106,7 +106,6 @@ writeCheckedShellApplication {
                 # be using a list of paths from when it started, not when it
                 # ended.
                 final_loop=Yes
-                cat current-xfer >>xfered
             fi
         else
             t="$((t*2))"
