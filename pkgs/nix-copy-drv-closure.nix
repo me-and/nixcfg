@@ -18,11 +18,22 @@ writeCheckedShellApplication {
   text = ''
     once_only=
     positional_args=()
+    max_sleep=$((60*5))
     while (( $# > 0 )); do
         case "$1" in
             -o|--once)
                 once_only=Yes
                 shift
+                ;;
+            -t|--max-sleep)
+                max_sleep="$2"
+                shift 2
+                ;;
+            -t*)
+                set -- "''${1: 0:2}" "''${1: 2}" "''${@: 2}"
+                ;;
+            --max-sleep=*)
+                set -- "''${1%%=*}" "''${1#*=}" "''${@: 2}"
                 ;;
             --)
                 shift
@@ -104,10 +115,14 @@ writeCheckedShellApplication {
                 fi
             else
                 t="$((t*2))"
-                if (( t > (60*5) )); then
-                    t="$((60*5))"
+                if (( t > max_sleep )); then
+                    t="$max_sleep"
                 fi
-                sleep "$t" | pv -t
+                if [[ -t 0 ]]; then
+                    sleep "$t" | pv -t
+                else
+                    sleep "$t"
+                fi
             fi
         done
     fi
