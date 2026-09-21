@@ -144,15 +144,15 @@ jobs:
           mkdir -p results
           mkdir -p derivations
           nix build --out-link results/tools .#nix-run-available-checks .#nix-copy-drv-closure
-          nix run .#nix-run-available-checks -- --github --add-drv-root derivations/results --add-root results/result
+          nix run .#nix-run-available-checks -- --github --add-drv-root derivations/results --add-root results/result --keep-going
 
       - name: Deploy build results
         if: always()
         env:
           DEPLOY_TARGETS: ${{ vars.NIX_DEPLOY_TARGETS }}
         run: |
-          if [[ ! -e results ]]; then
-            # Results directory wasn't even created, so quit now
+          if [[ ! -e derivations ]]; then
+            # Derivations directory wasn't even created, so quit now
             exit 0
           elif ! command -v nix >/dev/null; then
             # Nix failed to install, so quit now
@@ -164,10 +164,8 @@ jobs:
 
           mapfile -d '' -t derivation_results < <(find derivations -type l -printf '%l\0')
           wait "$!" # Check return code from find
-          mapfile -d '' -t build_results < <(find results -type l -printf '%l\0')
-          wait "$!" # Check return code from find
 
-          if (( ${#derivation_results[*]} == 0 && ${#build_results[*]} == 0 )); then
+          if (( ${#derivation_results[*]} == 0 )); then
             # Nothing to upload
             exit 0
           fi
