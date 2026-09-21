@@ -75,7 +75,7 @@ writeCheckedShellApplication {
     #
     # TODO Handle the case where `keep-derivations` and/or `keep-outputs` isn't
     # true, as this code won't provide much protection in that circumstance.
-    nix-add-drv-root --root "$workdir"/result "''${derivations[@]}"
+    nix-add-drv-root --quiet --root "$workdir"/result "''${derivations[@]}"
 
     # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
     mapfile -t output_paths < <(nix-store --query --outputs "''${derivations[@]}")

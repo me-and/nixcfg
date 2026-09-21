@@ -15,20 +15,35 @@ writeCheckedShellApplication {
     # symlink to our target (so the registered root is the one we need it to
     # be).
 
+    quiet=
     root='result'
     targets=()
     while (( $# > 0 )); do
         case "$1" in
+            # Main options parsing
+            -q|--quiet)
+                quiet=Yes
+                shift
+                ;;
             -r|--root)
                 root="$2"
                 shift 2
                 ;;
-            -r*)
-                set -- "-''${1: 0:2}" "''${1: 2}" "''${@: 2}"
+
+            # Reformat short options that take no arguments
+            -q*)
+                set -- "''${1: 0:2}" "-''${1: 2}" "''${@: 2}"
                 ;;
+            # Reformat short options that take arguments
+            -r*)
+                set -- "''${1: 0:2}" "''${1: 2}" "''${@: 2}"
+                ;;
+            # Reformat long options that take arguments
             --root=*)
                 set -- "''${1%%=*}" "''${1#*=}" "''${@: 2}"
                 ;;
+
+            # Positional parameters
             --)
                 shift
                 targets+=("$@")
@@ -71,7 +86,11 @@ writeCheckedShellApplication {
             echo "no realisations in the Nix store" >&2
             exit 72 # EX_OSFILE
         fi
-        nix-store --realise --add-root "$this_root" "$temp_target"
+        if [[ "$quiet" ]]; then
+            nix-store --realise --add-root "$this_root" "$temp_target" >/dev/null
+        else
+            nix-store --realise --add-root "$this_root" "$temp_target"
+        fi
         ln -s --force --no-dereference -- "$target" "$this_root"
 
         real_target_path="$(realpath "$target")"
