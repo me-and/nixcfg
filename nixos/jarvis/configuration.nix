@@ -30,6 +30,9 @@
   networking.hostName = "jarvis";
   networking.domain = "dinwoodie.org";
 
+  # No IPv6 support :(
+  networking.enableIPv6 = false;
+
   time.timeZone = "Europe/London";
   i18n.defaultLocale = "en_GB.UTF-8";
 
