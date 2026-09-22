@@ -1,6 +1,15 @@
 { config, lib, ... }:
 lib.mkIf (config.security.acme.certs != { }) {
-  sops.secrets.mythic-beasts = { };
+  sops = {
+    secrets.mythic-beasts = { };
+    # Default propagation timeout of 60 seconds seems to produce intermittent
+    # failures.  Increase that significantly to see if it helps...
+    templates.acme-mythic-beasts-environment.content = ''
+      MYTHICBEASTS_PROPAGATION_TIMEOUT=300
+      ${config.sops.placeholder.mythic-beasts}
+    '';
+  };
+
   security.acme = {
     acceptTerms = true;
     defaults = {
@@ -18,7 +27,7 @@ lib.mkIf (config.security.acme.certs != { }) {
           "[2a00:1098:0:80:1000::10]:53"
         ]
       );
-      environmentFile = config.sops.secrets.mythic-beasts.path;
+      environmentFile = config.sops.templates.acme-mythic-beasts-environment.path;
     };
   };
 }
