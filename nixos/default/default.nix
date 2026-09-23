@@ -4,8 +4,7 @@
   # Nix builds -- notably install images -- from being able to complete.
   boot.tmp.cleanOnBoot = true;
 
-  # Always want to be in the UK.
-  time.timeZone = lib.mkDefault "Europe/London";
+  # Always want UK locale.
   i18n.defaultLocale = "en_GB.UTF-8";
 
   # Always want to be using UK Dvorak.

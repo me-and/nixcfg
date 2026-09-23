@@ -1,9 +1,4 @@
-{
-  config,
-  nixos-hardware,
-  personalCfg,
-  ...
-}:
+{ nixos-hardware, personalCfg, ... }:
 {
   imports = [
     nixos-hardware.nixosModules.dell-latitude-7430
@@ -32,6 +27,8 @@
 
   networking.domain = "dinwoodie.org";
   networking.wireless.enable = true;
+
+  time.timeZone = "Europe/London";
 
   networking.pd.vpn = true;
   networking.pd.gonzo = true;
