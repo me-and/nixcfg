@@ -8,7 +8,6 @@
   systemd.services.disk-usage-report = {
     description = "Email a disk usage report";
     serviceConfig = {
-      Type = "oneshot";
       RuntimeDirectory = "disk-usage-report";
       ExecStart = pkgs.mypkgs.writeCheckedShellScript {
         name = "disk-usage-report-mail.sh";

@@ -15,11 +15,6 @@ jobs:
   update:
     name: Update flake.lock
     runs-on: ubuntu-latest
-    outputs:
-      nixpkgs_before_rev: ${{ steps.update.outputs.nixpkgs_before_rev }}
-      nixpkgs_before_time: ${{ steps.update.outputs.nixpkgs_before_time }}
-      nixpkgs_after_rev: ${{ steps.update.outputs.nixpkgs_after_rev }}
-      pr_url: ${{ steps.create-pr.outputs.pr_url }}
 
     steps:
       - name: Checkout
@@ -78,31 +73,37 @@ jobs:
             git switch -c flake-update
           fi
 
+      - name: Get Nixpkgs before any updates
+        run: |
+          url="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.url')"
+          nix flake prefetch --out-link before "$url"
+
       - name: Update flake inputs
         id: update
         run: |
           before="$(git rev-parse HEAD)"
-          nixpkgs_before_rev="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.rev')"
-          nixpkgs_before_time="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.lastModified')"
           nix flake update --commit-lock-file
           after="$(git rev-parse HEAD)"
-          nixpkgs_after_rev="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.rev')"
+
           if [[ "$before" != "$after" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "nixpkgs_before_rev=$nixpkgs_before_rev" >>"$GITHUB_OUTPUT"
-            echo "nixpkgs_before_time=$nixpkgs_before_time" >>"$GITHUB_OUTPUT"
-            echo "nixpkgs_after_rev=$nixpkgs_after_rev" >>"$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Push branch
+      - name: Get Nixpkgs after any updates
         if: steps.update.outputs.changed == 'true'
+        run: |
+          url="$(nix flake metadata --json | jq --raw-output '.locks.nodes.nixpkgs.locked.url')"
+          nix flake prefetch --out-link after "$url"
+
+      - name: Push branch
+        if: steps.update.outputs.changed == 'true' && github.ref == 'refs/heads/main'
         run: git push --force-with-lease origin flake-update
 
       - name: Create pull request
         id: create-pr
-        if: steps.update.outputs.changed == 'true'
+        if: steps.update.outputs.changed == 'true' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
@@ -126,32 +127,16 @@ jobs:
             exit 76
           fi
 
-  add-nixpkgs-relnotes:
-    name: Add Nixpkgs release notes
-    runs-on: ubuntu-latest
-    needs: update
-    if: needs.update.outputs.nixpkgs_before_rev != needs.update.outputs.nixpkgs_after_rev
-
-    steps:
-      - name: Check out nixpkgs
-        env:
-          NIXPKGS_BEFORE_TIME: ${{ needs.update.outputs.nixpkgs_before_time }}
-          NIXPKGS_AFTER_REV: ${{ needs.update.outputs.nixpkgs_after_rev }}
-        run: git clone https://github.com/NixOS/nixpkgs . --bare --revision "$NIXPKGS_AFTER_REV" --shallow-since "$NIXPKGS_BEFORE_TIME"
-
-      - name: Get diffs
-        env:
-          NIXPKGS_BEFORE_REV: ${{ needs.update.outputs.nixpkgs_before_rev }}
-          NIXPKGS_AFTER_REV: ${{ needs.update.outputs.nixpkgs_after_rev }}
+      - name: Get Nixpkgs release note diffs
+        if: steps.update.outputs.changed == 'true'
         run: |
-          git diff "$NIXPKGS_BEFORE_REV" "$NIXPKGS_AFTER_REV" -- doc/release-notes >nixpkgs-relnotes.diff
-          git diff "$NIXPKGS_BEFORE_REV" "$NIXPKGS_AFTER_REV" -- nixos/doc/manual/release-notes >nixos-relnotes.diff
+          git diff --no-index {before,after}/doc/release-notes >nixpkgs-relnotes.diff || :
+          git diff --no-index {before,after}/nixos/doc/manual/release-notes >nixos-relnotes.diff || :
 
       - name: Update PR
+        if: steps.update.outputs.changed == 'true'
         env:
-          NIXPKGS_BEFORE_REV: ${{ needs.update.outputs.nixpkgs_before_rev }}
-          NIXPKGS_AFTER_REV: ${{ needs.update.outputs.nixpkgs_after_rev }}
-          PR_URL: ${{ needs.update.outputs.pr_url }}
+          PR_URL: ${{ steps.create-pr.outputs.pr-url }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [[ -s nixpkgs-relnotes.diff ]]; then
@@ -172,5 +157,9 @@ jobs:
           fi >>pr-comment.md
 
           if [[ -s pr-comment.md ]]; then
-            gh pr comment "$PR_URL" --body-file pr-comment.md
+            if [[ "$GITHUB_REF_NAME" = main ]]; then
+              gh pr comment "$PR_URL" --body-file pr-comment.md
+            else
+              cat pr-comment.md
+            fi
           fi

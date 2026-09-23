@@ -4,6 +4,7 @@
   findutils,
   moreutils,
   pv,
+  nix-add-drv-root,
 }:
 writeCheckedShellApplication {
   name = "nix-copy-drv-closure";
@@ -12,6 +13,7 @@ writeCheckedShellApplication {
     findutils
     moreutils
     pv
+    nix-add-drv-root
   ];
   text = ''
     if (( $# != 2 )); then
@@ -30,42 +32,11 @@ writeCheckedShellApplication {
 
     cd "$workdir"
 
-    # Set up a garbage collection root for our target derivation by first
-    # creating one normally (so there's a registered root) then update the
-    # symlink to our target (so the registered root is the one we need it to
-    # be).
-    create_gc_root () {
-        local target="$1"
-        local temp_target
-
-        # Temporary target just has to be a real non-derivation store path.
-        # We're not at all fussed about which one.
-        temp_target="$(
-            find /nix/store \
-            -mindepth 1 -maxdepth 1 \
-            \! -name '*.drv' \
-            \! -name '.*' \
-            \! -name '*.chroot' \
-            \! -name '*.lock' \
-            -print -quit
-        )"
-        nix-store --realise --add-root result "$temp_target"
-        ln -s --force "$target" result
-
-        local real_target_path real_result_path
-        real_target_path="$(realpath "$target")"
-        real_result_path="$(realpath result)"
-        if [[ "$real_target_path" != "$real_result_path" ]]; then
-                printf 'root target unexpectedly mismatched\n' >&2
-                printf 'expected %s\n' "$real_target_path" >&2
-                printf 'found %s\n' "$real_result_path" >&2
-                exit 74 # EX_IOERR
-        elif [[ ! -e "$real_target_path" || -h "$real_target_path" ]]; then
-                printf 'failed to resolve target after root creation\n' >&2
-                printf 'maybe a badly timed garbage collection?\n' >&2
-                exit 75 # EX_TEMPFAIL
-        fi
-    }
+    # Add a derivation root to make sure the things we're copying don't get
+    # lost thanks to a mistimed garbage collection.  Depending on what's being
+    # built and copied, that might be impossible anyway, but this costs
+    # essentially nothing and will be useful in at least some circumstances.
+    nix-add-drv-root "$derivation"
 
     # shellcheck disable=SC2312 # exit code handled with `wait "$!"`
     mapfile -t output_paths < <(nix-store --query --outputs "$derivation")
@@ -106,7 +77,6 @@ writeCheckedShellApplication {
                 # be using a list of paths from when it started, not when it
                 # ended.
                 final_loop=Yes
-                cat current-xfer >>xfered
             fi
         else
             t="$((t*2))"

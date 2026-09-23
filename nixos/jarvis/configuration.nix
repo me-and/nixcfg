@@ -15,6 +15,9 @@
 
   networking.domain = "dinwoodie.org";
 
+  # No IPv6 support :(
+  networking.enableIPv6 = false;
+
   time.timeZone = "Europe/London";
 
   # Enable the OpenSSH daemon.
