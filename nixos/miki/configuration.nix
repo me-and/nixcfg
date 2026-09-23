@@ -10,9 +10,6 @@
     personalCfg.nixosModules.printing
   ];
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   networking.domain = "dinwoodie.org";
 
   networking.networkmanager.enable = true;

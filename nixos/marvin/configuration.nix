@@ -22,9 +22,6 @@
   # running.
   services.logind.settings.Login.HandleLidSwitch = "ignore";
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   networking.domain = "dinwoodie.org";
   networking.wireless.enable = true;
 

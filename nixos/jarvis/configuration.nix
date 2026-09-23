@@ -13,15 +13,6 @@
     personalCfg.nixosModules.postfix-mythic
   ];
 
-  boot = {
-    loader = {
-      systemd-boot.enable = true;
-      efi = {
-        canTouchEfiVariables = true;
-      };
-    };
-  };
-
   networking.domain = "dinwoodie.org";
 
   time.timeZone = "Europe/London";

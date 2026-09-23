@@ -4,6 +4,9 @@
   # Nix builds -- notably install images -- from being able to complete.
   boot.tmp.cleanOnBoot = true;
 
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   # Always want UK locale.
   i18n.defaultLocale = "en_GB.UTF-8";
 

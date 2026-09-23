@@ -13,9 +13,6 @@
     personalCfg.nixosModules.printing
   ];
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   boot.initrd.kernelModules = [
     # Allow working with all LVM features I sometimes use.
     "dm-snapshot"
