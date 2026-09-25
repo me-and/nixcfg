@@ -12,6 +12,7 @@
     inkscape
     jellyfin-desktop
     libreoffice
+    mypkgs.gh-random-pr
     openscad
     poppler-utils
     rdfind
