@@ -1,6 +1,8 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 {
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
+
+  home.packages = [ pkgs.mypkgs.gh-random-pr ];
 
   services.syncthing.enable = true;
 
