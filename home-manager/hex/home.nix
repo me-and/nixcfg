@@ -64,6 +64,7 @@
 
   programs.firefox.enable = true;
   programs.keepassxc.enable = true;
+  programs.element-desktop.enable = true;
 
   services.rclone.enable = true;
   services.rclone.mountPoints = {
