@@ -40,12 +40,9 @@
   hardware.bluetooth.enable = true;
   services.hardware.bolt.enable = true;
   services.colord.enable = true;
-  services.samba.enable = true;
   services.displayManager.sddm.autoNumlock = true;
 
   programs.mosh.enable = true;
-
-  programs.kdeconnect.enable = true;
 
   system.stateVersion = "25.11";
 
