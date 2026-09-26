@@ -22,15 +22,15 @@ in
           OnSuccess = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
         };
         Service.Type = "oneshot";
-        Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-          name = "taskwarrior_github_issues.sh";
-          runtimeInputs = [
-            pkgs.mypkgs.pythonWithAsmodeus
-            config.programs.taskwarrior.package
-            pkgs.privatepkgs.gh-report-issues
-          ];
-          text = "exec python3 ${./github_issues.py}";
-        };
+        Service.Environment =
+          let
+            runtimeInputs = [
+              config.programs.taskwarrior.package
+              pkgs.privatepkgs.gh-report-issues
+            ];
+          in
+          [ "PATH=${lib.makeBinPath runtimeInputs}" ];
+        Service.ExecStart = "${lib.getExe pkgs.mypkgs.pythonWithAsmodeus} ${./github_issues.py}";
       };
 
       timers.taskwarrior-github-check = {
