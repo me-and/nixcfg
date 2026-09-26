@@ -7,6 +7,7 @@
 {
   imports = [
     personalCfg.homeModules.discord
+    personalCfg.homeModules.fonts
     personalCfg.homeModules.latex
     personalCfg.homeModules.mypy
 

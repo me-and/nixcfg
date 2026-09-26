@@ -1,6 +1,9 @@
 { pkgs, personalCfg, ... }:
 {
-  imports = [ personalCfg.homeModules.discord ];
+  imports = [
+    personalCfg.homeModules.discord
+    personalCfg.homeModules.fonts
+  ];
 
   home.stateVersion = "25.11";
 
