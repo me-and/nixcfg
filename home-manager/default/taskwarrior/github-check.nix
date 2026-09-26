@@ -37,10 +37,10 @@ in
         Unit.Description = "Check GitHub issue and PR tracking in Taskwarrior daily";
         Install.WantedBy = [ "timers.target" ];
         Timer = {
-          OnCalendar = "daily";
-          AccuracySec = "6h";
+          OnActiveSec = "0s";
+          OnUnitActiveSec = "30min";
+          AccuracySec = "1h";
           RandomizedDelaySec = "1h";
-          Persistent = true;
         };
       };
     };
