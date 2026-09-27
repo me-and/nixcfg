@@ -18,6 +18,7 @@ writeCheckedShellApplication {
   text = ''
     once_only=
     max_sleep=$((60*5))
+    read_from_stdin=
     while (( $# > 0 )); do
         case "$1" in
             -o|--once)
@@ -34,6 +35,9 @@ writeCheckedShellApplication {
             --max-sleep=*)
                 set -- "''${1%%=*}" "''${1#*=}" "''${@: 2}"
                 ;;
+            --stdin)
+                read_from_stdin=YesPlease
+                ;;
             --)
                 shift
                 positional_args+=("$@")
@@ -48,15 +52,20 @@ writeCheckedShellApplication {
 
     if (( ''${#positional_args[*]} == 0 )); then
         exit 64 # EX_USAGE
-    elif (( ''${#positional_args[*]} == 1 )); then
-        echo 'nothing to copy' >&2
-        exit 0
+    exit
+
+    if [[ "$read_from_stdin" ]] && (( ''${#positional_args[*]} != 1 )); then
+        exit 64 # EX_USAGE
     fi
 
     process_positional_args () {
         destination="$1"
-        shift
-        derivations=("$@")
+        if [[ "$read_from_stdin" ]]; then
+            mapfile -t derivations
+        else
+            shift
+            derivations=("$@")
+        fi
     }
 
     process_positional_args "''${positional_args[@]}"
