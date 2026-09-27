@@ -59,16 +59,20 @@ writeCheckedShellApplication {
     n=0
     for target in "''${targets[@]}"; do
         target="$(realpath "$target")"
-        if [[ "$target" != /nix/store/*.drv || "$target" = /nix/store/*/* ]]; then
-            echo "not a derivation: $target" >&2
-            exit 64 # EX_USAGE
-        fi
 
         if (( n == 0 )); then
             this_root="$root"
             ((++n))
         else
             this_root="$root-$((++n))"
+        fi
+
+        if [[ "$target" = /nix/store/*/* ]]; then
+            echo "not a store path: $target" >&2
+            exit 64 # EX_USAGE
+        elif [[ "$target" != /nix/store/*.drv ]]; then
+            # Not a derivation.  Create a root anyway, but this is much easier.
+            nix-store --realise --add-root "$this_root" "$target"
         fi
 
         # Temporary target just has to be a real non-derivation store path.  We're
