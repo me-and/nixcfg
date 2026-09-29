@@ -3,6 +3,7 @@
   imports = [
     personalCfg.homeModules.discord
     personalCfg.homeModules.fonts
+    personalCfg.homeModules.plasma
   ];
 
   home.stateVersion = "25.11";

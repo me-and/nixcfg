@@ -10,11 +10,7 @@
     personalCfg.homeModules.fonts
     personalCfg.homeModules.latex
     personalCfg.homeModules.mypy
-
-    # Disabled due to:
-    # https://github.com/nix-community/plasma-manager/issues/577
-    # https://github.com/nix-community/plasma-manager/issues/579
-    # personalCfg.homeModules.plasma
+    personalCfg.homeModules.plasma
   ];
   home.stateVersion = "25.11";
 
