@@ -50,17 +50,11 @@
         Unit.OnSuccess = [ "taskwarrior-sync.service" ];
         Service = {
           Type = "oneshot";
+          ExecSearchPath = lib.makeBinPath [ config.programs.taskwarrior.package ];
           Environment = [
             "MAILDIR_PATH=${config.accounts.email.accounts.taskwarrior.maildir.absPath}/INBOX"
-            "PATH=${lib.makeBinPath [ config.programs.taskwarrior.package ]}"
           ];
-          ExecStart =
-            pkgs.runCommand "taskwarrior_email_inbox.py" { buildInputs = [ pkgs.mypkgs.pythonWithAsmodeus ]; }
-              ''
-                cp ${./taskwarrior_email_inbox.py} "$out"
-                chmod +x "$out"
-                patchShebangs "$out"
-              '';
+          ExecStart = "${lib.getExe pkgs.mypkgs.pythonWithAsmodeus} ${./taskwarrior_email_inbox.py}";
           ExecStartPost = "${pkgs.mypkgs.mailsync}/bin/mailsync -e taskwarrior -i";
         };
       };

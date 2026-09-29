@@ -16,7 +16,7 @@
         config.Service.SyslogIdentifier = lib.mkDefault "%N";
 
         # Based on nixpkgs' nixos/lib/systemd-lib.nix
-        config.Service.Environment =
+        config.Service.ExecSearchPath =
           let
             pathPackages = with pkgs; [
               coreutils
@@ -26,10 +26,7 @@
             ];
             extraPaths = [ (dirOf config.systemd.user.systemctlPath) ];
           in
-          # Use lib.mkBefore to allow individual units to override the setting.
-          lib.mkBefore [
-            "PATH=${lib.concatStringsSep ":" ([ (lib.makeBinPath pathPackages) ] ++ extraPaths)}"
-          ];
+          lib.mkDefault "${lib.concatStringsSep ":" ([ (lib.makeBinPath pathPackages) ] ++ extraPaths)}";
       }
     );
   };
