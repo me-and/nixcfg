@@ -1,6 +1,9 @@
 def csi: "\u001b[";
 def sgr(attrs): csi + ([attrs] | join(";")) + "m";
-def colour(c): sgr(c) + . + sgr(39);
+def colour(c):
+  if $ENV.NO_COLOR == null
+  then sgr(c) + . + sgr(39)
+  end;
 def bwhite: colour(97);
 
 if length == 1
