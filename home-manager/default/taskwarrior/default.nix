@@ -332,6 +332,9 @@ let
       # Make sure overdue tasks get a bump akin to the inbox tag without the
       # due date.
       user.tag.OVERDUE.coefficient = 14;
+
+      # Try to keep fewer plates spinning at the same time: increase the coefficient for active tasks from the default of 4.0.
+      active.coefficient = 4.8;
     };
 
     # Disable nagging: I don't want to be told if I'm not completing the

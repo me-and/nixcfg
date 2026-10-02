@@ -23,9 +23,6 @@
   # Don't want to connect over SSH, there's no need for that.  Do still want
   # system SSH keys to be generated, though, as they're used for SOPS and the
   # like.
-  #
-  # TODO Remove the conditional once I've upgraded my config to a version that
-  # definitely has this option.
   services.openssh = {
     enable = false;
     generateHostKeys = true;

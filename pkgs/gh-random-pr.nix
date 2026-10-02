@@ -7,7 +7,6 @@
 }:
 writeCheckedShellApplication {
   name = "gh-random-pr";
-  purePath = true;
   runtimeInputs = [
     jq
     gh
@@ -17,14 +16,15 @@ writeCheckedShellApplication {
   text = ''
     declare -ir EX_USAGE=64
 
-    declare force=
+    declare force="" open=""
     declare -i max_age=$((60 * 60))
     declare -i limit=10000
-    while getopts fa:l: opt; do
+    while getopts fa:l:w opt; do
         case "$opt" in
             f)  force=YesPlease;;
             a)  max_age="$OPTARG";;
             l)  limit="$OPTARG";;
+            w)  open=YesPlease;;
             *)  echo "gh-random-pr: unexpected argument -$opt" >&2
                 exit "$EX_USAGE"
                 ;;
@@ -67,20 +67,33 @@ writeCheckedShellApplication {
         mv "$cache_file".tmp "$cache_file"
     fi
 
-    jq \
-        --raw-output \
-        --argjson srandom "$SRANDOM" \
-        '.[$srandom % length]
-         | (
-             .title,
-             "Created: \(.createdAt)",
-             "Last update: \(.updatedAt)",
-             if .labels != []
-             then "Labels: \(.labels | join(", "))"
-             else empty
-             end,
-             .url
-           )' \
-        "$cache_file"
+    # shellcheck disable=SC2312 # Get return code with `wait`.
+    while read -r line; do
+        printf '%s\n' "$line"
+        if [[ "$line" = https://* ]]; then
+            url="$line"
+        fi
+    done < <(
+        jq \
+            --raw-output \
+            --argjson srandom "$SRANDOM" \
+            '.[$srandom % length]
+             | (
+                 .title,
+                 "Created: \(.createdAt)",
+                 "Last update: \(.updatedAt)",
+                 if .labels != []
+                 then "Labels: \(.labels | join(", "))"
+                 else empty
+                 end,
+                 .url
+               )' \
+            "$cache_file"
+    )
+    wait "$!"
+
+    if [[ "$open" && "$url" ]]; then
+        xdg-open "$url"
+    fi
   '';
 }

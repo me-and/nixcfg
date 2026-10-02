@@ -1,7 +1,6 @@
 {
   lib,
   options,
-  pkgs,
   disko,
   personalCfg,
   ...
@@ -14,45 +13,12 @@
     personalCfg.nixosModules.postfix-mythic
   ];
 
-  boot = {
-    loader = {
-      systemd-boot.enable = true;
-      efi = {
-        canTouchEfiVariables = true;
-        efiSysMountPoint = "/boot";
-      };
-    };
-    initrd.systemd.enable = true;
-  };
-
-  systemd.targets.multi-user.enable = true;
-
-  networking.hostName = "jarvis";
   networking.domain = "dinwoodie.org";
 
   # No IPv6 support :(
   networking.enableIPv6 = false;
 
   time.timeZone = "Europe/London";
-  i18n.defaultLocale = "en_GB.UTF-8";
-
-  users = {
-    mutableUsers = false;
-    users.adam = {
-      isNormalUser = true;
-      extraGroups = [
-        "networkmanager"
-        "wheel"
-      ];
-    };
-  };
-
-  environment.systemPackages = with pkgs; [
-    curl
-    git
-    vim
-    wget
-  ];
 
   # Enable the OpenSSH daemon.
   services.openssh = {

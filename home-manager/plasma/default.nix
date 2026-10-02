@@ -8,7 +8,7 @@
     enable = true;
     overrideConfig = true;
 
-    configFile.kwalletrc.Wallet.Enabled = false;
+    configFile.kwalletrc.Wallet.Enabled = true;
   };
 
   # https://github.com/nix-community/home-manager/issues/1586#issuecomment-3446198028

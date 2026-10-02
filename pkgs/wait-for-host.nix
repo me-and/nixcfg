@@ -24,9 +24,7 @@ writeCheckedShellApplication {
         host -t A "$1"
     }
 
-    # Check localhost first, as it's sometimes not resolvable at start of
-    # day, and nothing else is going to resolve before localhost does.
-    for host in localhost "$@"; do
+    for host; do
         waitforhost "$host"
     done
   '';

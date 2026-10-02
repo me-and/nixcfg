@@ -22,25 +22,25 @@ in
           OnSuccess = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
         };
         Service.Type = "oneshot";
-        Service.ExecStart = pkgs.mypkgs.writeCheckedShellScript {
-          name = "taskwarrior_github_issues.sh";
-          runtimeInputs = [
-            pkgs.mypkgs.pythonWithAsmodeus
-            config.programs.taskwarrior.package
-            pkgs.privatepkgs.gh-report-issues
-          ];
-          text = "exec python3 ${./github_issues.py}";
-        };
+        Service.Environment =
+          let
+            runtimeInputs = [
+              config.programs.taskwarrior.package
+              pkgs.privatepkgs.gh-report-issues
+            ];
+          in
+          [ "PATH=${lib.makeBinPath runtimeInputs}" ];
+        Service.ExecStart = "${lib.getExe pkgs.mypkgs.pythonWithAsmodeus} ${./github_issues.py}";
       };
 
       timers.taskwarrior-github-check = {
         Unit.Description = "Check GitHub issue and PR tracking in Taskwarrior daily";
         Install.WantedBy = [ "timers.target" ];
         Timer = {
-          OnCalendar = "daily";
-          AccuracySec = "6h";
+          OnActiveSec = "0s";
+          OnUnitActiveSec = "30min";
+          AccuracySec = "1h";
           RandomizedDelaySec = "1h";
-          Persistent = true;
         };
       };
     };

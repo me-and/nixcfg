@@ -1,6 +1,10 @@
 { pkgs, personalCfg, ... }:
 {
-  imports = [ personalCfg.homeModules.discord ];
+  imports = [
+    personalCfg.homeModules.discord
+    personalCfg.homeModules.fonts
+    personalCfg.homeModules.plasma
+  ];
 
   home.stateVersion = "25.11";
 
@@ -12,6 +16,7 @@
     inkscape
     jellyfin-desktop
     libreoffice
+    mypkgs.gh-random-pr
     openscad
     poppler-utils
     rdfind
@@ -30,6 +35,7 @@
   programs.firefox.enable = true;
   programs.keepassxc.enable = true;
   programs.zapzap.enable = true;
+  programs.element-desktop.enable = true;
 
   services.syncthing = {
     enable = true;
