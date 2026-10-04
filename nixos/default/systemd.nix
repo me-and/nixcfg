@@ -14,16 +14,6 @@ let
             // args
           );
 
-        # Handle RuntimeDirectory values with specifiers that resolve to
-        # contain backslashes.
-        #
-        # https://github.com/systemd/systemd/issues/41853
-        # https://github.com/systemd/systemd/pull/43207
-        escapePatch = fetchSystemdPatch {
-          commit = "74a284b4be99b7a265c550e72fe0b8b22aae3bf1";
-          hash = "sha256-maqsPBLx/IJvlFJYIhBYvfz246qV1nY4lWVP8OHNejw=";
-        };
-
         # Handle timers jumping backwards more sensibly.  Not a fix I'm
         # particularly interested in for myself, but it introduces changes that
         # are necessary for timerOffsetPatch to apply.
@@ -48,7 +38,6 @@ let
 
       {
         patches = prevAttrs.patches or [ ] ++ [
-          escapePatch
           timerClampPatch
           timerOffsetPatch
         ];
@@ -60,7 +49,6 @@ let
           // {
             myPatches = {
               inherit
-                escapePatch
                 timerClampPatch
                 timerOffsetPatch
                 ;
