@@ -142,18 +142,18 @@ jobs:
           if [[ -s nixpkgs-relnotes.diff ]]; then
             echo '## Nixpkgs release notes diff'
             echo
-            echo '```diff'
+            echo '``````diff'
             cat nixpkgs-relnotes.diff
-            echo '```'
+            echo '``````'
           fi >>pr-comment.md
 
           if [[ -s nixos-relnotes.diff ]]; then
             [[ -s pr-comment.md ]] && echo
             echo '## NixOS release notes diff'
             echo
-            echo '```diff'
+            echo '``````diff'
             cat nixos-relnotes.diff
-            echo '```'
+            echo '``````'
           fi >>pr-comment.md
 
           if [[ -s pr-comment.md ]]; then
