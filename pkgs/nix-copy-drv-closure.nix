@@ -19,6 +19,7 @@ writeCheckedShellApplication {
     once_only=
     max_sleep=$((60*5))
     read_from_stdin=
+    positional_args=()
     while (( $# > 0 )); do
         case "$1" in
             -o|--once)
@@ -29,14 +30,15 @@ writeCheckedShellApplication {
                 max_sleep="$2"
                 shift 2
                 ;;
+            --stdin)
+                read_from_stdin=YesPlease
+                shift
+                ;;
             -t*)
                 set -- "''${1: 0:2}" "''${1: 2}" "''${@: 2}"
                 ;;
             --max-sleep=*)
                 set -- "''${1%%=*}" "''${1#*=}" "''${@: 2}"
-                ;;
-            --stdin)
-                read_from_stdin=YesPlease
                 ;;
             --)
                 shift
@@ -52,7 +54,7 @@ writeCheckedShellApplication {
 
     if (( ''${#positional_args[*]} == 0 )); then
         exit 64 # EX_USAGE
-    exit
+    fi
 
     if [[ "$read_from_stdin" ]] && (( ''${#positional_args[*]} != 1 )); then
         exit 64 # EX_USAGE
@@ -135,7 +137,7 @@ writeCheckedShellApplication {
                 if (( t > max_sleep )); then
                     t="$max_sleep"
                 fi
-                if [[ -t 0 ]]; then
+                if [[ -t 1 ]]; then
                     sleep "$t" | pv -t
                 else
                     sleep "$t"
