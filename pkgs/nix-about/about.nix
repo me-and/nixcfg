@@ -36,13 +36,30 @@ let
         Description = p.meta.description or "Unspecified";
         License =
           let
-            license = p.meta.license or "Unspecified";
-            licenseName = l: l.fullName or l;
+            # Based on lib.licenses.toSPDX, but with human-readable names
+            # rather than SPDX identifiers.
+            mkBracket =
+              x:
+              if x.licenseType == "compound" || x.licenseType == "exception" then "(${toName x})" else toName x;
+            toName =
+              license:
+              let
+                operator = lib.strings.toLower license.operator;
+              in
+              if builtins.isList license then
+                lib.concatMapStringsSep " / " toName license
+              else if license.licenseType == "simple" then
+                license.fullName
+              else if license.licenseType == "compound" then
+                lib.concatMapStringsSep " ${operator} " (x: mkBracket x) license.licenses
+              else if license.licenseType == "exception" then
+                "${mkBracket license.license} ${operator} ${mkBracket license.exception}"
+              else if license.licenseType == "plus" then
+                "${mkBracket license.license} or later"
+              else
+                throw "Unknown license type";
           in
-          if (builtins.typeOf license) == "list" then
-            lib.concatStringsSep " / " (map licenseName license)
-          else
-            licenseName license;
+          if p ? meta.license then toName p.meta.license else "Unspecified";
 
         # Output that will only appear if it's defined, and therefore can fail if
         # it's not defined.
