@@ -80,15 +80,15 @@ let
           "Package"
           "Version"
         ]
-        ++ (lib.optional (p ? meta && p.meta ? available && p.meta.available != true) "Available")
-        ++ (lib.optional (p ? meta && p.meta ? broken && p.meta.broken != false) "Broken")
-        ++ (lib.optional (p ? meta && p.meta ? insecure && p.meta.insecure != false) "Insecure")
-        ++ (lib.optional (p ? meta && p.meta ? unsupported && p.meta.unsupported != false) "Unsupported")
+        ++ lib.optional (p.meta.available or true != true) "Available"
+        ++ lib.optional (p.meta.broken or false != false) "Broken"
+        ++ lib.optional (p.meta.insecure or false != false) "Insecure"
+        ++ lib.optional (p.meta.unsupported or false != false) "Unsupported"
         ++ [ "Description" ]
         ++ (lib.optional (p ? meta && p.meta ? longDescription) "Long description")
         ++ [ "License" ]
-        ++ (lib.optional (p ? meta && p.meta ? homepage) "Website")
-        ++ (lib.optional (p ? meta && p.meta ? position) "Definition")
+        ++ lib.optional (p ? meta.homepage) "Website"
+        ++ lib.optional (p ? meta.position) "Definition"
         ++ (lib.optional ((builtins.length p.outputs) == 1) "Path")
         ++ (lib.optional ((builtins.length p.outputs) > 1) "Paths")
       );
