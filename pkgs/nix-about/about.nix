@@ -10,6 +10,13 @@ in
   pkgnames,
 }:
 let
+  evalStrOrFail =
+    str:
+    let
+      result = builtins.tryEval str;
+    in
+    if result.success then result.value else "(failed eval)";
+
   pkgReport =
     pkgname:
     let
@@ -70,8 +77,8 @@ let
         Insecure = boolToYN p.meta.insecure;
         Definition = p.meta.position;
         Unsupported = boolToYN p.meta.unsupported;
-        Path = p.outPath;
-        Paths = lib.concatStrings (map (k: "\n    ${k}: ${p."${k}".outPath}") p.outputs);
+        Path = evalStrOrFail p.outPath;
+        Paths = lib.concatStrings (map (k: "\n    ${k}: ${evalStrOrFail p."${k}".outPath}") p.outputs);
       };
 
       outputSections = (
