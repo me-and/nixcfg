@@ -67,6 +67,11 @@ let
                 throw "Unknown license type";
           in
           if p ? meta.license then toName p.meta.license else "Unspecified";
+        Maintainers =
+          if p.meta.maintainers or [ ] == [ ] then
+            "None"
+          else
+            lib.concatStringsSep ", " (map (m: "@${m.github}") p.meta.maintainers);
 
         # Output that will only appear if it's defined, and therefore can fail if
         # it's not defined.
@@ -96,6 +101,7 @@ let
         ++ [ "License" ]
         ++ lib.optional (p ? meta.homepage) "Website"
         ++ lib.optional (p ? meta.position) "Definition"
+        ++ [ "Maintainers" ]
         ++ (lib.optional ((builtins.length p.outputs) == 1) "Path")
         ++ (lib.optional ((builtins.length p.outputs) > 1) "Paths")
       );
