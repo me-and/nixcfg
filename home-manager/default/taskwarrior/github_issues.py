@@ -128,18 +128,55 @@ def review_task_description(*, report_url: str, description_prefix: str) -> str:
     return f"{description_prefix} GitHub {kind} at {report_url}"
 
 
+SCRIPT_DESCRIPTION_PREFIXES = (
+    "Review updates to the",
+    "Review the closed/missing",
+)
+
+
+def is_script_task(task: Task, url: str) -> bool:
+    description = task.get_typed("description", str, None)
+    if description is None:
+        return False
+    if description == f"Track the GitHub {issue_kind_for_url(url)} at {url}":
+        return True
+    return any(
+        description == review_task_description(report_url=url, description_prefix=prefix)
+        for prefix in SCRIPT_DESCRIPTION_PREFIXES
+    )
+
+
+def is_blocked(task: Task, pending_uuids: set[uuid.UUID]) -> bool:
+    dependencies = task.get_typed("depends", JSONableUUIDList, None)
+    if dependencies is None:
+        return False
+    return any(dependency in pending_uuids for dependency in dependencies)
+
+
+def unblocked_manual_tasks(
+    matching_tasks: list[tuple[Task, list[dict[str, object]]]],
+    url: str,
+    pending_uuids: set[uuid.UUID],
+) -> list[Task]:
+    return [
+        task
+        for task, _entries in matching_tasks
+        if not is_script_task(task, url) and not is_blocked(task, pending_uuids)
+    ]
+
+
 if __name__ == "__main__":
     tw = TaskWarrior()
 
     report = gh_report_issues()
     report_urls = {entry["url"] for entry in report}
 
-    task_descriptions: set[str] = set()
+    pending_uuids: set[uuid.UUID] = set()
     task_entries_by_url: defaultdict[str, list[tuple[Task, list[dict[str, object]]]]] = defaultdict(list)
     for task in tw.from_taskwarrior(("-COMPLETED", "-DELETED")):
-        description = task.get_typed("description", str, None)
-        if description is not None:
-            task_descriptions.add(description)
+        task_uuid = task.get_typed("uuid", uuid.UUID, None)
+        if task_uuid is not None:
+            pending_uuids.add(task_uuid)
 
         ghmeta = task.get_typed("ghmeta", str, None)
         if ghmeta is None:
@@ -197,13 +234,9 @@ if __name__ == "__main__":
                     all_tasks_older_or_equal = False
 
             if all_tasks_older_or_equal:
-                review_description = review_task_description(
-                    report_url=report_url,
-                    description_prefix="Review updates to the",
-                )
-                already_has_review = review_description in task_descriptions
-                if not already_has_review:
-                    blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
+                to_block = unblocked_manual_tasks(matching_tasks, report_url, pending_uuids)
+                if to_block:
+                    blocker_project = common_project([task.get_typed("project", str, None) for task in to_block])
                     review_task, blocker_uuid = make_review_task(
                         report_url=report_url,
                         description_prefix="Review updates to the",
@@ -211,9 +244,9 @@ if __name__ == "__main__":
                         ghmeta=report_entry,
                     )
                     new_tasks.append(review_task)
-                    task_descriptions.add(review_description)
+                    pending_uuids.add(blocker_uuid)
 
-                    for task, _entries in matching_tasks:
+                    for task in to_block:
                         if add_blocking_dependency(task, blocker_uuid):
                             task_uuid = task.get_typed("uuid", uuid.UUID)
                             tasks_to_export[task_uuid] = task
@@ -224,14 +257,11 @@ if __name__ == "__main__":
         if url in report_urls:
             continue
 
-        review_description = review_task_description(
-            report_url=url,
-            description_prefix="Review the closed/missing",
-        )
-        if review_description in task_descriptions:
+        to_block = unblocked_manual_tasks(matching_tasks, url, pending_uuids)
+        if not to_block:
             continue
 
-        blocker_project = common_project([task.get_typed("project", str, None) for task, _ in matching_tasks])
+        blocker_project = common_project([task.get_typed("project", str, None) for task in to_block])
         review_task, blocker_uuid = make_review_task(
             report_url=url,
             description_prefix="Review the closed/missing",
@@ -239,9 +269,9 @@ if __name__ == "__main__":
             ghmeta={"url": url},
         )
         new_tasks.append(review_task)
-        task_descriptions.add(review_description)
+        pending_uuids.add(blocker_uuid)
 
-        for task, _entries in matching_tasks:
+        for task in to_block:
             if add_blocking_dependency(task, blocker_uuid):
                 task_uuid = task.get_typed("uuid", uuid.UUID)
                 tasks_to_export[task_uuid] = task
