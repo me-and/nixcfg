@@ -402,11 +402,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1790774579,
-        "narHash": "sha256-TZnLSH+iR1iWVoR3YPPRvx6ljWdoto+va9zjsXMj+aU=",
+        "lastModified": 1791556984,
+        "narHash": "sha256-pBUoYH/yd7ghe2K3akKMm7kzIJMHY+OT+CuO4TkJtio=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "bc1b9332715850a15bc229030b1693e68d738106",
+        "rev": "d727403156fd9a23b25c130ecf78dbf3bc8f830c",
         "type": "github"
       },
       "original": {
