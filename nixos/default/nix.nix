@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  mylib,
   pkgs,
   ...
 }:
@@ -134,8 +135,21 @@ in
           # `nix store verify` doesn't get the garbage collector lock itself,
           # which means a simultaneous garbage collection can cause paths to
           # appear corrupt.  Avoid that by getting Nix's big garbage collection
-          # lock before running the verification.
-          ExecStart = "${lib.getExe pkgs.flock} -s /nix/var/nix/gc.lock ${lib.getExe' cfg.package "nix"} store verify --all";
+          # lock before running the verification.  `--log-format raw` seems to
+          # be the necessary magic incantation to stop nix from printing every
+          # path it checks to stdout, which is pointless spam in the system
+          # journal.
+          ExecStart = mylib.escapeSystemdExecArgs [
+            (lib.getExe pkgs.flock)
+            "-s"
+            "/nix/var/nix/gc.lock"
+            (lib.getExe' cfg.package "nix")
+            "store"
+            "verify"
+            "--all"
+            "--log-format"
+            "raw"
+          ];
         };
       };
       systemd.timers.nix-verify = {
