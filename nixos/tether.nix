@@ -9,6 +9,11 @@
     Compression yes
   '';
 
-  # Don't eat my data allowance by uploading and downloading to build machines.
+  # Don't eat my data allowance by uploading and downloading to build machines
+  # or binary caches.
   nix.buildMachines = lib.mkForce [ ];
+  nix.copyBuilds = lib.mkForce {
+    copyAllBuilds = false;
+    destinations = [ ];
+  };
 }

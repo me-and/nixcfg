@@ -193,10 +193,6 @@ in
             printf "bytes free:   %'20d\n" "$bytes_free" >&2
             printf "run if below: %'20d\n" "$run_free_bytes" >&2
 
-            if (( bytes_free >= run_free_bytes )); then
-                exit 0
-            fi
-
             if [[ "$minimum_free_percent" = 0 ]]; then
                 :
             else
@@ -210,12 +206,14 @@ in
 
             bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
+            # If there's nothing to free, run anyway to clean up stale gc roots
+            # and the like.
+            if (( bytes_to_free <= 0 )); then
+                bytes_to_free=0
+            fi
+
             printf "to free:      %'20d\n" "$bytes_to_free"
 
-            if (( bytes_to_free <= 0 )); then
-                echo 'Nix garbage collection triggered despite having sufficient disk space' >&2
-                exit 64  # EX_USAGE
-            fi
 
             nix-collect-garbage --max-freed "$bytes_to_free"
 
