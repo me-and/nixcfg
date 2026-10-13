@@ -135,10 +135,8 @@ in
           # `nix store verify` doesn't get the garbage collector lock itself,
           # which means a simultaneous garbage collection can cause paths to
           # appear corrupt.  Avoid that by getting Nix's big garbage collection
-          # lock before running the verification.  `--log-format raw` seems to
-          # be the necessary magic incantation to stop nix from printing every
-          # path it checks to stdout, which is pointless spam in the system
-          # journal.
+          # lock before running the verification.  `--quiet` avoids spamming
+          # the system journal with a list of every path that gets checked.
           ExecStart = mylib.escapeSystemdExecArgs [
             (lib.getExe pkgs.flock)
             "-s"
@@ -147,8 +145,7 @@ in
             "store"
             "verify"
             "--all"
-            "--log-format"
-            "raw"
+            "--quiet"
           ];
         };
       };
