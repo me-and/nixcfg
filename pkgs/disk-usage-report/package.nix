@@ -47,12 +47,13 @@ writeCheckedShellApplication {
 
         nix_closure () {
             if [[ "$keep_outputs" ]]; then
-                nix-store --query --requisites --include-outputs "$@"
+                printf '%s\n' "$@" | xargs -r nix-store --query --requisites --include-outputs
             else
-                nix-store --query --requisites "$@"
+                printf '%s\n' "$@" | xargs -r nix-store --query --requisites
             fi
             if [[ "$keep_derivations" ]]; then
-                nix-store --query --valid-derivers "$@" |
+                printf '%s\n' "$@" |
+                    xargs -r nix-store --query --valid-derivers |
                     xargs -r nix-store --query --requisites
             fi
         }
