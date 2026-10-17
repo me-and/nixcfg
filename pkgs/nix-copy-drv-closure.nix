@@ -18,15 +18,26 @@ writeCheckedShellApplication {
   text = ''
     once_only=
     max_sleep=$((60*5))
+    nix_copy_args=()
     while (( $# > 0 )); do
         case "$1" in
+            # Options.
             -o|--once)
                 once_only=Yes
+                shift
+                ;;
+            -s|--substitute-on-destination)
+                nix_copy_args+=("$1")
                 shift
                 ;;
             -t|--max-sleep)
                 max_sleep="$2"
                 shift 2
+                ;;
+
+            # Reparsing of options given in different formats.
+            -[os]*)
+                set -- "''${1: 0:2}" "-''${1: 2}" "''${@: 2}"
                 ;;
             -t*)
                 set -- "''${1: 0:2}" "''${1: 2}" "''${@: 2}"
@@ -34,6 +45,8 @@ writeCheckedShellApplication {
             --max-sleep=*)
                 set -- "''${1%%=*}" "''${1#*=}" "''${@: 2}"
                 ;;
+
+            # Positional arguments.
             --)
                 shift
                 positional_args+=("$@")
@@ -83,7 +96,7 @@ writeCheckedShellApplication {
 
     if [[ "$once_only" ]]; then
         nix-store --query --requisites --include-outputs "''${derivations[@]}" |
-            xargs -r nix copy --to "$destination"
+            xargs -r nix copy --to "$destination" "''${nix_copy_args[@]}"
     else
         t=1
         final_loop=
@@ -92,7 +105,7 @@ writeCheckedShellApplication {
             nix-store --query --requisites --include-outputs "''${derivations[@]}" |
                 combine - not "$workdir"/xfered |
                 tee "$workdir"/current-xfer |
-                xargs -r nix copy --to "$destination"
+                xargs -r nix copy --to "$destination" "''${nix_copy_args[@]}"
 
             if [[ "$final_loop" ]]; then
                 # We just did the final copy after spotting all outputs were
