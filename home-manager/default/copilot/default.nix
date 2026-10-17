@@ -1,13 +1,7 @@
-{
-  pkgs,
-  lib,
-  llm-agents,
-  ...
-}:
+{ pkgs, lib, ... }:
 {
   programs.github-copilot-cli = {
     enable = true;
-    package = llm-agents.packages."${pkgs.stdenv.hostPlatform.system}".copilot-cli;
 
     lspServers.nix = {
       command = lib.getExe pkgs.nil;
@@ -16,4 +10,6 @@
 
     agents.nix-regression-investigator = ./nix-regression-investigator.agent.md;
   };
+
+  nixpkgs.config.allowUnfreePackages = [ "github-copilot-cli" ];
 }

@@ -35,10 +35,6 @@
       url = "github:me-and/octogram";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    llm-agents = {
-      url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     npc = {
       url = "github:samestep/npc";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -67,7 +63,6 @@
       wsl,
       plasma-manager,
       octogram,
-      llm-agents,
       private,
       npc,
       nix-diff-rs,
@@ -194,7 +189,6 @@
           pkgs = makeNixpkgs system;
           extraSpecialArgs = {
             inherit
-              llm-agents
               plasma-manager
               sops-nix
               nix-diff-rs
