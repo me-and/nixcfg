@@ -7,7 +7,7 @@ writeCheckedShellApplication {
   purePath = true;
   text = ''
     set_nixpkgs_args () {
-        nixpkgs_args+=(--arg pkgs "import ($1) {}")
+        nixpkgs_args+=(--arg pkgsPath "$1")
     }
 
     packages=()

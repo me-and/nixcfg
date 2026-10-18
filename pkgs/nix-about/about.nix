@@ -5,7 +5,8 @@ let
   };
 in
 {
-  pkgs ? import <nixpkgs> { inherit config; },
+  pkgsPath ? <nixpkgs>,
+  pkgs ? import pkgsPath { inherit config; },
   lib ? pkgs.lib,
   pkgnames,
 }:
