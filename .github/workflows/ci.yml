@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.11.1
+        uses: cachix/install-nix-action@v31.11.2
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" | sh -c 'umask 0077 && tee ~/.ssh/id_ed25519' >/dev/null
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.11.1
+        uses: cachix/install-nix-action@v31.11.2
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
@@ -109,7 +109,7 @@ jobs:
           printf '%s\n' "$NIX_SIGNING_KEY" | sudo sh -c 'umask 0077 && tee /etc/nix/key' >/dev/null
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.11.1
+        uses: cachix/install-nix-action@v31.11.2
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           github_access_token: ${{ secrets.CI_REPO_ACCESS_TOKEN }}
