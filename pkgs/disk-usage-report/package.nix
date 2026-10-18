@@ -14,6 +14,26 @@ writeCheckedShellApplication {
     bash
   ];
   text = ''
+    # Add debugging trace.  I've been seeing occasional errors when symlinks
+    # are deleted in the middle of a run, and I can't immediately work out why,
+    # so set up a trace file and keep it around if anything goes wrong.
+    tracefile="$(mktemp --tmpdir disk-usage-report.XXX)"
+    exec {BASH_XTRACEFD}>"$tracefile"
+    set -x
+
+    # shellcheck disable=SC2329 # Shellcheck doesn't know about the trap.
+    cleanup () {
+        local exit_code="$?"
+        if (( exit_code == 0 )); then
+            rm -f "$tracefile"
+        else
+            echo "rc $exit_code" >&2
+            echo "internal trace saved at $tracefile" >&2
+        fi
+        return "$exit_code"
+    }
+    trap cleanup EXIT
+
     rc=0
 
     round_up_frac_as_percentage () {
