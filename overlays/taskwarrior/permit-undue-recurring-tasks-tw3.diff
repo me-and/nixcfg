@@ -1,0 +1,79 @@
+diff --git a/src/Task.cpp b/src/Task.cpp
+index 6608db850..b58354fb0 100644
+--- a/src/Task.cpp
++++ b/src/Task.cpp
+@@ -1427,7 +1427,7 @@ void Task::validate_add() {
+     throw std::string("Cannot add a task that is blank.");
+ 
+   // Cannot have an old-style recur frequency with no due date - when would it recur?
+-  if (has("recur") && (!has("due") || get("due") == ""))
++  if (has("recur") && (!has("due") || get("due") == "") && (!has("imask") || get("imask") == ""))
+     throw std::string("A recurring task must also have a 'due' date.");
+ }
+ 
+diff --git a/src/commands/CmdModify.cpp b/src/commands/CmdModify.cpp
+index f2bd3f025..55167beed 100644
+--- a/src/commands/CmdModify.cpp
++++ b/src/commands/CmdModify.cpp
+@@ -110,13 +110,13 @@ int CmdModify::execute(std::string&) {
+ // TODO Why is this not in Task::validate?
+ void CmdModify::checkConsistency(Task& before, Task& after) {
+   // Perform some logical consistency checks.
+-  if (after.has("recur") && !after.has("due") && !before.has("due"))
++  if (after.has("recur") && !after.has("due") && !before.has("due") && (!before.has("imask") || before.get("imask") == ""))
+     throw std::string("You cannot specify a recurring task without a due date.");
+ 
+-  if (before.has("recur") && before.has("due") && (!after.has("due") || after.get("due") == ""))
++  if (before.has("recur") && before.has("due") && (!after.has("due") || after.get("due") == "") && (!before.has("imask") || before.get("imask") == ""))
+     throw std::string("You cannot remove the due date from a recurring task.");
+ 
+-  if (before.has("recur") && (!after.has("recur") || after.get("recur") == ""))
++  if (before.has("recur") && (!after.has("recur") || after.get("recur") == "") && (!before.has("imask") || before.get("imask") == ""))
+     throw std::string("You cannot remove the recurrence from a recurring task.");
+ 
+   if ((before.getStatus() == Task::pending) && (after.getStatus() == Task::pending) &&
+diff --git a/test/feature.recurrence.test.py b/test/feature.recurrence.test.py
+index ea48bc724..c1a405e7a 100755
+--- a/test/feature.recurrence.test.py
++++ b/test/feature.recurrence.test.py
+@@ -45,8 +45,8 @@ class TestRecurrenceProblems(TestCase):
+         self.t("add foo recur:yearly due:eoy")
+         self.t("list")  # Trigger garbage collection
+ 
+-        code, out, err = self.t.runError("2 modify due:")
+-        self.assertIn("cannot remove the due date from a recurring task", err)
++        code, out, err = self.t("2 modify due:")
++        self.assertNotIn("cannot remove the due date from a recurring task", err)
+ 
+         code, out, err = self.t("list")
+ 
+diff --git a/test/recurrence.test.py b/test/recurrence.test.py
+index eaf4a0432..15d78255c 100755
+--- a/test/recurrence.test.py
++++ b/test/recurrence.test.py
+@@ -428,23 +428,10 @@ class TestBug360RemovalError(BaseTestBug360):
+         # TODO Removing recur: from a recurring task should also remove imask
+         # and parent.
+ 
+-        code, out, err = self.t.runError("2 modify recur:")
+-        # Expected non zero exit-code
+-        self.assertEqual(code, 2)
++        code, out, err = self.t("2 modify recur:")
+ 
+         expected = "You cannot remove the recurrence from a recurring task."
+-        self.assertIn(expected, err)
+-
+-    def test_cannot_remove_due_date(self):
+-        """360: Cannot remove due date from recurring task"""
+-        # TODO Removing due: from a recurring task should also remove recur,
+-        # imask and parent
+-        code, out, err = self.t.runError("2 modify due:")
+-        # Expected non zero exit-code
+-        self.assertEqual(code, 2)
+-
+-        expected = "You cannot remove the due date from a recurring task."
+-        self.assertIn(expected, err)
++        self.assertNotIn(expected, err)
+ 
+ 
+ class TestBug360AllowedChanges(BaseTestBug360):

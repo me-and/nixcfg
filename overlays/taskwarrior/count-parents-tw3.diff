@@ -1,0 +1,29 @@
+diff --git a/src/commands/CmdCount.cpp b/src/commands/CmdCount.cpp
+index e25af8fde..a37126825 100644
+--- a/src/commands/CmdCount.cpp
++++ b/src/commands/CmdCount.cpp
+@@ -56,7 +56,7 @@ int CmdCount::execute(std::string& output) {
+ 
+   // Find number of matching tasks.  Skip recurring parent tasks.
+   int count = std::count_if(filtered.begin(), filtered.end(),
+-                            [](const auto& task) { return task.getStatus() != Task::recurring; });
++                            [](const auto& task) { return true; });
+   output = format(count) + '\n';
+   return 0;
+ }
+diff --git a/test/recurrence.test.py b/test/recurrence.test.py
+index 155eb9d1f..eaf4a0432 100755
+--- a/test/recurrence.test.py
++++ b/test/recurrence.test.py
+@@ -84,9 +84,9 @@ class TestRecurrenceDisabled(TestCase):
+         # Trigger GC, expect no match and therefore non-zero code
+         self.t.runError("list")
+ 
+-        # Check that no task has been generated.
++        # Check the only task is the parent.
+         code, out, err = self.t("task count")
+-        self.assertEqual("0", out.strip())
++        self.assertEqual("1", out.strip())
+ 
+ 
+ class TestRecurrenceLimit(TestCase):

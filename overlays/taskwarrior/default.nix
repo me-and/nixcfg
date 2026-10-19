@@ -1,33 +1,44 @@
-final: prev: {
-  taskwarrior2-unwrapped = prev.taskwarrior2.overrideAttrs (prevAttrs: {
-    patches = (prevAttrs.patches or [ ]) ++ [
-      # https://github.com/GothenburgBitFactory/taskwarrior/issues/3894 Report
-      # but don't prompt about repairing dependencies, because the repair will
-      # never work.
-      ./no-dep-repair.diff
+final: prev:
+let
+  wrapPackage = name: {
+    "${name}-unwrapped" = (builtins.getAttr name prev).overrideAttrs (prevAttrs: {
+      patches =
+        (prevAttrs.patches or [ ])
 
-      # Add patches that are just my personal preference: include parent tasks
-      # when using `task count`, and permit removing the due date from
-      # recurring tasks.
-      ./count-parents.diff
-      ./permit-undue-recurring-tasks.diff
-    ];
-  });
+        # https://github.com/GothenburgBitFactory/taskwarrior/issues/3894 Report
+        # but don't prompt about repairing dependencies, because the repair will
+        # never work.
+        ++ (if (name == "taskwarrior2") then [ ./no-dep-repair.diff ] else [ ./no-dep-repair-tw3.diff ])
 
-  taskwarrior2 =
-    let
-      script = final.mypkgs.writeCheckedShellApplication {
-        name = "task";
-        runtimeInputs = [ final.taskwarrior2-unwrapped ];
-        text = builtins.readFile ./task.sh;
+        # Personal preference: include parent tasks when using `task count`.
+        ++ (if (name == "taskwarrior2") then [ ./count-parents.diff ] else [ ./count-parents-tw3.diff ])
+
+        # Personal preference: permit removing the due date from a recurring
+        # task (but not the parent recurrence template).
+        ++ (
+          if (name == "taskwarrior2") then
+            [ ./permit-undue-recurring-tasks.diff ]
+          else
+            [ ./permit-undue-recurring-tasks-tw3.diff ]
+        );
+    });
+
+    "${name}" =
+      let
+        script = final.mypkgs.writeCheckedShellApplication {
+          name = "task";
+          runtimeInputs = [ final."${name}-unwrapped" ];
+          text = builtins.readFile ./task.sh;
+        };
+      in
+      final.symlinkJoin {
+        name = "${name}-wrapped";
+        paths = [
+          script
+          final."${name}-unwrapped"
+        ];
+        meta.mainProgram = script.meta.mainProgram;
       };
-    in
-    final.symlinkJoin {
-      name = "taskwarrior2-wrapped";
-      paths = [
-        script
-        final.taskwarrior2-unwrapped
-      ];
-      meta.mainProgram = script.meta.mainProgram;
-    };
-}
+  };
+in
+wrapPackage "taskwarrior2" // wrapPackage "taskwarrior3"
