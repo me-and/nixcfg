@@ -37,6 +37,7 @@ let
           script
           final."${name}-unwrapped"
         ];
+        inherit (final."${name}-unwrapped") version;
         meta.mainProgram = script.meta.mainProgram;
       };
   };

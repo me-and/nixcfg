@@ -520,6 +520,14 @@ in
           programs.taskwarrior.config.taskd to be configured
         '';
       }
+      {
+        assertion = lib.versionAtLeast cfg.package.version "3" -> (!cfg.autoSync && !syncConfigured);
+        message = ''
+          Using taskwarrior 3 is not (yet) compatible with my personal
+          programs.taskwarrior.autoSync config, and definitely won't work with
+          `programs.taskwarrior.config.taskd.
+        '';
+      }
     ];
 
     programs.taskwarrior = {
