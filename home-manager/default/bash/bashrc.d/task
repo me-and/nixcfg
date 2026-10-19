@@ -154,16 +154,17 @@ bashwrap task '
 				return 1
 			fi
 
-			# Copy the project from the previous task.  If the user
-			# command is overriding it, that'\''ll still work
-			# provided the user'\''s project argument comes after
-			# the one added here.
+			# Copy the project and ghmeta values from the previous
+			# task.  If the user command is overriding it,
+			# that'\''ll still work provided the user'\''s project
+			# argument comes after the one added here.
 			orig_project="$(_task_quick_quiet uuid:"$orig_uuid" _unique project)"
+			orig_ghmeta="$(_task_quick_quiet uuid:"$orig_uuid" _unique ghmeta)"
 
 			if [[ "${!n}" = add-before ]]; then
-				set -- add blocks:"$orig_uuid" project:"$orig_project" "${@:n+1}"
+				set -- add blocks:"$orig_uuid" project:"$orig_project" ghmeta:"$orig_ghmeta" "${@:n+1}"
 			else
-				set -- add depends:"$orig_uuid" project:"$orig_project" "${@:n+1}"
+				set -- add depends:"$orig_uuid" project:"$orig_project" ghmeta:"$orig_ghmeta" "${@:n+1}"
 			fi
 			break
 		fi
