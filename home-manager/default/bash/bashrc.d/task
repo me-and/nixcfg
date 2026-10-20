@@ -216,6 +216,11 @@ if [[ -v TMUX_TASKLOOP_TMPDIR ]]; then
 	tlec () {
 		editor "$TMUX_TASKLOOP_TMPDIR"/*/config
 	}
+
+	# Just trigger a refresh.
+	tlr () {
+		touch "$TMUX_TASKLOOP_TMPDIR"/*/config
+	}
 fi
 
 taskpage () {
