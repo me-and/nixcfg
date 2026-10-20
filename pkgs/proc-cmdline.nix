@@ -7,6 +7,7 @@ writeCheckedShellApplication {
     sep=$'\n'
 
     declare -ir EX_USAGE=64
+    declare -ir EX_NOINPUT=66
 
     while (( $# > 0 )); do
         case "$1" in
@@ -35,9 +36,21 @@ writeCheckedShellApplication {
     done
 
     report_pid () {
-        mapfile -d "" -t </proc/"$1"/cmdline
-        printf '%q'"$sep" "''${MAPFILE[@]}"
+        if mapfile -d "" -t </proc/"$1"/cmdline; then
+            printf '%q'"$sep" "''${MAPFILE[@]}"
+        else
+            rc="$?"
+            if [[ ! -e /proc/"$1" ]]; then
+                # No need to produce an error message: bash will have produced
+                # one when it failed to open the file.
+                rc="$EX_NOINPUT"
+            else
+                echo "Unexpected error rc $rc" >&2
+            fi
+        fi
     }
+
+    rc=0
 
     if (( ''${#pids[*]} == 0 )); then
         printf 'no pid specified' >&2
@@ -51,5 +64,7 @@ writeCheckedShellApplication {
             printf '%s' "$sep"
         done
     fi
+
+    exit "$rc"
   '';
 }
