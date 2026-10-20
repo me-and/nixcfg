@@ -4,7 +4,7 @@ writeCheckedShellApplication {
   name = "proc-cmdline";
   text = ''
     pids=()
-    sep='\n'
+    sep=$'\n'
 
     declare -ir EX_USAGE=64
 
