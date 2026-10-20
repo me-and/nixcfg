@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  nix-diff-rs,
   ...
 }:
 {
@@ -32,6 +31,7 @@
         ncdu
         nixfmt-tree
         nixos-generators
+        nix-diff
         nix-output-monitor
         npc
         psmisc
@@ -60,8 +60,7 @@
         select-by-weight
         sleep_until
         toil
-      ])
-      ++ [ nix-diff-rs.packages."${pkgs.stdenv.hostPlatform.system}".default ];
+      ]);
 
     sessionVariables = {
       EDITOR = "vim";

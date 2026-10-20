@@ -39,10 +39,6 @@
       url = "github:samestep/npc";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-diff-rs = {
-      url = "github:Mic92/nix-diff-rs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -65,7 +61,6 @@
       octogram,
       private,
       npc,
-      nix-diff-rs,
       ...
     }@inputs:
     let
@@ -191,7 +186,6 @@
             inherit
               plasma-manager
               sops-nix
-              nix-diff-rs
               ;
             mylib = self.lib;
             personalCfg = self;
