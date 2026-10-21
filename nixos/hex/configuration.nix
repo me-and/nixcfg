@@ -26,6 +26,10 @@
     "sg"
   ];
 
+  # Broken as of Nixpkgs' fb8c0979366e52bd4391d8781e2e666b017a6e47
+  # TODO Fix upstream.
+  hardware.framework.enableKmod = false;
+
   networking.domain = "dinwoodie.org";
 
   networking.networkmanager.enable = true;
