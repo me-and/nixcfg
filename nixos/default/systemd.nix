@@ -1,63 +1,5 @@
 { lib, pkgs, ... }:
 let
-  packageConfig = {
-    systemd.package = pkgs.systemd.overrideAttrs (
-      prevAttrs:
-      let
-        fetchSystemdPatch =
-          args:
-          pkgs.mypkgs.fetchGitHubPatch (
-            {
-              owner = "systemd";
-              repo = "systemd";
-            }
-            // args
-          );
-
-        # Handle timers jumping backwards more sensibly.  Not a fix I'm
-        # particularly interested in for myself, but it introduces changes that
-        # are necessary for timerOffsetPatch to apply.
-        #
-        # https://github.com/systemd/systemd/issues/6036
-        # https://github.com/systemd/systemd/pull/43116
-        timerClampPatch = fetchSystemdPatch {
-          commit = "34c60f113e78db7554c5521e856265feb53f1096";
-          hash = "sha256-yYP4lUE0fAXoxWjGErGRhMDtAbVT0MSmJonNnD9clCI=";
-        };
-
-        # Avoid unexpected timer delays with RandomizedOffsetSec + Persistent
-        # timers.
-        #
-        # https://github.com/systemd/systemd/issues/42337
-        # https://github.com/systemd/systemd/pull/42826
-        timerOffsetPatch = fetchSystemdPatch {
-          commit = "7b761dba0f5848cf7097804235750764d42dfcf1";
-          hash = "sha256-Nh/8GrLI1x/ruiFUR3C6iVao4tD+iCl+YOiZrEDCNVg=";
-        };
-      in
-
-      {
-        patches = prevAttrs.patches or [ ] ++ [
-          timerClampPatch
-          timerOffsetPatch
-        ];
-
-        # Expose the patches so I can more easily check them.
-        passthru =
-          assert !(prevAttrs.passthru ? myPatches);
-          prevAttrs.passthru
-          // {
-            myPatches = {
-              inherit
-                timerClampPatch
-                timerOffsetPatch
-                ;
-            };
-          };
-      }
-    );
-  };
-
   # Units for setting up loopback devices.
   loopDeviceConfig =
     let
@@ -157,7 +99,6 @@ in
   };
 
   config = lib.mkMerge [
-    packageConfig
     loopDeviceConfig
     mailStateConfig
     shellcheckConfig
