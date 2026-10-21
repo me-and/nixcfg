@@ -35,10 +35,6 @@
       url = "github:me-and/octogram";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    npc = {
-      url = "github:samestep/npc";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     private = {
       url = "github:me-and/nixcfg-private";
@@ -60,7 +56,6 @@
       plasma-manager,
       octogram,
       private,
-      npc,
       ...
     }@inputs:
     let
@@ -115,7 +110,6 @@
         self
         private
         sops-nix
-        npc
       ];
 
       makeNixpkgs =
