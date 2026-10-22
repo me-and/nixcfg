@@ -10,14 +10,15 @@
         name = "nixpkgs-review-cache-tidy";
         runtimeInputs = [ pkgs.findutils ];
         text = ''
-          cd "''${XDG_CACHE_HOME:-"$HOME"/.cache}"
-          if [[ ! -e nixpkgs-review ]]; then
+          cache_dir="''${XDG_CACHE_HOME:-"$HOME"/.cache}/nixpkgs-review"
+          if [[ ! -e "$cache_dir" ]]; then
               # nixpkgs-review directory doesn't exist, so there's nothing to
               # clean up.
+              echo 'no nixpkgs-review cache-directory to clean' >&2
               exit 0
           fi
 
-          find nixpkgs-review -depth -mindepth 1 -maxdepth 1 -mtime +90 -print -execdir rm -r {} +
+          find "$cache_dir" -depth -mindepth 1 -maxdepth 1 -printf '%p\t%Td %Tb %TY\n' -mtime +90 -execdir rm -rv -- {} +
         '';
       };
     };
