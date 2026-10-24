@@ -105,15 +105,17 @@ exec {lock_fd}>"$lockfile"
 if flock -sn "$lock_fd"; then
     :
 else
-    printf 'gh-nixpkgs-rand: waiting for cache read lock\n' >&2
+    printf 'gh-nixpkgs-rand: waiting for cache read lock...\n' >&2
     flock -s "$lock_fd"
 fi
 
 if [[ ! -e "$cache_file" || ! -e "$prev_update_ts" ]] || (( force >= 2 )); then
+    printf 'gh-nixpkgs-rand: building cache...\n' >&2
+
     if flock -xn "$lock_fd"; then
         :
     else
-        printf 'gh-nixpkgs-rand: waiting for cache write lock\n' >&2
+        printf 'gh-nixpkgs-rand: waiting for cache write lock...\n' >&2
         flock -x "$lock_fd"
     fi
 
@@ -144,10 +146,12 @@ else
     prev_update_epoch="$(date -r "$prev_update_ts" +%s)"
 
     if (( force >= 1 )) || (( (EPOCHSECONDS - prev_update_epoch) > max_age )); then
+        printf 'gh-nixpkgs-rand: updating cache...\n' >&2
+
         if flock -xn "$lock_fd"; then
             :
         else
-            printf 'gh-nixpkgs-rand: waiting for cache write lock\n' >&2
+            printf 'gh-nixpkgs-rand: waiting for cache write lock...\n' >&2
             flock -x "$lock_fd"
         fi
 
@@ -193,12 +197,11 @@ else
     fi
 fi
 
-if flock -sn "$lock_fd"; then
-    :
-else
-    printf 'gh-nixpkgs-rand: waiting for cache read lock\n' >&2
-    flock -s "$lock_fd"
-fi
+# Should already have at least a read lock, so this is either affirming that or
+# changing the write lock to a read lock.  That means if it doesn't succeed
+# straight away, that's an error case and the `set -e` setting should mean the
+# non-zero return code from flock will mean we bail out.
+flock -sn "$lock_fd"
 
 first=Yes
 case "$mode" in
