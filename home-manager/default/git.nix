@@ -19,6 +19,7 @@
       gh-gonest
       gh-notify
       mypkgs.gh-gistsync
+      mypkgs.gh-nixpkgs-rand
       privatepkgs.gh-report-issues
     ];
   };
