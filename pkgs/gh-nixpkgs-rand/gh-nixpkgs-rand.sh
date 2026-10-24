@@ -5,6 +5,7 @@ shopt -s extglob
 declare -ir EX_USAGE=64
 declare -ir EX_UNAVAILABLE=69
 declare -ir EX_SOFTWARE=70
+declare -ir EX_TEMPFAIL=75
 declare -ir EX_CONFIG=78
 
 open=
@@ -101,16 +102,30 @@ current_update_ts="$cache_dir/stamp-update-in-progress"
 
 exec {lock_fd}>"$lockfile"
 
-if (( force >= 2 )); then
-    rm -f -- "$prev_update_ts"
+if flock -sn "$lock_fd"; then
+    :
+else
+    printf 'gh-nixpkgs-rand: waiting for cache read lock\n' >&2
+    flock -s "$lock_fd"
 fi
 
-if [[ ! -e "$cache_file" || ! -e "$prev_update_ts" ]]; then
+if [[ ! -e "$cache_file" || ! -e "$prev_update_ts" ]] || (( force >= 2 )); then
     if flock -xn "$lock_fd"; then
         :
     else
         printf 'gh-nixpkgs-rand: waiting for cache write lock\n' >&2
         flock -x "$lock_fd"
+    fi
+
+    # Ensure it's still the case that updates haven't happened now we have the
+    # lock, otherwise we might have decided an update was necessary, but the
+    # updates happened between making that decision and getting the write lock.
+    # TODO Handle this more gracefully.
+    if [[ ! -e "$cache_file" || ! -e "$prev_update_ts" ]] || (( force >= 2 )); then
+        :
+    else
+        printf 'gh-nixpkgs-rand: hit a lock window condition :(\n' >&2
+        exit "$EX_TEMPFAIL"
     fi
 
     touch -- "$current_update_ts"
@@ -134,6 +149,18 @@ else
         else
             printf 'gh-nixpkgs-rand: waiting for cache write lock\n' >&2
             flock -x "$lock_fd"
+        fi
+
+        # Ensure it's still the case that updates haven't happened now we have
+        # the lock, otherwise we might have decided an update was necessary,
+        # but the updates happened between making that decision and getting the
+        # write lock.
+        # TODO Handle this more gracefully.
+        if (( force >= 1 )) || (( (EPOCHSECONDS - prev_update_epoch) > max_age )); then
+            :
+        else
+            printf 'gh-nixpkgs-rand: hit a lock window condition :(\n' >&2
+            exit "$EX_TEMPFAIL"
         fi
 
         touch -- "$current_update_ts"
