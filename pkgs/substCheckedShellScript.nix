@@ -20,7 +20,8 @@
     "quote-safe-variables"
   ],
   extraShellCheckFlags ? [ ],
-  substitutions,
+  substitutions ? { },
+  replacements ? { },
   destination ? "",
 }:
 let
@@ -31,13 +32,21 @@ let
       baseNameOf destination
     else
       baseNameOf src;
-  substitutionArgs = builtins.concatLists (
-    lib.attrsets.mapAttrsToList (k: v: [
-      "--subst-var-by"
-      k
-      v
-    ]) substitutions
-  );
+  substitutionArgs =
+    (builtins.concatLists (
+      lib.attrsets.mapAttrsToList (k: v: [
+        "--subst-var-by"
+        k
+        v
+      ]) substitutions
+    ))
+    ++ (builtins.concatLists (
+      lib.attrsets.mapAttrsToList (k: v: [
+        "--replace-fail"
+        k
+        v
+      ]) replacements
+    ));
 in
 runCommand name'
   {
