@@ -47,7 +47,6 @@
       zoom-us
     ]
     ++ (with pkgs.mypkgs; [
-      gh-random-pr
       operons
       unison-nox
     ]);
