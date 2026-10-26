@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  mylib,
   pkgs,
   ...
 }:
@@ -599,7 +600,20 @@ in
           Unit.Description = "Perform Taskwarrior garbage collection";
           Service = {
             Type = "oneshot";
-            ExecStart = "${cfg.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+            ExecStart = mylib.escapeSystemdExecArgs (
+              [
+                (lib.getExe cfg.package)
+                "rc.gc=1"
+                "rc.detection=0"
+                "rc.color=0"
+              ]
+              ++ lib.optional cfg.recurrence.enableWithGc "rc.recurrence=1"
+              ++ lib.optionals (!cfg.recurrence.enableWithGc) [
+                "rc.recurrence=0"
+                "rc.hooks=0"
+              ]
+              ++ [ "ids" ]
+            );
           };
         };
 
@@ -611,7 +625,20 @@ in
           };
           Service = {
             Type = "oneshot";
-            ExecStart = "${cfg.package}/bin/task rc.gc=1 rc.detection=0 rc.color=0 rc.recurrence=0 rc.hooks=0 ids";
+            ExecStart = mylib.escapeSystemdExecArgs (
+              [
+                (lib.getExe cfg.package)
+                "rc.gc=1"
+                "rc.detection=0"
+                "rc.color=0"
+              ]
+              ++ lib.optional cfg.recurrence.enableWithGc "rc.recurrence=1"
+              ++ lib.optionals (!cfg.recurrence.enableWithGc) [
+                "rc.recurrence=0"
+                "rc.hooks=0"
+              ]
+              ++ [ "ids" ]
+            );
           };
         };
 
