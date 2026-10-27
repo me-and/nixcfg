@@ -55,6 +55,10 @@ in
     # https://github.com/GothenburgBitFactory/taskchampion/issues/785
     cargoDeps = final.applyPatches {
       src = prevAttrs.cargoDeps;
+      patchFlags = [
+        "-p1"
+        "-dsource-registry-0/taskchampion-3.1.0"
+      ];
       patches = [ ./taskchampion-renumber-gaps.diff ];
     };
   });

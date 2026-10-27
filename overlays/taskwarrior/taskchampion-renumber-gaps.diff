@@ -1,5 +1,5 @@
---- a/source-registry-0/taskchampion-3.1.0/src/taskdb/working_set.rs
-+++ b/source-registry-0/taskchampion-3.1.0/src/taskdb/working_set.rs
+--- a/src/taskdb/working_set.rs
++++ b/src/taskdb/working_set.rs
 @@ -39,8 +39,10 @@ where
                  continue;
              }
