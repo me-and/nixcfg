@@ -1,31 +1,8 @@
-{ nixpkgs }:
 final: prev:
 let
-  wrapPackage =
-    name:
+  wrap =
+    unwrapped:
     let
-      unwrapped = (builtins.getAttr name prev).overrideAttrs (prevAttrs: {
-        patches =
-          (prevAttrs.patches or [ ])
-
-          # https://github.com/GothenburgBitFactory/taskwarrior/issues/3894 Report
-          # but don't prompt about repairing dependencies, because the repair will
-          # never work.
-          ++ (if (name == "taskwarrior2") then [ ./no-dep-repair.diff ] else [ ./no-dep-repair-tw3.diff ])
-
-          # Personal preference: include parent tasks when using `task count`.
-          ++ (if (name == "taskwarrior2") then [ ./count-parents.diff ] else [ ./count-parents-tw3.diff ])
-
-          # Personal preference: permit removing the due date from a recurring
-          # task (but not the parent recurrence template).
-          ++ (
-            if (name == "taskwarrior2") then
-              [ ./permit-undue-recurring-tasks.diff ]
-            else
-              [ ./permit-undue-recurring-tasks-tw3.diff ]
-          );
-      });
-
       script = final.mypkgs.writeCheckedShellApplication {
         name = "task";
         runtimeInputs = [ unwrapped ];
@@ -33,7 +10,7 @@ let
       };
     in
     final.symlinkJoin {
-      name = "${name}-wrapped";
+      name = "${unwrapped.name}-wrapped";
       paths = [
         script
         unwrapped
@@ -43,4 +20,45 @@ let
       meta.mainProgram = script.meta.mainProgram;
     };
 in
-nixpkgs.lib.genAttrs [ "taskwarrior2" "taskwarrior3" ] wrapPackage
+{
+  taskwarrior2-unwrapped = prev.taskwarrior2.overrideAttrs (prevAttrs: {
+    patches = prevAttrs.patches or [ ] ++ [
+      # https://github.com/GothenburgBitFactory/taskwarrior/issues/3894 Report
+      # but don't prompt about repairing dependencies, because the repair will
+      # never work.
+      ./no-dep-repair.diff
+
+      # Personal preference: include parent tasks when using `task count`.
+      ./count-parents.diff
+
+      # Personal preference: permit removing the due date from a recurring task
+      # (but not the parent recurrence template).
+      ./permit-undue-recurring-tasks.diff
+    ];
+  });
+
+  taskwarrior3-unwrapped = prev.taskwarrior3.overrideAttrs (prevAttrs: {
+    patches = prevAttrs.patches or [ ] ++ [
+      # https://github.com/GothenburgBitFactory/taskwarrior/issues/3894 Report
+      # but don't prompt about repairing dependencies, because the repair will
+      # never work.
+      ./no-dep-repair-tw3.diff
+
+      # Personal preference: include parent tasks when using `task count`.
+      ./count-parents-tw3.diff
+
+      # Personal preference: permit removing the due date from a recurring task
+      # (but not the parent recurrence template).
+      ./permit-undue-recurring-tasks-tw3.diff
+    ];
+
+    # https://github.com/GothenburgBitFactory/taskchampion/issues/785
+    cargoDeps = final.applyPatches {
+      src = prevAttrs.cargoDeps;
+      patches = [ ./taskchampion-renumber-gaps.diff ];
+    };
+  });
+
+  taskwarrior2 = wrap final.taskwarrior2-unwrapped;
+  taskwarrior3 = wrap final.taskwarrior3-unwrapped;
+}

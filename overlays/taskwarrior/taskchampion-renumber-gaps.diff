@@ -1,0 +1,59 @@
+--- a/source-registry-0/taskchampion-3.1.0/src/taskdb/working_set.rs
++++ b/source-registry-0/taskchampion-3.1.0/src/taskdb/working_set.rs
+@@ -39,8 +39,10 @@ where
+                 continue;
+             }
+         } else {
+-            // This item was already None.
+-            new_ws.push(None);
++            // This item was already None. If we are not renumbering, preserve the gap.
++            if !renumber {
++                new_ws.push(None);
++            }
+         }
+     }
+ 
+@@ -179,6 +181,43 @@ mod test {
+         Ok(())
+     }
+ 
++    #[tokio::test]
++    async fn rebuild_working_set_renumber_removes_existing_gaps() -> Result<()> {
++        // A working set with an existing gap at index 2, as left by a non-renumbering rebuild
++        // (e.g. after sync or undo), should have that gap removed when renumbering.
++        let mut db = TaskDb::new(InMemoryStorage::new());
++        let uuids: Vec<Uuid> = (0..3).map(|_| Uuid::new_v4()).collect();
++        let mut ops = Operations::new();
++        for uuid in &uuids {
++            ops.push(Operation::Create { uuid: *uuid });
++        }
++        for uuid in [uuids[0], uuids[2]] {
++            ops.push(Operation::Update {
++                uuid,
++                property: "status".into(),
++                value: Some("pending".into()),
++                old_value: None,
++                timestamp: Utc::now(),
++            });
++        }
++        db.commit_operations(ops, |_| false).await?;
++        {
++            let mut txn = db.storage.txn().await?;
++            txn.add_to_working_set(uuids[0]).await?;
++            txn.add_to_working_set(uuids[1]).await?;
++            txn.add_to_working_set(uuids[2]).await?;
++            txn.set_working_set_item(2, None).await?;
++            txn.commit().await?;
++        }
++        db.rebuild_working_set(|t| t.get("status") == Some(&"pending".to_string()), true)
++            .await?;
++        assert_eq!(
++            db.working_set().await?,
++            vec![None, Some(uuids[0]), Some(uuids[2])]
++        );
++        Ok(())
++    }
++
+     #[tokio::test]
+     async fn rebuild_working_set_no_change() -> Result<()> {
+         let mut db = TaskDb::new(InMemoryStorage::new());
