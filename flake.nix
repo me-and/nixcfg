@@ -69,6 +69,7 @@
       inherit (nixpkgs.lib) nixosSystem;
       inherit (nixpkgs.lib.attrsets)
         filterAttrs
+        isDerivation
         mapAttrs'
         nameValuePair
         optionalAttrs
@@ -263,9 +264,17 @@
               overlays = nixpkgsOverlays;
               mypkgs = self.legacyPackages."${system}";
             };
+            checkablePackages = removeAttrs self.packages.${system} [ "everything" ];
+            packageChecks = mapAttrs (
+              n: v:
+              if v ? passthru.tests then
+                pkgs.linkFarm n (unionOfDisjoint (filterAttrs (_: isDerivation) v.passthru.tests) { self = v; })
+              else
+                v
+            ) checkablePackages;
           in
           unionOfDisjointAttrsList [
-            (removeAttrs self.packages."${system}" [ "everything" ])
+            packageChecks
             (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
             (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
             (flattenTree extraChecks)
