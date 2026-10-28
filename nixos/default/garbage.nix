@@ -168,6 +168,8 @@ in
             run_free_bytes=${lib.escapeShellArg cfg.store.trigger.freeBytes}
             run_free_percent=${lib.escapeShellArg cfg.store.trigger.freePercent}
 
+            format_bytes () { numfmt --to=iec-i --suffix=B "$@"; }
+
             update_free_space () {
                 local -i free_blocks total_blocks block_size
 
@@ -189,9 +191,12 @@ in
                 fi
             fi
 
-            printf "total bytes:  %'20d\n" "$bytes_total" >&2
-            printf "bytes free:   %'20d\n" "$bytes_free" >&2
-            printf "run if below: %'20d\n" "$run_free_bytes" >&2
+            bytes_total_h="$(format_bytes "$bytes_total")"
+            bytes_free_h="$(format_bytes "$bytes_free")"
+            run_free_bytes_h="$(format_bytes "$run_free_bytes")"
+            printf "total bytes:  %'20d (%s)\n" "$bytes_total" "$bytes_total_h" >&2
+            printf "bytes free:   %'20d (%s)\n" "$bytes_free" "$bytes_free_h" >&2
+            printf "run if below: %'20d (%s)\n" "$run_free_bytes" "$run_free_bytes_h" >&2
 
             if [[ "$minimum_free_percent" = 0 ]]; then
                 :
@@ -202,7 +207,8 @@ in
                 fi
             fi
 
-            printf "target free:  %'20d\n" "$minimum_free_bytes" >&2
+            minimum_free_bytes_h="$(format_bytes "$minimum_free_bytes")"
+            printf "target free:  %'20d (%s)\n" "$minimum_free_bytes" "$minimum_free_bytes_h" >&2
 
             bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
@@ -212,7 +218,8 @@ in
                 bytes_to_free=0
             fi
 
-            printf "to free:      %'20d\n" "$bytes_to_free" >&2
+            bytes_to_free_h="$(format_bytes "$bytes_to_free")"
+            printf "to free:      %'20d (%s)\n" "$bytes_to_free" "$bytes_to_free_h" >&2
 
 
             nix-collect-garbage --max-freed "$bytes_to_free"
@@ -221,7 +228,8 @@ in
             # rather than the "target", as it's fairly likely some disk space was
             # used while the garbage collection was running.
             update_free_space
-            printf "bytes free:   %'20d\n" "$bytes_free" >&2
+            bytes_free_h="$(format_bytes "$bytes_free")"
+            printf "bytes free:   %'20d (%s)\n" "$bytes_free" "$bytes_free_h" >&2
             if (( bytes_free < run_free_bytes )); then
                 echo 'nix-collect-garbage failed to free sufficient disk space' >&2
                 exit 75  # EX_TEMPFAIL
