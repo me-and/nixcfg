@@ -202,7 +202,7 @@ in
                 fi
             fi
 
-            printf "target free:  %'20d\n" "$minimum_free_bytes"
+            printf "target free:  %'20d\n" "$minimum_free_bytes" >&2
 
             bytes_to_free=$(( minimum_free_bytes - bytes_free ))
 
@@ -212,7 +212,7 @@ in
                 bytes_to_free=0
             fi
 
-            printf "to free:      %'20d\n" "$bytes_to_free"
+            printf "to free:      %'20d\n" "$bytes_to_free" >&2
 
 
             nix-collect-garbage --max-freed "$bytes_to_free"
