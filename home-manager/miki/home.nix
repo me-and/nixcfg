@@ -31,10 +31,10 @@
     "zoom"
   ];
 
+  programs.element-desktop.enable = true;
   programs.firefox.enable = true;
   programs.keepassxc.enable = true;
   programs.zapzap.enable = true;
-  programs.element-desktop.enable = true;
 
   services.syncthing = {
     enable = true;

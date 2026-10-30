@@ -12,6 +12,7 @@
     personalCfg.homeModules.mypy
     personalCfg.homeModules.plasma
   ];
+
   home.stateVersion = "25.11";
 
   home.packages =
@@ -24,12 +25,12 @@
       cardimpose
       cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
       chromium
-      gnucash
       gnome-calculator # Prefer this to the KDE options
-      jellyfin-desktop
+      gnucash
       hunspell
       hunspellDicts.en-gb-ise
       inkscape
+      jellyfin-desktop
       libreoffice
       makemkv
       openscad
@@ -57,24 +58,25 @@
     "zoom"
   ];
 
+  programs.element-desktop.enable = true;
   programs.firefox.enable = true;
   programs.keepassxc.enable = true;
-  programs.element-desktop.enable = true;
-
-  services.rclone.enable = true;
-  services.rclone.mountPoints = {
-    "${config.home.homeDirectory}/OneDrive" = "onedrive:";
-    "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
-  };
+  programs.taskwarrior.backup.enable = true;
+  programs.zapzap.enable = true;
 
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
+
+  services.rclone = {
+    enable = true;
+    mountPoints = {
+      "${config.home.homeDirectory}/OneDrive" = "onedrive:";
+      "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
+    };
+  };
 
   services.syncthing = {
     enable = true;
     # TODO Swap this to using the plasmoid version.
     tray.enable = true;
   };
-
-  programs.zapzap.enable = true;
-  programs.taskwarrior.backup.enable = true;
 }

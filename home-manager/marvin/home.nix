@@ -12,20 +12,24 @@
 
   home.stateVersion = "25.11";
 
-  home.packages = with pkgs; [
-    mypkgs.operons
-    mypkgs.wavtoopus
-    quodlibet-without-gst-plugins # operon
-  ];
+  home.packages =
+    with pkgs;
+    [
+      quodlibet-without-gst-plugins # operon
+    ]
+    ++ (with pkgs.mypkgs; [
+      operons
+      wavtoopus
+    ]);
+
+  programs.taskwarrior.backup.enable = true;
 
   accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-
-  services.syncthing.enable = true;
 
   services.rclone = {
     enable = true;
     mountPoints."${config.home.homeDirectory}/OneDrive" = "onedrive:";
   };
 
-  programs.taskwarrior.backup.enable = true;
+  services.syncthing.enable = true;
 }
