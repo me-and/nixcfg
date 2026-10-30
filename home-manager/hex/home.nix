@@ -24,7 +24,6 @@
       cardimpose
       cdrtools # For cdrecord, and in particular `cdrecord -v -minfo`
       chromium
-      discord
       gnucash
       gnome-calculator # Prefer this to the KDE options
       jellyfin-desktop
