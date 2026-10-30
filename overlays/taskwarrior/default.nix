@@ -44,6 +44,11 @@ in
       # never work.
       ./no-dep-repair-tw3.diff
 
+      # https://github.com/GothenburgBitFactory/taskwarrior/issues/4216
+      # Add config options for creating recurring tasks and expiring tasks
+      # separately from gc settings.
+      ./0001-Add-independent-expiry-and-recurrence-triggers.patch
+
       # Personal preference: include parent tasks when using `task count`.
       ./count-parents-tw3.diff
 
