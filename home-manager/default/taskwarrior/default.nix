@@ -118,6 +118,22 @@ in
       };
     };
 
+    expiry = {
+      systemdSchedule.enable = lib.mkEnableOption "regularly deleting expired tasks using a Systemd timer";
+      systemdSchedule.timerConfig = lib.mkOption {
+        description = ''
+          Configuration to set on the systemd timer unit used for triggering
+          creating recurring Taskwarrior tasks.
+        '';
+        default = {
+          OnActiveSec = "0s";
+          OnUnitInactiveSec = "10min";
+          RandomizedDelaySec = "10min";
+          AccuracySec = "10min";
+        };
+      };
+    };
+
     checkProjects.enable = lib.mkEnableOption "regularly checking for Taskwarrior projects that no longer have any tasks";
 
     checkGitHubIssues.enable = lib.mkEnableOption "regularly cehcking for open GitHub issues/PRs that are missing Taskwarrior tasks";
@@ -144,6 +160,13 @@ in
         assertion = v2 || v3;
         message = ''
           Unexpected Taskwarrior package version ${cfg.package.version}.
+        '';
+      }
+      {
+        assertion = cfg.expiry.systemdSchedule.enable -> v3;
+        message = ''
+          Using Taskwarrior expiry schedules only makes sense with Taskwarrior
+          v3.
         '';
       }
     ];
@@ -846,6 +869,16 @@ in
           ];
         };
 
+        taskwarrior-expire = lib.mkIf cfg.expiry.systemdSchedule.enable {
+          Unit = {
+            Description = "Delete expired Taskwarrior tasks";
+            Wants = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
+            After = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
+            OnSuccess = lib.mkIf syncConfigured [ "taskwarrior-sync.service" ];
+          };
+          Service.Type = "oneshot";
+          Service.ExecStart = makeSystemdTaskCommand { expiry = true; } [ "ids" ];
+        };
       };
 
       timers = {
@@ -932,6 +965,12 @@ in
             AccuracySec = "1h";
             RandomizedDelaySec = "1h";
           };
+        };
+
+        taskwarrior-expire = lib.mkIf cfg.expiry.systemdSchedule.enable {
+          Unit.Description = "Regularly delete expired Taskwarrior tasks";
+          Install.WantedBy = [ "timers.target" ];
+          Timer = cfg.expiry.systemdSchedule.timerConfig;
         };
       };
     };
