@@ -1,4 +1,9 @@
-{ pkgs, personalCfg, ... }:
+{
+  config,
+  pkgs,
+  personalCfg,
+  ...
+}:
 {
   imports = [
     personalCfg.homeModules.discord
@@ -10,6 +15,7 @@
 
   home.packages = with pkgs; [
     azuredatastudio
+    gnome-calculator # Prefer this to the KDE options
     gnucash
     hunspell
     hunspellDicts.en-gb-ise
@@ -31,10 +37,21 @@
     "zoom"
   ];
 
+  programs.element-desktop.enable = true;
   programs.firefox.enable = true;
   programs.keepassxc.enable = true;
+  programs.taskwarrior.backup.enable = true;
   programs.zapzap.enable = true;
-  programs.element-desktop.enable = true;
+
+  accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
+
+  services.rclone = {
+    enable = true;
+    mountPoints = {
+      "${config.home.homeDirectory}/OneDrive" = "onedrive:";
+      "${config.home.homeDirectory}/Nextcloud" = "unitelondonitc:";
+    };
+  };
 
   services.syncthing = {
     enable = true;

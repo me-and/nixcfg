@@ -1,18 +1,18 @@
 { config, ... }:
 {
-  accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
-
-  services.syncthing.enable = true;
-
-  services.rclone = {
-    enable = true;
-    mountPoints."${config.home.homeDirectory}/OneDrive" = "onedrive:";
-  };
+  home.stateVersion = "25.11";
 
   programs.taskwarrior = {
     backup.enable = true;
     checkProjects.enable = true;
   };
 
-  home.stateVersion = "25.11";
+  accounts.email.maildirBasePath = "${config.xdg.cacheHome}/mail";
+
+  services.rclone = {
+    enable = true;
+    mountPoints."${config.home.homeDirectory}/OneDrive" = "onedrive:";
+  };
+
+  services.syncthing.enable = true;
 }

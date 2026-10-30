@@ -4,6 +4,7 @@
   stdenvNoCC,
   makeWrapper,
   coreutils,
+  nix-update-script,
 }:
 stdenvNoCC.mkDerivation rec {
   pname = "mtimewait";
@@ -22,4 +23,8 @@ stdenvNoCC.mkDerivation rec {
     wrapProgram $out/bin/mtimewait \
         --set PATH ${lib.makeBinPath [ coreutils ]}
   '';
+
+  passthru.updateScript = nix-update-script { };
+
+  meta.mainProgram = "mtimewait";
 }
