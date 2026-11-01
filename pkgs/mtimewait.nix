@@ -24,7 +24,7 @@ stdenvNoCC.mkDerivation rec {
         --set PATH ${lib.makeBinPath [ coreutils ]}
   '';
 
-  passthru.updateScript = nix-update-script { };
+  passthru.updateScript = nix-update-script { extraArgs = [ "--flake" ]; };
 
   meta.mainProgram = "mtimewait";
 }
