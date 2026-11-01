@@ -25,7 +25,6 @@ stdenvNoCC.mkDerivation {
   '';
 
   passthru.updateScript = nix-update-script {
-    attrPath = "gh-gistsync";
     extraArgs = [
       "--flake"
       "--version"
