@@ -126,12 +126,7 @@ elif [[ "$builders_str" ]]; then
     # environment or might be in a config file, so just use `nix config show`
     # to get the current value.
     existing_builders="$(nix config show builders)"
-    if [[ "$existing_builders" = *@* ]]; then
-        # TODO implement handling builder files
-        exit 69
-    else
-        extend_nix_config builders "${existing_builders:+"$existing_builders; "}$builders_str"
-    fi
+    extend_nix_config builders "${existing_builders:+"$existing_builders; "}$builders_str"
 fi
 
 if (( ${#overlays[*]} > 0 )); then
