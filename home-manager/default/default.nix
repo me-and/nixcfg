@@ -56,6 +56,7 @@
         nix-dangling-roots
         nix-locate-bin
         nom-realise
+        nwrap
         proc-cmdline
         select-by-weight
         sleep_until
