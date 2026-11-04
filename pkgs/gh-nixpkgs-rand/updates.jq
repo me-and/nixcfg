@@ -14,6 +14,7 @@ map(.number) as $known_numbers |
   . + (
     $updates |
     map(
+      select(.state != "closed") |
       select(
         [.number] |
         inside($known_numbers) |
