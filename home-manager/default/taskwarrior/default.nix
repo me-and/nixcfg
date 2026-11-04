@@ -119,6 +119,7 @@ in
     };
 
     expiry = {
+      systemdStartOfDay.enable = lib.mkEnableOption "deleting expired tasks on systemd startup";
       systemdSchedule.enable = lib.mkEnableOption "regularly deleting expired tasks using a Systemd timer";
       systemdSchedule.timerConfig = lib.mkOption {
         description = ''
@@ -126,7 +127,6 @@ in
           creating recurring Taskwarrior tasks.
         '';
         default = {
-          OnActiveSec = "0s";
           OnUnitInactiveSec = "10min";
           RandomizedDelaySec = "10min";
           AccuracySec = "10min";
@@ -878,6 +878,7 @@ in
           };
           Service.Type = "oneshot";
           Service.ExecStart = makeSystemdTaskCommand { expiry = true; } [ "ids" ];
+          Install.WantedBy = lib.mkIf cfg.expiry.systemdStartOfDay.enable [ "default.target" ];
         };
       };
 
