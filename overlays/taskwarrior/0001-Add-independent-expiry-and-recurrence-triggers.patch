@@ -1,0 +1,393 @@
+From 0e9d66d66cf9eb9adfe0ecd1e9c1cd7e2c9887ff Mon Sep 17 00:00:00 2001
+From: Adam Dinwoodie <adam@dinwoodie.org>
+Date: Fri, 30 Oct 2026 11:10:09 +0000
+Subject: [PATCH] Add independent expiry and recurrence triggers
+
+Expiry and recurrence processing currently follow gc so reports can open
+the database read-only when automatic updates are disabled. This also
+prevents users from expiring tasks or generating recurring instances
+without allowing task IDs to be renumbered.
+
+Add expiry and recurrence.trigger boolean settings. Unset or blank values
+inherit the effective gc setting, preserving existing behavior. Explicit
+values control each operation independently, while recurrence=0 remains
+the master switch for recurrence processing and template retirement.
+
+Use the same fallback logic for dispatch and database access so enabled
+maintenance can persist changes with gc=0 without compacting IDs. Document
+the options and cover inheritance, overrides, independent operation, stable
+IDs, template retirement, and read-only access.
+
+Validation: build succeeded; all eight targeted CTest suites passed with
+libfaketime available. clang-format, Black, and git diff --check passed.
+
+Fixes #4216
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+---
+ doc/man/taskrc.5.in        | 29 +++++++++++
+ src/Context.cpp            | 26 +++++++---
+ src/Context.h              |  1 +
+ src/commands/CmdShow.cpp   |  2 +
+ test/configuration.test.py | 10 ++++
+ test/gc.test.py            | 99 ++++++++++++++++++++++++++++++++++++++
+ test/read-only.test.py     | 28 +++++++++++
+ test/recurrence.test.py    | 24 +++++++++
+ 8 files changed, 212 insertions(+), 7 deletions(-)
+
+diff --git a/doc/man/taskrc.5.in b/doc/man/taskrc.5.in
+index afe84da06..c91383cca 100644
+--- a/doc/man/taskrc.5.in
++++ b/doc/man/taskrc.5.in
+@@ -216,10 +216,26 @@ Can be used to temporarily suspend rebuilding, so that task IDs don't change.
+ Rebuilding requires read/write access to the database, so disabling `gc` may
+ result in better performance.
+ 
++By default, this also controls automatic task expiry and recurrence processing,
++so any commands run with "gc=0" will open the database in read-only mode if
++possible.  The "expiry" and "recurrence.trigger" settings can override that
++behavior independently. Enabling either requires write access to the task
++database for commands that perform that processing, even with gc=0.
++
+ Note that this should be used in the form of a command line override (task
+ rc.gc=0 ...), and not permanently used in the .taskrc file, as this
+ significantly affects performance in the long term.
+ 
++.TP
++.B expiry=
++Controls whether pending tasks are marked deleted once their 'until' date has
++passed. If unset or blank, this follows the effective 'gc' setting.  Defaults
++to blank.
++
++This only affects commands that normally process expiry, such as reports.  It
++does not change task ID renumbering or recurring template retirement.  Use
++"gc=0" with "expiry=1" to expire tasks without renumbering remaining tasks.
++
+ .TP
+ .B purge.on-sync=0
+ If set, old tasks will be purged automatically after each synchronization.
+@@ -499,6 +515,19 @@ If you are syncing multiple clients, then it is advised that you set 'recurrence
+ on your primary client, and 'recurrence=0' on ALL other clients. This is a workaround
+ for a duplication bug.
+ 
++.TP
++.B recurrence.trigger=
++Controls automatic recurrence processing: creating recurring task instances
++and marking exhausted recurring templates deleted. If unset or blank, this
++follows the effective 'gc' setting.  Defaults to blank.
++
++For backwards-compatibility reasons, this option will only have any effect if
++"recurrence=1".
++
++This only affects commands that normally process recurring tasks, such as
++reports.  Use gc=0 with recurrence.trigger=1 to process recurrence without
++renumbering existing tasks.
++
+ .TP
+ .B recurrence.confirmation=prompt
+ Controls whether changes to recurring tasks propagates to other child tasks with
+diff --git a/src/Context.cpp b/src/Context.cpp
+index d04624d51..9c35b20cc 100644
+--- a/src/Context.cpp
++++ b/src/Context.cpp
+@@ -89,6 +89,7 @@ std::string configurationDefaults =
+     "data.location=~/.task\n"
+     "gc=1                                           # Garbage-collect data files - DO NOT CHANGE "
+     "unless you are sure\n"
++    "expiry=                                        # Expire tasks; blank follows gc\n"
+     "exit.on.missing.db=0                           # Whether to exit if ~/.task is not found\n"
+     "hooks=1                                        # Master control switch for hooks\n"
+     "\n"
+@@ -111,6 +112,7 @@ std::string configurationDefaults =
+     "override,recur\n"
+     "confirmation=1                                 # Confirmation on delete, big changes\n"
+     "recurrence=1                                   # Enable recurrence\n"
++    "recurrence.trigger=                            # Process recurrence; blank follows gc\n"
+     "recurrence.confirmation=prompt                 # Confirmation for propagating changes among "
+     "recurring tasks (yes/no/prompt)\n"
+     "allow.empty.filter=1                           # An empty filter gets a warning and requires "
+@@ -635,10 +637,11 @@ int Context::initialize(int argc, const char** argv) {
+     bool create_if_missing = !config.getBoolean("exit.on.missing.db");
+     Command* c = commands[cli2.getCommand()];
+ 
+-    // We must allow writes if either 'gc' is enabled and the command performs GC, or the command
+-    // itself is read-write.
+-    bool read_write =
+-        (config.getBoolean("gc") && (c->needs_gc() || c->needs_recur_update())) || !c->read_only();
++    // Automatic maintenance may require writes even when GC is disabled.
++    bool read_write = (config.getBoolean("gc") && c->needs_gc()) ||
++                      (c->needs_recur_update() && (maintenanceEnabled("expiry") ||
++                                                   maintenanceEnabled("recurrence.trigger"))) ||
++                      !c->read_only();
+     tdb2.open_replica(data_dir, create_if_missing, read_write);
+ 
+     ////////////////////////////////////////////////////////////////////////////
+@@ -807,6 +810,11 @@ int Context::run() {
+   return rc;
+ }
+ 
++////////////////////////////////////////////////////////////////////////////////
++bool Context::maintenanceEnabled(const std::string& key) const {
++  return config.get(key).empty() ? config.getBoolean("gc") : config.getBoolean(key);
++}
++
+ ////////////////////////////////////////////////////////////////////////////////
+ // Dispatch to the command found by the CLI parser.
+ int Context::dispatch(std::string& out) {
+@@ -836,9 +844,13 @@ int Context::dispatch(std::string& out) {
+     if (config.getBoolean("debug") && config.getInteger("debug.parser") == 1)
+       debug(cli2.dump("Parse Tree (before command-specifіc processing)"));
+ 
+-    if (c->needs_recur_update() && Context::getContext().config.getBoolean("gc")) {
+-      handleUntil();
+-      handleRecurrence();
++    if (c->needs_recur_update()) {
++      if (maintenanceEnabled("expiry")) {
++        handleUntil();
++      }
++      if (maintenanceEnabled("recurrence.trigger")) {
++        handleRecurrence();
++      }
+     }
+ 
+     return c->execute(out);
+diff --git a/src/Context.h b/src/Context.h
+index 61933400c..7f41dc97e 100644
+--- a/src/Context.h
++++ b/src/Context.h
+@@ -85,6 +85,7 @@ class Context {
+   void updateVerbosity();
+   void loadAliases();
+   void propagateDebug();
++  bool maintenanceEnabled(const std::string&) const;
+ 
+   static Context* context;
+ 
+diff --git a/src/commands/CmdShow.cpp b/src/commands/CmdShow.cpp
+index 888eb5482..4b4a8e274 100644
+--- a/src/commands/CmdShow.cpp
++++ b/src/commands/CmdShow.cpp
+@@ -163,6 +163,7 @@ int CmdShow::execute(std::string& output) {
+       " due"
+       " editor"
+       " exit.on.missing.db"
++      " expiry"
+       " purge.on-sync"
+       " expressions"
+       " fontunderline"
+@@ -188,6 +189,7 @@ int CmdShow::execute(std::string& output) {
+       " recurrence.confirmation"
+       " recurrence.indicator"
+       " recurrence.limit"
++      " recurrence.trigger"
+       " regex"
+       " reserved.lines"
+       " row.padding"
+diff --git a/test/configuration.test.py b/test/configuration.test.py
+index e4a89e9ce..3f1abc8a3 100755
+--- a/test/configuration.test.py
++++ b/test/configuration.test.py
+@@ -67,6 +67,16 @@ class TestConfiguration(TestCase):
+         code, out, err = self.t.runError("config")
+         self.assertIn("Specify the name of a config variable to modify.", err)
+ 
++    def test_maintenance_options(self):
++        """Maintenance options are recognized and available for completion"""
++        for option in ("expiry", "recurrence.trigger"):
++            self.t.config(option, "1")
++        code, out, err = self.t("show")
++        self.assertNotIn("unrecognized variables", out)
++        code, out, err = self.t("_config")
++        self.assertIn("expiry", out.splitlines())
++        self.assertIn("recurrence.trigger", out.splitlines())
++
+     def test_config_no_change(self):
+         """Verify error handling with no change"""
+         code, out, err = self.t.runError("config foo")
+diff --git a/test/gc.test.py b/test/gc.test.py
+index 2b3c0577e..5ec15b08f 100755
+--- a/test/gc.test.py
++++ b/test/gc.test.py
+@@ -61,6 +61,105 @@ class TestGC(TestCase):
+         code, out, err = self.t("gctest")
+         self.assertRegex(out, r"2\s+two\s+TWO", "modified 'two'")
+ 
++    def test_gc_off_until(self):
++        """Expired tasks are deleted without renumbering when GC is off"""
++        self.t.config("gc", "0")
++        self.t.config("expiry", "1")
++        self.t("1 modify until:2000-01-01")
++        self.t("2 modify until:2100-01-01")
++
++        code, out, err = self.t("list")
++        self.assertNotIn("one", out)
++        tasks = {task["description"]: task for task in self.t.export()}
++        self.assertEqual(tasks["one"]["status"], "deleted")
++        self.assertEqual(tasks["two"]["status"], "pending")
++        self.assertEqual(tasks["two"]["id"], 2)
++        self.assertEqual(tasks["three"]["id"], 3)
++
++        self.t("rc.gc=1 list")
++        tasks = {task["description"]: task for task in self.t.export()}
++        self.assertEqual(tasks["two"]["id"], 1)
++        self.assertEqual(tasks["three"]["id"], 2)
++
++    def test_maintenance_controls(self):
++        """Expiry and recurrence independently override or inherit GC"""
++        for gc in ("0", "1"):
++            for value in (None, "", "on", "off"):
++                with self.subTest(gc=gc, value=value):
++                    t = Task()
++                    t.config("gc", gc)
++                    for option in ("expiry", "recurrence.trigger"):
++                        if value is not None:
++                            t.config(option, value)
++                    t("add expired until:2000-01-01")
++                    t("add recurring due:tomorrow recur:daily")
++                    t("count")
++                    tasks = t.export("rc.gc=0 rc.expiry=0 rc.recurrence.trigger=0")
++                    enabled = gc == "1" if value in (None, "") else value == "on"
++                    expired = next(t for t in tasks if t["description"] == "expired")
++                    self.assertEqual(
++                        expired["status"], "deleted" if enabled else "pending"
++                    )
++                    self.assertEqual(
++                        sum("parent" in task for task in tasks), int(enabled)
++                    )
++
++    def test_maintenance_independence(self):
++        """Expiry and recurrence can run separately without compacting IDs"""
++        for expiry, recurrence in (("1", "0"), ("0", "1")):
++            with self.subTest(expiry=expiry, recurrence=recurrence):
++                t = Task()
++                t.config("gc", "0")
++                t.config("expiry", expiry)
++                t.config("recurrence.trigger", recurrence)
++                t("add expired until:2000-01-01")
++                t("add survivor")
++                t("add recurring due:tomorrow recur:daily")
++                t("count")
++                tasks = t.export("rc.expiry=0 rc.recurrence.trigger=0")
++                expired = next(t for t in tasks if t["description"] == "expired")
++                survivor = next(t for t in tasks if t["description"] == "survivor")
++                self.assertEqual(
++                    expired["status"], "deleted" if expiry == "1" else "pending"
++                )
++                self.assertEqual(survivor["id"], 2)
++                self.assertEqual(
++                    sum("parent" in task for task in tasks), int(recurrence)
++                )
++
++    def test_maintenance_overrides(self):
++        """Blank command-line overrides inherit the effective GC setting"""
++        self.t.config("gc", "0")
++        self.t.config("expiry", "0")
++        self.t.config("recurrence.trigger", "0")
++        self.t("1 modify until:2000-01-01")
++        self.t("add recurring due:tomorrow recur:daily")
++        self.t("rc.gc=1 rc.expiry= rc.recurrence.trigger= count")
++        tasks = self.t.export("rc.expiry=0 rc.recurrence.trigger=0")
++        self.assertEqual(
++            next(t for t in tasks if t["description"] == "one")["status"], "deleted"
++        )
++        self.assertEqual(sum("parent" in task for task in tasks), 1)
++
++    def test_maintenance_boolean_overrides(self):
++        """Command-line booleans independently control maintenance"""
++        self.t.config("expiry", "1")
++        self.t.config("recurrence.trigger", "1")
++        self.t("1 modify until:2000-01-01")
++        self.t("add recurring due:tomorrow recur:daily")
++        self.t("rc.expiry=0 rc.recurrence.trigger=0 count")
++        tasks = self.t.export("rc.gc=0 rc.expiry=0 rc.recurrence.trigger=0")
++        self.assertEqual(
++            next(t for t in tasks if t["description"] == "one")["status"], "pending"
++        )
++        self.assertFalse(any("parent" in task for task in tasks))
++        self.t("rc.gc=0 rc.expiry=1 rc.recurrence.trigger=1 count")
++        tasks = self.t.export("rc.gc=0 rc.expiry=0 rc.recurrence.trigger=0")
++        self.assertEqual(
++            next(t for t in tasks if t["description"] == "one")["status"], "deleted"
++        )
++        self.assertEqual(sum("parent" in task for task in tasks), 1)
++
+     def test_gc_on_id(self):
+         """IDs reshuffle after report when GC on"""
+         self.t.config("gc", "1")
+diff --git a/test/read-only.test.py b/test/read-only.test.py
+index 858274ffe..8277cd226 100755
+--- a/test/read-only.test.py
++++ b/test/read-only.test.py
+@@ -90,6 +90,34 @@ class TestReadOnly(TestCase):
+         code, out, err = self.t("burndown")
+         self.assertNotModified()
+ 
++    def test_maintenance_disabled(self):
++        """Blank or false maintenance options preserve read-only reports"""
++        self.t.config("gc", "0")
++        for value in ("", "0"):
++            with self.subTest(value=value):
++                self.t.config("expiry", value)
++                self.t.config("recurrence.trigger", value)
++                self.resetTimestamp()
++                self.t("list")
++                self.assertNotModified()
++
++    def test_no_updates_for_read_only_command(self):
++        """Commands without maintenance stay read-only with triggers enabled"""
++        self.t.config("gc", "0")
++        self.t.config("expiry", "1")
++        self.t.config("recurrence.trigger", "1")
++        self.t("add expired until:2000-01-01")
++        self.t("add recurring due:tomorrow recur:daily")
++        self.resetTimestamp()
++        self.t("reports")
++        self.assertNotModified()
++        tasks = self.t.export("rc.expiry=0 rc.recurrence.trigger=0")
++        self.assertEqual(
++            next(t for t in tasks if t["description"] == "expired")["status"],
++            "pending",
++        )
++        self.assertFalse(any("parent" in task for task in tasks))
++
+ 
+ if __name__ == "__main__":
+     from simpletap import TAPTestRunner
+diff --git a/test/recurrence.test.py b/test/recurrence.test.py
+index 155eb9d1f..ac025edeb 100755
+--- a/test/recurrence.test.py
++++ b/test/recurrence.test.py
+@@ -88,6 +88,30 @@ class TestRecurrenceDisabled(TestCase):
+         code, out, err = self.t("task count")
+         self.assertEqual("0", out.strip())
+ 
++    def test_trigger_respects_master_switch(self):
++        """An explicit recurrence trigger cannot override recurrence=0"""
++        self.t.config("gc", "0")
++        self.t.config("recurrence", "0")
++        self.t.config("recurrence.trigger", "1")
++        self.t("add due:tomorrow recur:daily recurring")
++        self.t("count")
++        tasks = self.t.export()
++        self.assertEqual(len(tasks), 1)
++        self.assertEqual(tasks[0]["status"], "recurring")
++
++    def test_trigger_controls_template_retirement(self):
++        """Template retirement follows the recurrence trigger, not expiry"""
++        self.t.config("gc", "0")
++        self.t.config("recurrence.trigger", "0")
++        self.t.config("expiry", "1")
++        self.t("add due:2000-01-02 until:2000-01-01 recur:daily exhausted")
++        self.t("rc.expiry=0 rc.recurrence.trigger=1 count")
++        self.t("2 done")
++        self.t("count")
++        parent = self.t.export_one("status:recurring")
++        self.t("rc.expiry=0 rc.recurrence.trigger=1 count")
++        self.assertEqual(self.t.export_one(parent["uuid"])["status"], "deleted")
++
+ 
+ class TestRecurrenceLimit(TestCase):
+     def setUp(self):
+-- 
+2.56.0
+

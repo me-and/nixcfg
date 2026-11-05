@@ -72,11 +72,13 @@
         mapAttrs'
         nameValuePair
         optionalAttrs
+        recurseIntoAttrs
         unionOfDisjoint
         ;
+      inherit (nixpkgs.lib.trivial) pipe;
       inherit (flake-utils.lib) flattenTree eachSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
-      inherit (self.lib) dirfiles dirmodules unionOfDisjointAttrsList;
+      inherit (self.lib) dirfiles dirmodules;
 
       boxen = {
         hex = {
@@ -248,28 +250,32 @@
         legacyPackages = pkgs.mypkgs;
         packages = flattenTree self.legacyPackages."${system}";
 
-        checks =
-          let
-            checkableNixosImages = filterAttrs (
-              n: v: v.pkgs.stdenv.hostPlatform.system == system
-            ) self.nixosConfigurations;
-            checkableHomeImages = filterAttrs (
-              n: v: v.pkgs.stdenv.hostPlatform.system == system
-            ) self.homeConfigurations;
-            extraChecks = import ./checks {
+        legacyChecks = {
+          nixosImages = pipe self.nixosConfigurations [
+            (filterAttrs (n: v: v.pkgs.stdenv.hostPlatform.system == system))
+            (mapAttrs (n: v: v.config.system.build.toplevel))
+            recurseIntoAttrs
+          ];
+
+          homeImages = pipe self.homeConfigurations [
+            (filterAttrs (n: v: v.pkgs.stdenv.hostPlatform.system == system))
+            (mapAttrs (n: v: v.activationPackage))
+            recurseIntoAttrs
+          ];
+
+          packages = recurseIntoAttrs (removeAttrs self.packages.${system} [ "everything" ]);
+
+          extras = recurseIntoAttrs (
+            import ./checks {
               inherit pkgs;
               inherit (nixpkgs) lib;
               mylib = self.lib;
               overlays = nixpkgsOverlays;
-              mypkgs = self.legacyPackages."${system}";
-            };
-          in
-          unionOfDisjointAttrsList [
-            (removeAttrs self.packages."${system}" [ "everything" ])
-            (mapAttrs (n: v: v.config.system.build.toplevel) checkableNixosImages)
-            (mapAttrs (n: v: v.activationPackage) checkableHomeImages)
-            (flattenTree extraChecks)
-          ];
+              mypkgs = self.legacyPackages.${system};
+            }
+          );
+        };
+        checks = flattenTree self.legacyChecks.${system};
 
         formatter = pkgs.nixfmt-tree;
       }
