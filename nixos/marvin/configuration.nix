@@ -32,10 +32,7 @@
 
   programs.mosh.enable = true;
 
-  nix.settings = {
-    max-jobs = 4;
-    cores = 6;
-  };
+  nix.settings.max-jobs = 4;
 
   nix.gc.store = {
     trigger.freePercent = 15;

@@ -55,10 +55,7 @@
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.11"; # Did you read the comment?
 
-  nix.settings = {
-    max-jobs = 2;
-    cores = 4;
-  };
+  nix.settings.max-jobs = 2;
 
   nix.gc.store = {
     target.freePercent = 25;

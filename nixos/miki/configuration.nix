@@ -45,10 +45,7 @@
 
   system.stateVersion = "25.11";
 
-  nix.settings = {
-    max-jobs = 4;
-    cores = 8;
-  };
+  nix.settings.max-jobs = 4;
 
   nix.gc.store = {
     target.freePercent = 25;
