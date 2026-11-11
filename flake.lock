@@ -212,11 +212,11 @@
         "personalCfg": []
       },
       "locked": {
-        "lastModified": 1793619259,
-        "narHash": "sha256-foa4/1I1HVYyXK4KIJeXhM80amSdhjlwVLFvdpqGJfw=",
+        "lastModified": 1794418028,
+        "narHash": "sha256-zIv2nsh6mpcydkk1c6509aZkn9taOY6+AcG1QzycjXw=",
         "owner": "me-and",
         "repo": "nixcfg-private",
-        "rev": "50e9afc2a12e0be7bbff68f3aba4e81e9557d0dd",
+        "rev": "c7363e912bc1089a77f9983924d8c80e478ec344",
         "type": "github"
       },
       "original": {
