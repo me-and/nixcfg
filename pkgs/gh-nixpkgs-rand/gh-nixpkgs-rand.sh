@@ -191,6 +191,19 @@ else
             -- "$cache_file" \
             >"$new_cache_file"
 
+        # At some point, I'd expect the number of updates -- which necessarily
+        # include closed issues -- to be larger than the total cache.  Check
+        # for that circumstance and report on it, as I want to know roughly
+        # when that threshold gets hit so I can redesign things to do a full
+        # fetch when that's likely.
+        num_updates="$(wc -l <"$update_file")"
+        num_cached="$(wc -l <"$new_cache_file")"
+        if (( num_cached < num_updates )); then
+            printf 'gh-nixpkgs-rand: would have been quicker to run a full update\n' >&2
+            printf 'leaving in-progress files in place for investigation\n' >&2
+            exit 2
+        fi
+
         mv -- "$new_cache_file" "$cache_file"
         mv -- "$current_update_ts" "$prev_update_ts"
         rm -- "$update_file"
