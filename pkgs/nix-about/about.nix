@@ -90,7 +90,7 @@ let
         Insecure = boolToYN p.meta.insecure;
         Definition = p.meta.position;
         Unsupported = boolToYN p.meta.unsupported;
-        Path = evalStrOrFail p.outPath;
+        Path = evalStrOrFail p.${builtins.head p.outputs or [ "out" ]}.outPath;
         Paths = lib.concatStrings (map (k: "\n    ${k}: ${evalStrOrFail p."${k}".outPath}") p.outputs);
       };
 
@@ -110,8 +110,8 @@ let
         ++ lib.optional (p ? meta.homepage) "Website"
         ++ lib.optional (p ? meta.position) "Definition"
         ++ [ "Maintainers" ]
-        ++ (lib.optional ((builtins.length p.outputs) == 1) "Path")
-        ++ (lib.optional ((builtins.length p.outputs) > 1) "Paths")
+        ++ (lib.optional ((builtins.length p.outputs or [ "out" ]) == 1) "Path")
+        ++ (lib.optional ((builtins.length p.outputs or [ "out" ]) > 1) "Paths")
       );
 
       outputLiner = section: "${section}: ${outputValues."${section}"}";
