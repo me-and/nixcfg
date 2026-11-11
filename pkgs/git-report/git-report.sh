@@ -11,7 +11,19 @@ if ! command -v ifne &>/dev/null; then
 fi
 
 remove_unwanted_branch_names () {
-	grep -Eve '\(HEAD detached from [0-9a-f]+\)' -e '\(no branch, bisect started on .+\)' -e '\(HEAD detached at .+\)' -e '\(no branch\)'
+	local rc
+	if grep -Eve '\(HEAD detached from [0-9a-f]+\)' -e '\(no branch, bisect started on .+\)' -e '\(HEAD detached at .+\)' -e '\(no branch\)'; then
+		:
+	else
+		rc="$?"
+		if (( rc == 1 )); then
+			# No matches.  This is expected if there's nothing to print, so not an error.
+			:
+		else
+			printf 'unexpected return code from grep: %s\n' "$rc" >&2
+			return "$rc"
+		fi
+	fi
 }
 
 indent () {
