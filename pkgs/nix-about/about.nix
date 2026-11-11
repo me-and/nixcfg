@@ -69,10 +69,17 @@ let
           in
           if p ? meta.license then toName p.meta.license else "Unspecified";
         Maintainers =
-          if p.meta.maintainers or [ ] == [ ] then
+          let
+            teamMaintainers = lib.flatten (map (builtins.getAttr "members") p.meta.teams or [ ]);
+            individualMaintainers = p.meta.maintainers or [ ];
+            maintainerHandles = lib.uniqueStrings (
+              map (builtins.getAttr "github") (teamMaintainers ++ individualMaintainers)
+            );
+          in
+          if maintainerHandles == [ ] then
             "None"
           else
-            lib.concatStringsSep ", " (map (m: "@${m.github}") p.meta.maintainers);
+            lib.concatStringsSep ", " (map (m: "@${m}") maintainerHandles);
 
         # Output that will only appear if it's defined, and therefore can fail if
         # it's not defined.
