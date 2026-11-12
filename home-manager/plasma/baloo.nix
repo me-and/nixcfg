@@ -1,8 +1,14 @@
 {
   programs.plasma.configFile = {
     baloofilerc.General = {
-      "exclude folders[$e]" = "$HOME/Nextcloud/,$HOME/OneDrive/";
-      "folders[$e]" = "$HOME/";
+      folders = {
+        value = "$HOME/";
+        shellExpand = true;
+      };
+      "exclude folders" = {
+        value = "$HOME/Nextcloud/,$HOME/OneDrive/";
+        shellExpand = true;
+      };
     };
     krunnerrc.Plugins.baloosearchEnabled = true;
   };
