@@ -6,12 +6,12 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "bash-git-prompt";
-  version = "2.7.1-unstable-2026-11-05";
+  version = "2.7.1-unstable-2026-11-11";
   src = fetchFromGitHub {
     owner = "magicmonty";
     repo = "bash-git-prompt";
-    rev = "0ea223b51dd0f7db1e7874743261ea78448f9df0";
-    hash = "sha256-Yb1I+crGv7y//+yDixWm+OFCLaTBtzsLj8DGe6hFs3Q=";
+    rev = "8fd8cb066993c3d2e154075743e74c09b8a06065";
+    hash = "sha256-QCA5ZWXs9uEhqxgHUTDQ5zz1EPIjy6BJ26ewJ6fCwT4=";
   };
   buildInputs = [ python3 ];
   nativeBuildInputs = [ python3 ];
