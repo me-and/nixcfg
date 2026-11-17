@@ -35,7 +35,7 @@ writeCheckedShellApplication {
     # the text instead.
     #
     # shellcheck disable=SC2312 # Get return code with `wait`.
-    mapfile -t -n 6 urls < <(task "''${filter[@]}" export | jq --raw-output '.[].ghmeta | values | capture("\"url\":\"(?<url>.*?)\"").url')
+    mapfile -t -n 6 urls < <(task "''${filter[@]}" export | jq --raw-output '.[].ghmeta | values | scan("\"url\":\"(.*?)\"")[]')
     if wait "$!"; then
         wait_rc=0
     else
