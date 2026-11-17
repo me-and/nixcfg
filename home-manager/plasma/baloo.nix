@@ -6,7 +6,7 @@
         shellExpand = true;
       };
       "exclude folders" = {
-        value = "$HOME/Nextcloud/,$HOME/OneDrive/,$HOME/vcs/";
+        value = "$HOME/Nextcloud/,$HOME/OneDrive/,$HOME/vcs/,$HOME/Games/";
         shellExpand = true;
       };
     };
