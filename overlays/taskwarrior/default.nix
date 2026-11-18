@@ -64,7 +64,15 @@ in
         "-p1"
         "-dsource-registry-0/taskchampion-3.1.0"
       ];
-      patches = [ ./taskchampion-renumber-gaps.diff ];
+      patches = [
+        (final.pkgs.mypkgs.fetchGitHubPR {
+          owner = "GothenburgBitFactory";
+          repo = "taskchampion";
+          pr = 798;
+          version = 2;
+          hash = "sha256-4plnFe9PGxR6AyNj18+hIr3o/t3k6otZIcir8OVcYlE=";
+        })
+      ];
     };
   });
 
