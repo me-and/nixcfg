@@ -1,13 +1,22 @@
-# TODO Move to using fetchpatch2.  Beware of
-# https://github.com/NixOS/nixpkgs/issues/257446 in so doing.
-{ fetchpatch }:
+# TODO Add warnings if version != 2
+{ fetchpatch, fetchpatch2 }:
 {
   owner,
   repo,
   commit,
+  version ? 1,
   ...
 }@args:
-fetchpatch (
+let
+  fetchpatch' =
+    if version == 1 then
+      fetchpatch
+    else if version == 2 then
+      fetchpatch2
+    else
+      throw "fetchGitHubPR `version` argument should be `1` or `2`";
+in
+fetchpatch' (
   {
     url = "https://github.com/${owner}/${repo}/commit/${commit}.patch";
   }
@@ -15,5 +24,6 @@ fetchpatch (
     "owner"
     "repo"
     "commit"
+    "version"
   ]
 )
