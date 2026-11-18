@@ -7,8 +7,8 @@
   overlays,
 }:
 let
-  inherit (builtins) attrNames getAttr;
-  inherit (lib.attrsets) optionalAttrs recurseIntoAttrs;
+  inherit (builtins) attrNames getAttr mapAttrs;
+  inherit (lib.attrsets) filterAttrs optionalAttrs recurseIntoAttrs;
   inherit (lib.fixedPoints) composeManyExtensions extends fix;
   inherit (lib.meta) availableOn;
   inherit (mylib) removeAll unionOfDisjointAttrsList;
@@ -67,13 +67,20 @@ let
           pkg = getAttr p pkgs.kdePackages;
         in
         optionalAttrs (availableOn hostPlatform pkg) {
-          "${p}" = recurseIntoAttrs {
+          ${p} = recurseIntoAttrs {
             package = pkg;
-            tests = recurseIntoAttrs (pkg.passthru.tests or { });
+            tests = recurseIntoAttrs (pkg.tests or pkg.passthru.tests or { });
           };
         }
       ) kdeNewOrChanged
     )
   );
 in
-baseChecks // { kdePackages = kdeChecks; }
+baseChecks
+// {
+  kdePackages = kdeChecks;
+}
+# TODO Add comment
+// optionalAttrs (baseChecks ? nixVersions) {
+  nixVersions = recurseIntoAttrs { pkgs = recurseIntoAttrs (filterAttrs (n: v: (builtins.tryEval v).success) pkgs.nixVersions); tests = recurseIntoAttrs (mapAttrs (n: pkg: if (builtins.tryEval pkg).success then recurseIntoAttrs (pkg.tests or pkg.passthru.tests or { }) else { }) pkgs.nixVersions); };
+}

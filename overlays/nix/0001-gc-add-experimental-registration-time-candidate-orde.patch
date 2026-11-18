@@ -1,0 +1,579 @@
+From f457b16d1aa813b12d556614a5ae9d282091ab20 Mon Sep 17 00:00:00 2001
+From: Adam Dinwoodie <adam@dinwoodie.org>
+Date: Mon, 16 Nov 2026 10:37:18 +0000
+Subject: [PATCH] gc: add experimental registration-time candidate ordering
+
+Repeated limited collections can favor the same filesystem enumeration
+order. Add gc-registration-order to prefer older registered candidates
+after unregistered entries, while preserving existing liveness checks
+and dependency-safe deletion.
+
+Keep timestamp snapshots and sorting local to whole-store deletion GC,
+without schema or protocol changes. Cover ordering, early stopping,
+roots, cleanup, and unchanged modes with unit and functional tests, and
+document daemon-side enablement.
+
+Assisted-by: GitHub Copilot (OpenAI GPT-6.1 Sol)
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+---
+ doc/manual/rl-next/gc-registration-order.md   |  10 +
+ .../source/command-ref/nix-collect-garbage.md |   3 +
+ doc/manual/source/command-ref/nix-store/gc.md |  31 ++-
+ src/libstore-tests/local-store.cc             | 177 ++++++++++++++++++
+ src/libstore/gc.cc                            |  73 ++++++--
+ src/libutil/experimental-features.cc          |  28 ++-
+ .../include/nix/util/experimental-features.hh |   1 +
+ src/nix/store-gc.md                           |  12 ++
+ tests/functional/gc-registration-order.sh     |  47 +++++
+ .../local-overlay-store/meson.build           |   8 +
+ tests/functional/meson.build                  |  15 ++
+ 11 files changed, 389 insertions(+), 16 deletions(-)
+ create mode 100644 doc/manual/rl-next/gc-registration-order.md
+ create mode 100644 tests/functional/gc-registration-order.sh
+
+diff --git a/doc/manual/rl-next/gc-registration-order.md b/doc/manual/rl-next/gc-registration-order.md
+new file mode 100644
+index 000000000..56dd4acd4
+--- /dev/null
++++ b/doc/manual/rl-next/gc-registration-order.md
+@@ -0,0 +1,10 @@
++---
++synopsis: Prefer older registered paths during garbage collection
++---
++
++The experimental feature `gc-registration-order` makes whole-store garbage collection prefer candidates with older registration times, after considering unregistered entries.
++This can preserve recently registered paths when collection stops after freeing a requested amount of space.
++It also applies to automatic garbage collection.
++
++The feature changes candidate selection, not reachability checks or dependency-safe deletion.
++For daemon-backed stores, enable it in the daemon's configuration.
+diff --git a/doc/manual/source/command-ref/nix-collect-garbage.md b/doc/manual/source/command-ref/nix-collect-garbage.md
+index 07229255e..f47f46305 100644
+--- a/doc/manual/source/command-ref/nix-collect-garbage.md
++++ b/doc/manual/source/command-ref/nix-collect-garbage.md
+@@ -11,6 +11,9 @@
+ The command `nix-collect-garbage` is mostly an alias of [`nix-store --gc`](@docroot@/command-ref/nix-store/gc.md).
+ That is, it deletes all unreachable [store objects] in the Nix store to clean up your system.
+ 
++The experimental `gc-registration-order` feature can make collection prefer older registered paths.
++See [garbage collection ordering](@docroot@/command-ref/nix-store/gc.md#ordering) for enablement and limitations.
++
+ However, it provides two additional options,
+ [`--delete-old`](#opt-delete-old) and [`--delete-older-than`](#opt-delete-older-than),
+ which also delete old [profiles], allowing potentially more [store objects] to be deleted because profiles are also garbage collection roots.
+diff --git a/doc/manual/source/command-ref/nix-store/gc.md b/doc/manual/source/command-ref/nix-store/gc.md
+index 8ec59d906..9fa3f9203 100644
+--- a/doc/manual/source/command-ref/nix-store/gc.md
++++ b/doc/manual/source/command-ref/nix-store/gc.md
+@@ -50,6 +50,36 @@ configuration file.
+ By default, the collector prints the total number of freed bytes when it
+ finishes (or when it is interrupted).
+ 
++## Ordering {#ordering}
++
++By default, garbage collection considers candidates in filesystem directory order.
++The experimental feature
++[`gc-registration-order`](@docroot@/development/experimental-features.md#xp-feature-gc-registration-order)
++instead prefers candidates with older recorded registration times.
++This also applies to `nix store gc`, `nix-collect-garbage`, and automatic garbage collection.
++It is particularly useful when collection stops early after freeing a requested amount of space.
++
++Unregistered entries are considered first, in filesystem order.
++Registered candidates are ordered by increasing registration time, with store-path names breaking ties.
++An unknown registration time (zero) is treated as oldest.
++Registration time is neither last-use time nor the time a path became unreachable.
++The ordering uses a snapshot of registration metadata, so concurrent registrations may affect it.
++
++This is a candidate-selection preference, not a strict deletion order.
++Newer unreachable paths referring to an older candidate may need to be deleted first.
++Reachability checks and GC roots still protect live paths.
++Explicit-path deletion, live/dead reporting, and dry runs are unchanged.
++Preparing the candidate order requires additional startup time and memory proportional to the number of registered paths and directory entries.
++
++Enable the feature in the process performing collection:
++
++```ini
++extra-experimental-features = gc-registration-order
++```
++
++For daemon-backed stores, set this in the daemon's configuration and restart the daemon.
++Client experimental-feature settings are not forwarded to the daemon.
++
+ {{#include ./opt-common.md}}
+ 
+ {{#include ../opt-common.md}}
+@@ -72,4 +102,3 @@ To delete at least 100 MiBs of unreachable paths:
+ ```console
+ $ nix-store --gc --max-freed $((100 * 1024 * 1024))
+ ```
+-
+diff --git a/src/libstore-tests/local-store.cc b/src/libstore-tests/local-store.cc
+index 06da1b008..a8093b1bb 100644
+--- a/src/libstore-tests/local-store.cc
++++ b/src/libstore-tests/local-store.cc
+@@ -1,6 +1,8 @@
+ #include <gtest/gtest.h>
+ 
+ #include "nix/store/local-store.hh"
++#include "nix/store/globals.hh"
++#include "nix/store/tests/libstore.hh"
+ 
+ // Needed for template specialisations. This is not good! When we
+ // overhaul how store configs work, this should be fixed.
+@@ -72,4 +74,179 @@ TEST(LocalStore, constructConfig_to_string)
+     EXPECT_EQ(config.getReference().to_string(), "local");
+ }
+ 
++#ifndef _WIN32 /* Windows doesn't exactly have a notion of canonicalation for now. */
++
++class LocalStoreGCRegistrationOrderTest : public ::testing::Test
++{
++protected:
++    EnableExperimentalFeature feature{"gc-registration-order"};
++    AutoDelete tempStoreDir{canonPath(createTempDir(), /*resolveSymlinks=*/true)};
++    std::shared_ptr<LocalStoreConfig> config =
++        std::make_shared<LocalStoreConfig>(tempStoreDir.path(), StoreConfig::Params{});
++    std::shared_ptr<LocalStore> store = std::make_shared<LocalStore>(ref{config});
++
++    StorePath addPath(char hash, time_t registrationTime, const StorePathSet & references = {})
++    {
++        StorePath path{std::string(32, hash) + "-gc-test"};
++        writeFile(store->toRealPath(path), "garbage\n");
++        ValidPathInfo info{path, UnkeyedValidPathInfo(*store, Hash::dummy)};
++        info.registrationTime = registrationTime;
++        info.references = references;
++        store->registerValidPath(info);
++        return path;
++    }
++
++    void setRegistrationTime(const StorePath & path, time_t registrationTime)
++    {
++        SQLite db(store->dbDir / "db.sqlite", {.mode = SQLiteOpenMode::NoCreate, .useWAL = true});
++        SQLiteStmt stmt(db, "update ValidPaths set registrationTime = ? where path = ?");
++        stmt.use().apply(registrationTime).apply(store->printStorePath(path)).exec();
++    }
++
++    GCResults collect(uint64_t maxFreed = 1, GCAction action = GCAction::gcDeleteDead)
++    {
++        GCOptions options;
++        options.maxFreed = maxFreed;
++        options.action = action;
++        GCResults results;
++        store->collectGarbage(options, results);
++        return results;
++    }
++
++    StringSet printed(const StorePathSet & paths)
++    {
++        StringSet result;
++        for (auto & path : paths)
++            result.insert(store->printStorePath(path));
++        return result;
++    }
++
++    void root(const StorePath & path)
++    {
++        auto rootsDir = config->stateDir.get() / "gcroots";
++        createDirs(rootsDir);
++        createSymlink(store->printStorePath(path), rootsDir / path.to_string());
++    }
++};
++
++TEST_F(LocalStoreGCRegistrationOrderTest, oldestFirstAcrossLimitedCollections)
++{
++    addPath('a', 1);
++    addPath('b', 1);
++    addPath('c', 1);
++    StorePaths paths;
++    for (auto & entry : DirectoryIterator{config->realStoreDir.get()})
++        if (auto path = store->maybeParseStorePath(store->storeDir + "/" + entry.path().filename().string()))
++            paths.push_back(*path);
++    ASSERT_EQ(paths.size(), 3);
++    for (size_t i = 0; i < paths.size(); ++i)
++        setRegistrationTime(paths[i], paths.size() - i);
++
++    for (auto i = paths.rbegin(); i != paths.rend(); ++i) {
++        EXPECT_EQ(collect().paths, printed({*i}));
++        EXPECT_FALSE(store->isValidPath(*i));
++        EXPECT_FALSE(pathExists(store->toRealPath(*i)));
++    }
++}
++
++TEST_F(LocalStoreGCRegistrationOrderTest, disabledPreservesDirectoryOrder)
++{
++    addPath('a', 1);
++    addPath('b', 1);
++    StorePaths paths;
++    for (auto & entry : DirectoryIterator{config->realStoreDir.get()})
++        if (auto path = store->maybeParseStorePath(store->storeDir + "/" + entry.path().filename().string()))
++            paths.push_back(*path);
++    ASSERT_EQ(paths.size(), 2);
++    setRegistrationTime(paths.front(), 2);
++    setRegistrationTime(paths.back(), 1);
++    auto features = experimentalFeatureSettings.experimentalFeatures.get();
++    features.erase(Xp::GCRegistrationOrder);
++    experimentalFeatureSettings.experimentalFeatures.assign(features);
++    EXPECT_EQ(collect().paths, printed({paths.front()}));
++}
++
++TEST_F(LocalStoreGCRegistrationOrderTest, unknownTimesAndTies)
++{
++    auto later = addPath('a', 20);
++    auto unknown = addPath('d', 10);
++    auto second = addPath('c', 10);
++    auto first = addPath('b', 10);
++    setRegistrationTime(unknown, 0);
++
++    for (auto & path : {unknown, first, second, later})
++        EXPECT_EQ(collect().paths, printed({path}));
++}
++
++TEST_F(LocalStoreGCRegistrationOrderTest, rootsAndReferrersOverrideAge)
++{
++    auto rooted = addPath('a', 1);
++    root(rooted);
++    auto dependency = addPath('b', 2);
++    auto independent = addPath('c', 3);
++    auto referrer = addPath('d', 4, {dependency});
++
++    EXPECT_EQ(collect().paths, printed({referrer}));
++    EXPECT_TRUE(store->isValidPath(dependency));
++    EXPECT_EQ(collect().paths, printed({dependency}));
++    EXPECT_EQ(collect().paths, printed({independent}));
++    EXPECT_TRUE(store->isValidPath(rooted));
++    EXPECT_TRUE(pathExists(store->toRealPath(rooted)));
++}
++
++TEST_F(LocalStoreGCRegistrationOrderTest, unregisteredEntriesFirst)
++{
++    auto registered = addPath('a', 1);
++    StorePath unregistered{"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-unregistered"};
++    writeFile(store->toRealPath(unregistered), "unregistered garbage\n");
++    auto other = config->realStoreDir.get() / "not-a-store-path";
++    writeFile(other, "other garbage\n");
++    auto tmp = config->realStoreDir.get() / "tmp-locked";
++    createDirs(tmp);
++    auto fd = openDirectory(tmp, FinalSymlink::Follow);
++    ASSERT_TRUE(lockFile(fd.get(), ltWrite, false));
++
++    StringSet removed;
++    for (size_t i = 0; i < 2; ++i) {
++        auto result = collect();
++        removed.insert(result.paths.begin(), result.paths.end());
++        EXPECT_TRUE(store->isValidPath(registered));
++        EXPECT_TRUE(pathExists(tmp));
++    }
++    auto expected = printed({unregistered});
++    expected.insert(store->storeDir + "/not-a-store-path");
++    EXPECT_EQ(removed, expected);
++    EXPECT_EQ(collect().paths, printed({registered}));
++    EXPECT_TRUE(pathExists(tmp));
++}
++
++TEST_F(LocalStoreGCRegistrationOrderTest, reportingAndZeroLimitDoNotDelete)
++{
++    auto path = addPath('a', 1);
++    auto other = config->realStoreDir.get() / "not-a-store-path";
++    writeFile(other, "garbage\n");
++
++    EXPECT_TRUE(collect(0).paths.empty());
++    EXPECT_EQ(collect(std::numeric_limits<uint64_t>::max(), GCAction::gcReturnDead).paths, printed({path}));
++    EXPECT_TRUE(collect(std::numeric_limits<uint64_t>::max(), GCAction::gcReturnLive).paths.empty());
++    EXPECT_TRUE(pathExists(other));
++    EXPECT_TRUE(pathExists(store->toRealPath(path)));
++    EXPECT_TRUE(store->isValidPath(path));
++}
++
++TEST_F(LocalStoreGCRegistrationOrderTest, explicitPathsAreNotExpanded)
++{
++    auto older = addPath('a', 1);
++    auto requested = addPath('b', 2);
++    GCOptions options;
++    options.action = GCAction::gcDeleteSpecific;
++    options.pathsToDelete = GCOptions::SpecificPaths{{requested}};
++    GCResults results;
++    store->collectGarbage(options, results);
++    EXPECT_EQ(results.paths, printed({requested}));
++    EXPECT_TRUE(store->isValidPath(older));
++}
++
++#endif
++
+ } // namespace nix
+diff --git a/src/libstore/gc.cc b/src/libstore/gc.cc
+index 15f7eeb1c..b1cf77d95 100644
+--- a/src/libstore/gc.cc
++++ b/src/libstore/gc.cc
+@@ -18,6 +18,7 @@
+ #include <boost/unordered/unordered_flat_map.hpp>
+ #include <boost/unordered/unordered_flat_set.hpp>
+ #include <boost/regex.hpp>
++#include <algorithm>
+ #include <queue>
+ #include <thread>
+ #include <errno.h>
+@@ -804,22 +805,66 @@ void LocalStore::collectGarbage(const GCOptions & options, GCResults & results)
+                     if (!dir)
+                         throw SysError("opening directory %1%", PathFmt(config->realStoreDir.get()));
+ 
+-                    /* Read the store and delete all paths that are invalid or
+-                    unreachable. We don't use readDirectory() here so that
+-                    GCing can start faster. */
+-                    auto linksName = linksDir.filename();
+-                    struct dirent * dirent;
+-                    while (errno = 0, dirent = readdir(dir.get())) {
+-                        checkInterrupt();
+-                        std::string name = dirent->d_name;
+-                        if (name == "." || name == ".." || name == linksName)
+-                            continue;
++                    bool orderByRegistrationTime = options.action == GCOptions::gcDeleteDead
++                                                   && experimentalFeatureSettings.isEnabled(Xp::GCRegistrationOrder);
++                    std::vector<std::pair<int64_t, StorePath>> candidates;
++                    {
++                        using RegistrationTimes = boost::unordered_flat_map<StorePath, int64_t, std::hash<StorePath>>;
++                        RegistrationTimes registrationTimes;
++                        if (orderByRegistrationTime) {
++                            registrationTimes = retrySQLite<RegistrationTimes>([&]() {
++                                auto state(_state->lock());
++                                SQLiteStmt stmt(state->db, "select path, registrationTime from ValidPaths");
++                                auto query(stmt.use());
++                                RegistrationTimes times;
++                                while (query.next()) {
++                                    checkInterrupt();
++                                    times.emplace(parseStorePath(query.getStr(0)), query.getInt(1));
++                                }
++                                return times;
++                            });
++                            candidates.reserve(registrationTimes.size());
++                        }
+ 
+-                        if (auto storePath = maybeParseStorePath(storeDir + "/" + name))
+-                            maybeDeleteReferrersClosure(*storePath);
+-                        else
+-                            deleteFromStore(name, false);
++                        /* Keep streaming when ordering is disabled so deletion can start immediately. */
++                        auto linksName = linksDir.filename();
++                        struct dirent * dirent;
++                        while (errno = 0, dirent = readdir(dir.get())) {
++                            checkInterrupt();
++                            std::string name = dirent->d_name;
++                            if (name == "." || name == ".." || name == linksName)
++                                continue;
++
++                            if (auto storePath = maybeParseStorePath(storeDir + "/" + name)) {
++                                if (orderByRegistrationTime) {
++                                    if (auto i = registrationTimes.find(*storePath); i != registrationTimes.end()) {
++                                        candidates.emplace_back(i->second, std::move(*storePath));
++                                        continue;
++                                    }
++                                    /* Concurrent registrations and overlay lower paths
++                                       may be absent from the snapshot. */
++                                    try {
++                                        auto info = queryPathInfo(*storePath);
++                                        candidates.emplace_back(info->registrationTime, std::move(*storePath));
++                                        continue;
++                                    } catch (InvalidPath &) {
++                                        /* Content can precede registration during builds/imports,
++                                           or remain unregistered after interruption or manual copying.
++                                           The existing traversal still checks temporary roots. */
++                                    }
++                                }
++                                maybeDeleteReferrersClosure(*storePath);
++                            } else if (shouldDelete)
++                                deleteFromStore(name, false);
++                        }
+                     }
++
++                    /* Zero (unknown) sorts first defensively. Normal local registration
++                       replaces zero with the current time, but external database edits
++                       can leave it unknown. */
++                    std::ranges::sort(candidates);
++                    for (auto & [registrationTime, path] : candidates)
++                        maybeDeleteReferrersClosure(path);
+                 },
+             },
+             options.pathsToDelete);
+diff --git a/src/libutil/experimental-features.cc b/src/libutil/experimental-features.cc
+index 04a6ef38a..ab2819e6a 100644
+--- a/src/libutil/experimental-features.cc
++++ b/src/libutil/experimental-features.cc
+@@ -27,7 +27,7 @@ void MissingExperimentalFeature::anchor() {}
+  * feature, we either have no issue at all if few features are not added
+  * at the end of the list, or a proper merge conflict if they are.
+  */
+-constexpr size_t numXpFeatures = 1 + static_cast<size_t>(Xp::BLAKE3Hashes);
++constexpr size_t numXpFeatures = 1 + static_cast<size_t>(Xp::GCRegistrationOrder);
+ 
+ constexpr std::array<ExperimentalFeatureDetails, numXpFeatures> xpFeatureDetails = {{
+     {
+@@ -281,6 +281,32 @@ constexpr std::array<ExperimentalFeatureDetails, numXpFeatures> xpFeatureDetails
+         )",
+         .trackingUrl = "https://github.com/NixOS/nix/milestone/60",
+     },
++    {
++        .tag = Xp::GCRegistrationOrder,
++        .name = "gc-registration-order",
++        .description = R"(
++            Prefer older registration times when selecting candidates for
++            whole-store garbage collection, including automatic garbage collection.
++            Unregistered entries are considered first.
++            Equal registration times are ordered by store path, and unknown
++            registration times (zero) are treated as oldest.
++
++            This is a candidate-selection preference, not a strict deletion order:
++            unreachable referrers may need to be deleted before their dependencies.
++            Reachable paths remain protected.
++            Registration time is neither last-use time nor the time a path became
++            unreachable.
++
++            This requires reading registration metadata and buffering candidates
++            before deleting registered paths, increasing startup time and memory use.
++            Explicit-path deletion and live/dead reporting are unchanged.
++
++            Enable this feature in the process performing garbage collection.
++            For daemon-backed stores, enable it in the daemon's configuration;
++            client experimental-feature settings are not forwarded to the daemon.
++        )",
++        .trackingUrl = "https://github.com/NixOS/nix/issues?q=gc-registration-order",
++    },
+ }};
+ 
+ static_assert(
+diff --git a/src/libutil/include/nix/util/experimental-features.hh b/src/libutil/include/nix/util/experimental-features.hh
+index 057a3b006..38776bf0a 100644
+--- a/src/libutil/include/nix/util/experimental-features.hh
++++ b/src/libutil/include/nix/util/experimental-features.hh
+@@ -38,6 +38,7 @@ enum struct ExperimentalFeature {
+     PipeOperators,
+     ExternalBuilders,
+     BLAKE3Hashes,
++    GCRegistrationOrder,
+ };
+ 
+ /**
+diff --git a/src/nix/store-gc.md b/src/nix/store-gc.md
+index 956b3c872..0cfee88aa 100644
+--- a/src/nix/store-gc.md
++++ b/src/nix/store-gc.md
+@@ -18,4 +18,16 @@ R""(
+ 
+ This command deletes unreachable paths in the Nix store.
+ 
++With the [`gc-registration-order`](@docroot@/development/experimental-features.md#xp-feature-gc-registration-order)
++experimental feature enabled, it prefers candidates with older registration times.
++For example, to prefer older paths when freeing disk space in a directly accessed local store:
++
++```console
++# nix --extra-experimental-features gc-registration-order store gc --max 1G
++```
++
++For daemon-backed stores, enable the feature in the daemon's configuration instead.
++See [garbage collection ordering](@docroot@/command-ref/nix-store/gc.md#ordering)
++for details and limitations.
++
+ )""
+diff --git a/tests/functional/gc-registration-order.sh b/tests/functional/gc-registration-order.sh
+new file mode 100644
+index 000000000..ef4f3c08a
+--- /dev/null
++++ b/tests/functional/gc-registration-order.sh
+@@ -0,0 +1,47 @@
++#!/usr/bin/env bash
++
++source common.sh
++
++TODO_NixOS
++needLocalStore "registration ordering must be enabled in the process running GC"
++enableFeatures "gc-registration-order"
++
++printf '%4096s' garbage > "$TEST_ROOT/payload"
++paths=()
++previous=0
++for i in 1 2 3 4; do
++    path=$(nix store add-path --name "gc-candidate-$i" "$TEST_ROOT/payload")
++    registered=$(nix path-info --json --json-format 1 "$path" | jq '.[].registrationTime')
++    [[ $registered -gt $previous ]]
++    previous=$registered
++    paths+=("$path")
++    sleep 1
++done
++
++nix store gc --max 0
++nix-store --gc --max-freed 0
++nix-collect-garbage --max-freed 0
++nix store gc --dry-run
++nix-store --gc --print-dead
++nix-collect-garbage --dry-run
++for path in "${paths[@]}"; do
++    test -e "$path"
++done
++
++nix store gc --max 1
++test ! -e "${paths[0]}"
++for path in "${paths[@]:1}"; do
++    test -e "$path"
++done
++
++nix-store --gc --max-freed 1
++test ! -e "${paths[1]}"
++test -e "${paths[2]}"
++test -e "${paths[3]}"
++
++nix-collect-garbage --max-freed 1
++test ! -e "${paths[2]}"
++test -e "${paths[3]}"
++
++nix store gc
++test ! -e "${paths[3]}"
+diff --git a/tests/functional/local-overlay-store/meson.build b/tests/functional/local-overlay-store/meson.build
+index 6db2c728d..dad15b636 100644
+--- a/tests/functional/local-overlay-store/meson.build
++++ b/tests/functional/local-overlay-store/meson.build
+@@ -16,3 +16,11 @@ suites += {
+   ],
+   'workdir' : meson.current_source_dir(),
+ }
++
++suites += {
++  'name' : 'local-overlay-store-gc-registration-order',
++  'deps' : [],
++  'tests' : [ 'gc.sh' ],
++  'env' : {'NIX_CONFIG' : 'extra-experimental-features = gc-registration-order'},
++  'workdir' : meson.current_source_dir(),
++}
+diff --git a/tests/functional/meson.build b/tests/functional/meson.build
+index 8fdaf4ffe..269e883e2 100644
+--- a/tests/functional/meson.build
++++ b/tests/functional/meson.build
+@@ -112,6 +112,7 @@ suites = [
+       'gc-closure.sh',
+       'gc-concurrent.sh',
+       'gc-non-blocking.sh',
++      'gc-registration-order.sh',
+       'gc-runtime.sh',
+       'gc.sh',
+       'hash-convert.sh',
+@@ -186,6 +187,20 @@ suites = [
+   },
+ ]
+ 
++suites += {
++  'name' : 'gc-registration-order',
++  'deps' : [],
++  'tests' : [
++    'gc.sh',
++    'gc-auto.sh',
++    'gc-closure.sh',
++    'gc-concurrent.sh',
++    'gc-non-blocking.sh',
++  ],
++  'env' : {'NIX_CONFIG' : 'extra-experimental-features = gc-registration-order'},
++  'workdir' : meson.current_source_dir(),
++}
++
+ nix_store = dependency('nix-store', required : false)
+ if nix_store.found()
+   add_languages('cpp')
+-- 
+2.56.0
+
