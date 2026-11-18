@@ -550,7 +550,7 @@ in
               read = readFilter "-allotment -enfield -steeplechase -home -work -office";
               rc.urgency.user.tag.southport.coefficient = 20;
             };
-            bike.read = readFilter "-home -southport -steeplechase -enfield -work -office -car -multivac -cornwall -phone -alex";
+            bike.read = readFilter "-home -southport -steeplechase -enfield -work -office -car -multivac -cornwall -alex";
             bed.read = readFilter "-home -southport -steeplechase -enfield -daylight -work -office -pc -multivac -hex -audio -business -alex -car -cornwall -phone -surface";
             office = {
               # Prioritise things that can only be done in the office.
