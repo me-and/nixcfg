@@ -8,5 +8,8 @@
   allowlistedLicenses = [ mylib.licenses.licensedToMe ];
 
   # Needed to allow tests to run while I'm overriding MakeMKV.
-  allowUnfreePackages = [ "makemkv" ];
+  allowUnfreePackages = [
+    "makemkv"
+    "thaura"
+  ];
 }
