@@ -75,7 +75,7 @@
         recurseIntoAttrs
         unionOfDisjoint
         ;
-      inherit (nixpkgs.lib.trivial) pipe;
+      inherit (nixpkgs.lib.trivial) flip pipe;
       inherit (flake-utils.lib) flattenTree eachSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
       inherit (self.lib) dirfiles dirmodules;
@@ -263,7 +263,17 @@
             recurseIntoAttrs
           ];
 
-          packages = recurseIntoAttrs (removeAttrs self.packages.${system} [ "everything" ]);
+          packages = pipe self.packages.${system} [
+            (flip removeAttrs [ "everything" ])
+            (mapAttrs (
+              name: pkg:
+              recurseIntoAttrs {
+                package = pkg;
+                tests = recurseIntoAttrs pkg.tests or pkg.passthru.tests or { };
+              }
+            ))
+            recurseIntoAttrs
+          ];
 
           extras = recurseIntoAttrs (
             import ./checks {
