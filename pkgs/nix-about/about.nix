@@ -7,10 +7,19 @@ in
 {
   pkgsPath ? <nixpkgs>,
   pkgs ? import pkgsPath { inherit config; },
-  lib ? pkgs.lib,
   pkgnames,
 }:
 let
+  # Always import the local lib rather than picking it up from pkgs: we want
+  # the method by which the report is built to depend on the local system, not
+  # any specified nixpkgs argument.
+  #
+  # TODO This approach depends on the environment (specifically NIX_PATH) that
+  # the script is run under, and should probably instead reference the lib from
+  # the nixpkgs used to build this package in the name of having more
+  # deterministic output.
+  lib = import <nixpkgs/lib>;
+
   evalStrOrFail =
     str:
     let
