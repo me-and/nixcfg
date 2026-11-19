@@ -14,6 +14,10 @@ writeCheckedShellApplication {
         nixpkgs_args+=(--argstr flake "$1")
     }
 
+    set_system_arg () {
+        nixpkgs_args+=(--argstr system "$1")
+    }
+
     packages=()
     nixpkgs_args=()
 
@@ -42,6 +46,19 @@ writeCheckedShellApplication {
             ;;
         --flake=*)
             set_flake_args "''${1#--flake=}"
+            shift
+            ;;
+
+        -s|--system)
+            set_system_arg "$2"
+            shift 2
+            ;;
+        -s*)
+            set_system_arg "''${1#-s}"
+            shift
+            ;;
+        --system=*)
+            set_system_arg "''${1#--system=}"
             shift
             ;;
 

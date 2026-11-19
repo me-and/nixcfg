@@ -8,16 +8,17 @@ in
   pkgsPath ? null,
   flake ? null,
   pkgnames,
+  system ? builtins.currentSystem,
 }:
 assert flake != null -> pkgsPath == null;
 let
   pkgs =
     if flake == null && pkgsPath == null then
-      import <nixpkgs> { inherit config; }
+      import <nixpkgs> { inherit config system; }
     else if pkgsPath != null then
-      import pkgsPath { inherit config; }
+      import pkgsPath { inherit config system; }
     else
-      import (builtins.getFlake flake) { inherit config; };
+      import (builtins.getFlake flake) { inherit config system; };
 
   # Always import the local lib rather than picking it up from pkgs: we want
   # the method by which the report is built to depend on the local system, not
