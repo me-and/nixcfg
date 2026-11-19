@@ -10,6 +10,10 @@ writeCheckedShellApplication {
         nixpkgs_args+=(--arg pkgsPath "$1")
     }
 
+    set_flake_args () {
+        nixpkgs_args+=(--argstr flake "$1")
+    }
+
     packages=()
     nixpkgs_args=()
 
@@ -27,6 +31,20 @@ writeCheckedShellApplication {
             set_nixpkgs_args "''${1#--nixpkgs=}"
             shift
             ;;
+
+        -f|--flake)
+            set_flake_args "$2"
+            shift 2
+            ;;
+        -f*)
+            set_flake_args "''${1#-f}"
+            shift
+            ;;
+        --flake=*)
+            set_flake_args "''${1#--flake=}"
+            shift
+            ;;
+
         --)
             shift
             packages+=("$@")
@@ -60,7 +78,7 @@ writeCheckedShellApplication {
     package_names+=']'
 
     ${nix}/bin/nix \
-        --extra-experimental-features nix-command \
+        --extra-experimental-features 'nix-command flakes' \
         eval \
         --read-only \
         --arg pkgnames "$package_names" \

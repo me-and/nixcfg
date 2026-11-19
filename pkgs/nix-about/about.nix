@@ -5,11 +5,20 @@ let
   };
 in
 {
-  pkgsPath ? <nixpkgs>,
-  pkgs ? import pkgsPath { inherit config; },
+  pkgsPath ? null,
+  flake ? null,
   pkgnames,
 }:
+assert flake != null -> pkgsPath == null;
 let
+  pkgs =
+    if flake == null && pkgsPath == null then
+      import <nixpkgs> { inherit config; }
+    else if pkgsPath != null then
+      import pkgsPath { inherit config; }
+    else
+      import (builtins.getFlake flake) { inherit config; };
+
   # Always import the local lib rather than picking it up from pkgs: we want
   # the method by which the report is built to depend on the local system, not
   # any specified nixpkgs argument.
