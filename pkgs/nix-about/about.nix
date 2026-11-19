@@ -66,7 +66,10 @@ let
             # rather than SPDX identifiers.
             mkBracket =
               x:
-              if x.licenseType == "compound" || x.licenseType == "exception" then "(${toName x})" else toName x;
+              let
+                type = x.licenseType or "";
+              in
+              if type == "compound" || type == "exception" then "(${toName x})" else toName x;
             toName =
               license:
               let
@@ -74,8 +77,10 @@ let
               in
               if builtins.isList license then
                 lib.concatMapStringsSep " / " toName license
-              else if license.licenseType == "simple" then
-                license.fullName
+              else if builtins.isString license then
+                license
+              else if license.licenseType or "simple" == "simple" then
+                license.fullName or "Unknown license type"
               else if license.licenseType == "compound" then
                 lib.concatMapStringsSep " ${operator} " (x: mkBracket x) license.licenses
               else if license.licenseType == "exception" then
