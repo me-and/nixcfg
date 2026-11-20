@@ -264,7 +264,6 @@
           ];
 
           packages = pipe self.packages.${system} [
-            (flip removeAttrs [ "everything" ])
             (mapAttrs (
               name: pkg:
               recurseIntoAttrs {
