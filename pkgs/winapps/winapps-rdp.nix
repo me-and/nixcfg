@@ -43,6 +43,6 @@ writeCheckedShellApplication {
         exit 78 # EX_CONFIG
     fi
 
-    exec xfreerdp /u:"$username" /p:"$password" /v:"$ip" /cert:tofu
+    exec xfreerdp /u:"$username" /p:"$password" /v:"$ip" /cert:tofu +dynamic-resolution
   '';
 }
