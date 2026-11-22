@@ -126,6 +126,10 @@ in
       # Using flakes so have no need for channels.
       nix.channel.enable = false;
 
+      # Clean up old build logs, as otherwise they hang around forever.
+      # https://github.com/nixos/nix/issues/16283
+      nix.buildLogRetention = "60d";
+
       systemd.services.nix-verify = {
         description = "Nix store verification";
         after = [ "nix-gc.service" ];
