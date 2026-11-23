@@ -83,7 +83,7 @@ in
           If set to `null`, old profiles will not be deleted.
         '';
         type = with lib.types; nullOr str;
-        default = "30d";
+        default = "28d";
         example = "7d";
       };
 
