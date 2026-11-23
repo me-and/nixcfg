@@ -198,10 +198,8 @@ in
             printf "bytes free:   %'20d (%s)\n" "$bytes_free" "$bytes_free_h" >&2
             printf "run if below: %'20d (%s)\n" "$run_free_bytes" "$run_free_bytes_h" >&2
 
-            if (( run_free_bytes < bytes_free )); then
-                # If there's nothing to free, run anyway to clean up stale gc roots
-                # and the like.
-                exec nix-collect-garbage --max-freed 0
+            if (( run_free_bytes <= bytes_free )); then
+                exit 0
             fi
 
             if [[ "$minimum_free_percent" = 0 ]]; then
@@ -220,7 +218,6 @@ in
 
             bytes_to_free_h="$(format_bytes "$bytes_to_free")"
             printf "to free:      %'20d (%s)\n" "$bytes_to_free" "$bytes_to_free_h" >&2
-
 
             nix-collect-garbage --max-freed "$bytes_to_free"
 
