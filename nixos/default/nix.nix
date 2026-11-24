@@ -157,9 +157,9 @@ in
         description = "Regular Nix store verification";
         timerConfig = {
           Persistent = true;
-          OnCalendar = "weekly";
+          OnCalendar = "quarterly";
           AccuracySec = "12h";
-          RandomizedOffsetSec = "7d";
+          RandomizedOffsetSec = "90d";
         };
         wantedBy = [ "timers.target" ];
       };
